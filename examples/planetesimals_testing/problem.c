@@ -92,8 +92,8 @@ int main(int argc, char* argv[]){
     
     //planetesimals
     double planetesimal_mass = 1e-8;
-    //double amin = 0.45, amax = 0.55;        //for planetesimal disk
-    double amin = 0.65, amax = 0.75;
+    double amin = 0.45, amax = 0.55;        //for planetesimal disk
+    //double amin = 0.65, amax = 0.75;
     double powerlaw = 0.5;
     double e_pp = 0.1;
     while(r->N<N_planetesimals + r->N_active){
@@ -109,13 +109,14 @@ int main(int argc, char* argv[]){
         reb_add(r, pt);
     }
     
-    r->usleep = 3000;
+    //r->usleep = 3000;
     int hit = 1;
+    double mass = 1e-10;
     {//planetesimal 1
         double f;
         if(hit)f = -0.94; else f = -0.91; //nearmiss/short encounter
         struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, r->particles[1].x+0.1, 0.4, 0, 0, 0, f);
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.4, 0, 0, 0, f);
         pt.r = 4e-5;
         pt.id = r->N;
         reb_add(r, pt);
@@ -124,7 +125,7 @@ int main(int argc, char* argv[]){
         double f;
         if(hit)f = 2.6748; else f = 2.67; //nearmiss
         struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, r->particles[1].x+0.2, 0.4, 0, 0, 0, f);
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.2, 0.4, 0, 0, 0, f);
         pt.r = 4e-5;
         pt.id = r->N;
         reb_add(r, pt);
@@ -134,21 +135,21 @@ int main(int argc, char* argv[]){
         double f;
         if(hit)f = 1.828; else f = 1.83; //nearmiss
         struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, r->particles[1].x+0.3, 0.3, 0, 0, M_PI, f);
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.3, 0, 0, M_PI, f);
         pt.r = 4e-5;
         pt.id = r->N;
         reb_add(r, pt);
     }
     
-    /*
+
      {//backup collision
      double f=-0.05;
      struct reb_particle pt = {0};
-     pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, r->particles[1].x+0.1, 0.2, 0, 0, 0, f);
+     pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.2, 0, 0, 0, f);
      pt.r = 4e-5;
      pt.id = r->N;
      reb_add(r, pt);
-     }*/
+     }
     
     /*
     {//planetesimal glide beside
@@ -208,7 +209,8 @@ void heartbeat(struct reb_simulation* r){
         }
         
         double E = reb_tools_energy(r) + r->collisions_dE;// + r->ri_hybarid.com_dE;
-        double dE = fabs((E-E0)/E0);
+        //double dE = fabs((E-E0)/E0);
+        double dE = (E-E0)/E0;
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
         
@@ -221,7 +223,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e,%f,%f,%e\n",r->t,dE,r->N,N_mini,time,N_CE,fabs(E-E0),E,E0,e,w,c_dcom(r));
+        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e,%f,%f,%e\n",r->t,dE,r->N,N_mini,time,N_CE,E-E0,E,E0,e,w,c_dcom(r));
         fclose(append);
     }
     
