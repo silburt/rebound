@@ -12,24 +12,12 @@
 #include "rebound.h"
 
 void heartbeat(struct reb_simulation* r);
-double c_angle(struct reb_simulation* r, double r_ps, int i, int incoming);
 double c_dcom(struct reb_simulation* r);
-void c_orb(struct reb_simulation* r, int planet_index, double* a, double* e, double* w, double* sinf, double* cosf, double* ey);
-void apsidal_precession(struct reb_simulation* r, int index, double dwdt);
 
 double E0, t_output, t_log_output, xyz_t = 0;
-int xyz_counter = 0, numdt = 20;
-char* mercury_dir; char* swifter_dir;
-
-//temp
-int output_xyz = 0; //switch to 0 for no outputs
 time_t t_ini;
-int N_prev;
-char* argv4;
+int N_prev, N_CE = 0;
 char output_name[100] = {0};
-int *in_mini;
-int N_CE = 0;
-int L_CE = 0;
 struct reb_particle comr0;
 
 int main(int argc, char* argv[]){
@@ -44,12 +32,11 @@ int main(int argc, char* argv[]){
     r->heartbeat	= heartbeat;
     r->ri_hybarid.switch_ratio = 6;        //Hill radii
     r->dt = -0.001;
-    double tmax = 0;
-
+    double tmax = -2;
+    
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
-    r->usleep = 10000;
     
     t_log_output = 1.00048;
     t_output = r->t;
@@ -60,7 +47,7 @@ int main(int argc, char* argv[]){
     
     //energy
     E0 = reb_tools_energy(r);
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv[3]); strcat(syss,"*");
+    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
     system(syss);
     
     t_ini = time(NULL);
@@ -87,7 +74,7 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         
         int N_mini = 0;
-        //if(r->integrator == REB_INTEGRATOR_HYBARID) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
+        if(r->integrator == REB_INTEGRATOR_HYBARID) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
         
         FILE *append;
         

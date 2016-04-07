@@ -22,24 +22,25 @@ if diagnostics == 1:
     time,dE = data[:,0],data[:,1]
     fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,10))
     if signed_energy == 1:
-        axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive values')
-        axes[0].plot(time[dE<0],abs(dE[dE<0]),'o', ms=ms, markeredgecolor='none',color='green',label='negative values')
+        axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive energy')
+        axes[0].plot(time[dE<0],abs(dE[dE<0]),'o', ms=ms, markeredgecolor='none',color='green',label='negative energy')
         energytitle = 'signed fractional energy'
+        axes[0].set_xlim([max(time),0.1])
     else:
         axes[0].plot(time,abs(dE), 'o', ms=ms, markeredgecolor='none',color='blue')
         axes[0].plot(time,0.5e-12*time, color='red', label='t')
         axes[0].plot(time,1e-12*time**0.5, color='black', label='t^0.5')
         energytitle = 'fractional energy'
-    axes[0].set_xscale('log')
-    axes[0].legend(loc='upper left',prop={'size':10})
+        axes[0].set_xlim([0.1,max(time)])
+        axes[0].set_xscale('log')
     axes[0].set_yscale('log')
-    axes[0].set_xlim([0.1,max(time)])
+    axes[0].legend(loc='upper left',prop={'size':10})
     axes[0].set_ylabel(energytitle)
-    #axes[1].plot(time,data[:,2], 'o', ms=ms, markeredgecolor='none', label='global: Np')
+    axes[1].plot(time,data[:,2], 'o', ms=ms, markeredgecolor='none', label='global: Np')
     axes[1].plot(time,data[:,3], 'o', ms=ms, markeredgecolor='none', label='mini: Np')
     axes[1].legend(loc='upper left',prop={'size':10})
-    axes[1].set_xscale('log')
-    #axes[1].set_ylim([0,max(data[:,2])])
+    axes[1].set_yscale('log')
+    axes[1].set_ylim([0.1,max(data[:,2])])
     axes[1].set_ylabel('Number of particles')
     #axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
     #axes[2].set_ylabel('arg of peri single particle')
