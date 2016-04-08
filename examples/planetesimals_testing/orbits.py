@@ -15,12 +15,12 @@ plot_dr_or_com = 1  #0 = dr, 1 = com
 fos = open(file_name, 'r')
 data = np.loadtxt(fos, delimiter=',')
 
-signed_energy = 1
+signed_energy = 0
 reverse_xaxis = 0
 
 ms=3
 if diagnostics == 1:
-    time,dE = data[:,0],data[:,1]
+    time,dE,Lang,Llin = data[:,0],data[:,1],data[:,9],data[:,10]
     fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,10))
     if signed_energy == 1:
         axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive energy')
@@ -44,9 +44,25 @@ if diagnostics == 1:
     axes[1].set_yscale('log')
     axes[1].set_ylim([0.1,max(data[:,2])])
     axes[1].set_ylabel('Number of particles')
+#momentum
+    if signed_energy == 1:
+        a=[Lang>0]
+        b=[Lang<0]
+        c=[Llin<0]
+        d=[Llin>0]
+        axes[2].plot(time[a],abs(Lang[a]), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum pos')
+        axes[2].plot(time[b],abs(Lang[b]), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum neg')
+        axes[2].plot(time[c],abs(Llin[c]), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum neg')
+        axes[2].plot(time[d],abs(Llin[d]), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum pos')
+    else:
+        axes[2].plot(time,abs(Lang), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum')
+        axes[2].plot(time,abs(Llin), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum')
+    axes[2].set_ylabel('momentum')
+    axes[2].legend(loc='upper left',prop={'size':10})
+    axes[2].set_yscale('log')
 #HSR
-    axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
-    axes[2].set_ylabel('HSR')
+    #axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
+    #axes[2].set_ylabel('HSR')
 #com
     #axes[2].plot(time,data[:,11], 'o', ms=ms, markeredgecolor='none',label='')
     #axes[2].plot(time,1e-11*time**1.5, color='black',label='t^1.5')
