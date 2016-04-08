@@ -16,6 +16,7 @@ fos = open(file_name, 'r')
 data = np.loadtxt(fos, delimiter=',')
 
 signed_energy = 1
+reverse_xaxis = 0
 
 ms=3
 if diagnostics == 1:
@@ -25,14 +26,15 @@ if diagnostics == 1:
         axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive energy')
         axes[0].plot(time[dE<0],abs(dE[dE<0]),'o', ms=ms, markeredgecolor='none',color='green',label='negative energy')
         energytitle = 'signed fractional energy'
-        axes[0].set_xlim([max(time),0.1])
     else:
         axes[0].plot(time,abs(dE), 'o', ms=ms, markeredgecolor='none',color='blue')
         axes[0].plot(time,0.5e-12*time, color='red', label='t')
         axes[0].plot(time,1e-12*time**0.5, color='black', label='t^0.5')
         energytitle = 'fractional energy'
-        axes[0].set_xlim([0.1,max(time)])
         axes[0].set_xscale('log')
+    axes[0].set_xlim([0.1,max(time)])
+    if reverse_xaxis == 1:
+        axes[0].set_xlim([max(time),0.1])
     axes[0].set_yscale('log')
     axes[0].legend(loc='upper left',prop={'size':10})
     axes[0].set_ylabel(energytitle)
@@ -42,20 +44,17 @@ if diagnostics == 1:
     axes[1].set_yscale('log')
     axes[1].set_ylim([0.1,max(data[:,2])])
     axes[1].set_ylabel('Number of particles')
-    #axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
-    #axes[2].set_ylabel('arg of peri single particle')
-    #axes[2].set_ylim([0,6.28])
-    #axes[2].plot(time,data[:,4], 'o', ms=ms, markeredgecolor='none',label='elapsed time (s)')
-    #axes[2].plot(time,data[:,5], 'o', ms=ms, markeredgecolor='none',label='N Close Encounters')
-    #axes[2].legend(loc='upper left',prop={'size':10})
-    #axes[2].set_xscale('log')
-    axes[2].plot(time,data[:,11], 'o', ms=ms, markeredgecolor='none',label='')
-    axes[2].plot(time,1e-11*time**1.5, color='black',label='t^1.5')
-    axes[2].plot(time,1e-11*time**2, color='red',label='t^2')
-    axes[2].set_xlabel('simulation time (yrs)')
-    axes[2].set_ylabel('dcom')
-    axes[2].set_yscale('log')
-    axes[2].legend(loc='lower left',prop={'size':10})
+#HSR
+    axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
+    axes[2].set_ylabel('HSR')
+#com
+    #axes[2].plot(time,data[:,11], 'o', ms=ms, markeredgecolor='none',label='')
+    #axes[2].plot(time,1e-11*time**1.5, color='black',label='t^1.5')
+    #axes[2].plot(time,1e-11*time**2, color='red',label='t^2')
+    #axes[2].set_xlabel('simulation time (yrs)')
+    #axes[2].set_ylabel('dcom')
+    #axes[2].set_yscale('log')
+    #axes[2].legend(loc='lower left',prop={'size':10})
 else:
     plt.plot(data[:,0],data[:,1], 'o', ms=ms, markeredgecolor='none')
     #plt.plot(data[:,0],3e-10*data[:,0]**(0.5),color='black',label='t^1/2 growth')

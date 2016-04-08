@@ -21,6 +21,8 @@ double E0, t_output, t_log_output, xyz_t = 0;
 int xyz_counter = 0, numdt = 20;
 char* mercury_dir; char* swifter_dir;
 
+double HSRbase;
+
 //temp
 int output_xyz = 0; //switch to 0 for no outputs
 time_t t_ini;
@@ -46,6 +48,7 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hybarid.switch_ratio = 6;        //Hill radii
+    HSRbase = r->ri_hybarid.switch_ratio;   //TEST
     r->dt = 0.001;
     
     r->collision = REB_COLLISION_DIRECT;
@@ -109,9 +112,9 @@ int main(int argc, char* argv[]){
         reb_add(r, pt);
     }
     
-    //r->usleep = 3000;
     int hit = 1;
-    double mass = 1e-10;
+    double mass = 1e-9;
+    r->usleep = 1000;
     {//planetesimal 1
         double f;
         if(hit)f = -0.94; else f = -0.91; //nearmiss/short encounter
@@ -141,15 +144,15 @@ int main(int argc, char* argv[]){
         reb_add(r, pt);
     }
     
-
-     {//backup collision
-     double f=-0.05;
-     struct reb_particle pt = {0};
-     pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.2, 0, 0, 0, f);
-     pt.r = 4e-5;
-     pt.id = r->N;
-     reb_add(r, pt);
-     }
+    {//planetesimal 4
+        double f;
+        if(hit)f= 1.9522; else f=1.951;
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.8, 0, 0, M_PI, f);
+        pt.r = 4e-5;
+        pt.id = r->N;
+        reb_add(r, pt);
+    }
     
     /*
     {//planetesimal glide beside
@@ -183,6 +186,10 @@ int main(int argc, char* argv[]){
 }
 
 void heartbeat(struct reb_simulation* r){
+    //change hill switch radius
+    //double random = (double)rand() / (double)RAND_MAX;
+    //r->ri_hybarid.switch_ratio = HSRbase + (random - 0.5)*0.5*HSRbase;
+    
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
         
@@ -223,7 +230,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e,%f,%f,%e\n",r->t,dE,r->N,N_mini,time,N_CE,E-E0,E,E0,e,w,c_dcom(r));
+        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e,%f,%f,%e\n",r->t,dE,r->N,N_mini,time,N_CE,E-E0,E,E0,e,r->ri_hybarid.switch_ratio,c_dcom(r));
         fclose(append);
     }
     

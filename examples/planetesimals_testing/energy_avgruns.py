@@ -27,14 +27,14 @@ def sort_index(array, val):
 def cdf(array):
     return np.arange(1,len(array)+1)/float(len(array))
 
-runs = ['HYBARID_Np500']
+runs = ['HYBARIDcoll_Np500']
 names = ['Np500, mp=1e-8','Np5000, mp=1e-9']
 colordark = ['darkgreen','darkblue','darkred']
 colorlight = ['lightgreen','dodgerblue','salmon']
 
 outputname = runs[0]+'avg'
 
-plot_removed_particles = 0
+plot_removed_particles = 1
 plot_only_avg = 0
 POE = 0         #plot only energy
 
@@ -169,7 +169,7 @@ else:
     axes[2].set_xscale('log')
     axes[2].set_xlabel('time (years)', fontsize=fontsize)
     if plot_removed_particles == 1:
-        axes[2].legend(loc='lower right',prop={'size':10})
+        axes[2].legend(loc='lower left',prop={'size':10})
 print 'Preparing PDF'
 plt.savefig(dirP+'energy_avgruns_'+outputname+'.png')
 plt.show()
