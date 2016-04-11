@@ -12,6 +12,20 @@ import matplotlib.colors as colors
 import sys
 import os
 
+def theory(system_params):
+    a,Ms,Me,mp,dt,HSR = system_params   #system parameters
+    rhHSR = HSR*a*(Me/(3*Ms))**(1./3.)
+    a2 = a*a
+    M3 = Me*mp*Ms
+    tau2 = dt*dt / 12.
+    #theory
+    term1 = M3/(a*rhHSR**3)
+    term2 = Me*Me*mp/(rhHSR**4)
+    term3 = -M3/(2*rhHSR*((a2 - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
+    termp = 3*M3/((a*rhHSR**3))
+    theory = (term1 + term2 + term3)*tau2
+    return theory
+
 def sort_index(array, val):
     index = -1
     for i in xrange(0,len(array)):
@@ -27,10 +41,11 @@ def sort_index(array, val):
 def cdf(array):
     return np.arange(1,len(array)+1)/float(len(array))
 
-runs = ['HYBARIDcoll_Np500']
-names = ['Np500, mp=1e-8','Np5000, mp=1e-9']
+runs = ['HYBARIDcoll_Np500','HYBARIDcoll2xR_Np500','HYBARIDcoll4xR_Np500']
+names = ['R','2R','4R']
 colordark = ['darkgreen','darkblue','darkred']
 colorlight = ['lightgreen','dodgerblue','salmon']
+theoryparams = [0.5,1,1e-5,1e-8,0.001/(2*np.pi),6] #a,M*,ME,mp,dt,HSR
 
 outputname = runs[0]+'avg'
 
@@ -93,7 +108,8 @@ for k in xrange(0,len(runs)):
         valsdcom = np.zeros(N_files)
         for j in range(0,N_files):
             split = data[j][i].split(",")
-            vals_for_med[j] = float(split[1])
+            vals_for_med[j] = float(split[1])      #energy
+            #vals_for_med[j] = abs(float(split[9]))       #ang. mom.
             E[j][i] = vals_for_med[j]
             valsdcom[j] = float(split[11])
         Eavg[i] = np.median(vals_for_med)
@@ -137,11 +153,17 @@ for k in xrange(0,len(runs)):
         Ncoll /= len(files)
         Nej /= len(files)
 
+        #error growth theory
+        scale_factor = 50000 #dE /(dE/E)
+        HSR_err = theory(theoryparams)
+        #HSR_err *= scale_factor
+
         #plotting
         if k==0:
             axes[2].plot(time, cdf(time)*Ntot, color=colordark[k], label='Avg. tot. removed particles')
             axes[2].plot(collide, cdf(collide)*Ncoll, colordark[k], linestyle='--',label='Avg. collided particles')
             axes[2].plot(eject, cdf(eject)*Nej, colordark[k],linestyle='-.',label='Avg. ejected particles')
+            #axes[0].plot(collide, cdf(collide)*HSR_err, colordark[k],linestyle='-.',label='Error growth Theory')
         else:
             axes[2].plot(time, cdf(time)*Ntot, color=colordark[k])
             axes[2].plot(collide, cdf(collide)*Ncoll, colordark[k], linestyle='--')
@@ -153,6 +175,7 @@ axes[0].plot(time,0.8e-11*time**(0.5),color='black', label='t$^{ 0.5}$')
 #axes[0].plot(time,2e-14*time,color='red', label='t')
 axes[0].legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=3)
 axes[0].set_ylabel('dE/E(0)', fontsize=fontsize)
+#axes[0].set_ylabel('dL/L(0)', fontsize=fontsize)
 axes[0].set_yscale('log')
 axes[0].set_xscale('log')
 axes[0].set_xlim([0.5,time[-1]])
@@ -165,7 +188,7 @@ else:
     axes[1].set_yscale('log')
     axes[1].legend(loc='upper left',prop={'size':10})
     axes[2].set_ylabel('removed particles', fontsize=fontsize)
-    axes[2].set_yscale('log')
+    #axes[2].set_yscale('log')
     axes[2].set_xscale('log')
     axes[2].set_xlabel('time (years)', fontsize=fontsize)
     if plot_removed_particles == 1:

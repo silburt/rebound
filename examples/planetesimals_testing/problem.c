@@ -57,6 +57,11 @@ int main(int argc, char* argv[]){
     r->collision_resolve = reb_collision_resolve_merge;
     r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
     
+    //For many ejected planetesimals this leads to error jumps.
+    //r->boundary	= REB_BOUNDARY_OPEN;
+    //const double boxsize = 10;
+    //reb_configure_box(r,boxsize,1,1,1);
+    
 	// Initial conditions
 	struct reb_particle star = {0};
 	star.m 		= 1;
@@ -67,14 +72,13 @@ int main(int argc, char* argv[]){
     t_log_output = 1.00048;
     t_output = r->dt;
     
+    int planetesimal_nearmiss_hit_tests = 0;
+    
     //planet 1
     {
-        double e;
-        if(N_planetesimals == 0) e = 0.9; else e = 0;
-        //double a = 0.5, m = 5e-5;
-        //double a = 1.2, m = 1e-3; e=0.1;
-        double a = 0.5, m = 1e-5; e=0.1;    //for collisions with planetesimals
-        //double a = 0.5, m = 1e-5; e=0;
+        double e,a,m;
+        if(planetesimal_nearmiss_hit_tests){a = 0.5, m = 1e-5; e=0.1;    //for collisions with planetesimals
+        }else{a=0.5,m=5e-5,e=0;}
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
         p.r = 1.6e-4;              //radius of particle is in AU!
@@ -86,8 +90,7 @@ int main(int argc, char* argv[]){
     
     //planetesimals
     double planetesimal_mass = 1e-8;
-    double amin = 0.45, amax = 0.55;        //for planetesimal disk
-    //double amin = 0.65, amax = 0.75;
+    double amin = 0.4, amax = 0.6;        //for planetesimal disk
     double powerlaw = 0.5;
     double e_pp = 0.1;
     while(r->N<N_planetesimals + r->N_active){
@@ -100,10 +103,13 @@ int main(int argc, char* argv[]){
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, e_pp, inc, Omega, apsis,phi);
 		pt.r 		= 4e-5;
         pt.id = r->N;
+        
+        pt.vx += 2*cos(phi);
+        pt.vy += 2*sin(phi);
+        
         reb_add(r, pt);
     }
     
-    int planetesimal_nearmiss_hit_tests = 1;
     if(planetesimal_nearmiss_hit_tests) nearmiss_hit_tests(r);
     
     //com
@@ -160,7 +166,7 @@ void heartbeat(struct reb_simulation* r){
         }
         
         int calc_mom = 1;
-        double dLA = 0, dLL = 0;
+        double dLA = 0, dLL = 0; //angular momentum, linear momentum
         if(calc_mom) c_momentum(r, &dLA, &dLL, LA0, LL0);
         
         double E = reb_tools_energy(r) + r->collisions_dE;// + r->ri_hybarid.com_dE;
@@ -195,7 +201,7 @@ void heartbeat(struct reb_simulation* r){
     //ejections
     {
         struct reb_particle* global = r->particles;
-        const double ED2 = 25;
+        const double ED2 = 10;
         struct reb_particle p0 = global[0];
         for(int i=1;i<r->N;i++){
             const double dx = global[i].x - p0.x;
@@ -204,6 +210,7 @@ void heartbeat(struct reb_simulation* r){
             if(dx*dx+dy*dy+dz*dz > ED2){
                 const double Ei = reb_tools_energy(r);
                 reb_remove(r,i,1);
+                reb_move_to_com(r);
                 const double Ef = reb_tools_energy(r);
                 r->collisions_dE += Ei - Ef;
                 
