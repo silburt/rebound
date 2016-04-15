@@ -44,6 +44,9 @@ def remove_particle_plot(file_name):
     axes[3].plot(time, cdf(time)*Ntot, color='red', label='Avg. tot. removed particles')
     axes[3].plot(collide, cdf(collide)*Ncoll, color='green', linestyle='--',label='Avg. collided particles')
     axes[3].plot(eject, cdf(eject)*Nej, color='blue',linestyle='-.',label='Avg. ejected particles')
+    axes[3].set_ylabel('removed particles')
+    axes[3].set_xlabel('time')
+    axes[3].legend(loc='upper left',prop={'size':10})
     axes[0].plot(collide, cdf(collide)*Ncoll*1e-12, color='brown', label='theory energy')
 
 colors=['b','g','m','r','c','y']

@@ -7,7 +7,7 @@ import time
 import random
 
 #Specify what runs you want *****************************
-
+'''
 #legend:[number of runs, N_planetesiamls]
 params = [6,500]
 
@@ -19,6 +19,15 @@ for i in xrange(0,params[0]):
     seed = "{:.0f}".format(int(1000*random.random()))
     name = 'output/HYBARID_Np'+Np+'_sd'+seed
     runs.append((Np,seed,name))
+'''
+
+#legend:[planet mass fac]
+params = range(1,10,1)
+seed = random.sample(range(0,1000),len(params))
+runs = []
+for i in xrange(0,len(params)):
+    name = 'output/HYBARID_Np500_sd'+str(seed[i])+'_mfac'+str(params[i])
+    runs.append((params[i],seed[i],name))
 
 os.system('make')
 
