@@ -62,18 +62,20 @@ data = np.loadtxt(fos, delimiter=',')
 signed_energy = 0
 reverse_xaxis = 0
 removed_particles = 1
-mom_or_com = 0  #plot momentum or com
 
 ms=3
 if diagnostics == 1:
-    time,dE,Lang,Llin,com = data[:,0],data[:,1],data[:,9],data[:,10],data[:,11]
+    time,dE,angM,Llin,com = data[:,0],data[:,1],data[:,9],data[:,10],data[:,11]
     fig, axes = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(10,10))
     if signed_energy == 1:
         axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive energy')
         axes[0].plot(time[dE<0],abs(dE[dE<0]),'o', ms=ms, markeredgecolor='none',color='green',label='negative energy')
+        axes[0].plot(time[angM>0],abs(angM[angM>0]),'o', ms=ms, markeredgecolor='none',color='red',label='positive ang. mom.')
+        axes[0].plot(time[angM<0],abs(angM[angM<0]),'o', ms=ms, markeredgecolor='none',color='orange',label='negative ang. mom.')
         energytitle = 'signed fractional energy'
     else:
         axes[0].plot(time,abs(dE), 'o', ms=ms, markeredgecolor='none',color='blue')
+        axes[0].plot(time,abs(angM), 'o', ms=ms, markeredgecolor='none',color='green',label='dL/L(0)')
         axes[0].plot(time,0.5e-12*time, color='red', label='t')
         axes[0].plot(time,1e-12*time**0.5, color='black', label='t^0.5')
         energytitle = 'fractional energy'
@@ -91,37 +93,15 @@ if diagnostics == 1:
     axes[1].set_ylim([0.1,max(data[:,2])])
     axes[1].set_ylabel('Number of particles')
 #momentum
-    if mom_or_com == 1:
-        if signed_energy == 1:
-            a=[Lang>0]
-            b=[Lang<0]
-            c=[Llin<0]
-            d=[Llin>0]
-            axes[2].plot(time[a],abs(Lang[a]), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum pos')
-            axes[2].plot(time[b],abs(Lang[b]), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum neg')
-            axes[2].plot(time[c],abs(Llin[c]), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum neg')
-            axes[2].plot(time[d],abs(Llin[d]), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum pos')
-        else:
-            axes[2].plot(time,abs(Lang), 'o', ms=ms, markeredgecolor='none',label='Angular Momentum')
-            axes[2].plot(time,abs(Llin), 'o', ms=ms, markeredgecolor='none',label='Linear Momentum')
-        axes[2].set_ylabel('momentum')
-        axes[2].legend(loc='upper left',prop={'size':10})
-        axes[2].set_yscale('log')
-    else:
-        axes[2].plot(time,com, 'o', ms=ms, markeredgecolor='none',label='')
-        axes[2].plot(time,1e-11*time**1.5, color='black',label='t^1.5')
-        axes[2].plot(time,1e-11*time**2, color='red',label='t^2')
-        axes[2].set_xlabel('simulation time (yrs)')
-        axes[2].set_ylabel('dcom')
-        axes[2].set_yscale('log')
-        axes[2].legend(loc='lower left',prop={'size':10})
+    axes[2].plot(time,com, 'o', ms=ms, markeredgecolor='none',label='')
+    axes[2].plot(time,1e-11*time**1.5, color='black',label='t^1.5')
+    axes[2].plot(time,1e-11*time**2, color='red',label='t^2')
+    axes[2].set_xlabel('simulation time (yrs)')
+    axes[2].set_ylabel('dcom')
+    axes[2].set_yscale('log')
+    axes[2].legend(loc='lower left',prop={'size':10})
     if removed_particles == 1:
         remove_particle_plot(file_name)
-
-#HSR
-    #axes[2].plot(time,data[:,10], 'o', ms=ms, markeredgecolor='none')
-    #axes[2].set_ylabel('HSR')
-#com
 
 else:
     plt.plot(data[:,0],data[:,1], 'o', ms=ms, markeredgecolor='none')
