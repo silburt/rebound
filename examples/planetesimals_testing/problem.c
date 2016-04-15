@@ -51,7 +51,6 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hybarid.switch_ratio = 6;        //Hill radii
-    HSRbase = r->ri_hybarid.switch_ratio;   //TEST
     r->dt = 0.001;
     
     r->collision = REB_COLLISION_DIRECT;
@@ -136,8 +135,6 @@ int main(int argc, char* argv[]){
 
 void heartbeat(struct reb_simulation* r){
     //change hill switch radius
-    //double random = (double)rand() / (double)RAND_MAX;
-    //r->ri_hybarid.switch_ratio = HSRbase + (random - 0.5)*0.5*HSRbase;
     
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
@@ -200,7 +197,7 @@ void heartbeat(struct reb_simulation* r){
     //ejections
     {
         struct reb_particle* global = r->particles;
-        const double ED2 = 10;
+        const double ED2 = 25;
         struct reb_particle p0 = global[0];
         for(int i=1;i<r->N;i++){
             const double dx = global[i].x - p0.x;

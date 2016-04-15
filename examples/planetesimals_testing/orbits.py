@@ -62,6 +62,7 @@ data = np.loadtxt(fos, delimiter=',')
 signed_energy = 0
 reverse_xaxis = 0
 removed_particles = 1
+plot_angmom = 0
 
 ms=3
 if diagnostics == 1:
@@ -70,12 +71,14 @@ if diagnostics == 1:
     if signed_energy == 1:
         axes[0].plot(time[dE>0],abs(dE[dE>0]),'o', ms=ms, markeredgecolor='none',color='blue',label='positive energy')
         axes[0].plot(time[dE<0],abs(dE[dE<0]),'o', ms=ms, markeredgecolor='none',color='green',label='negative energy')
-        axes[0].plot(time[angM>0],abs(angM[angM>0]),'o', ms=ms, markeredgecolor='none',color='red',label='positive ang. mom.')
-        axes[0].plot(time[angM<0],abs(angM[angM<0]),'o', ms=ms, markeredgecolor='none',color='orange',label='negative ang. mom.')
+        if plot_angmom == 1:
+            axes[0].plot(time[angM>0],abs(angM[angM>0]),'o', ms=ms, markeredgecolor='none',color='red',label='positive ang. mom.')
+            axes[0].plot(time[angM<0],abs(angM[angM<0]),'o', ms=ms, markeredgecolor='none',color='orange',label='negative ang. mom.')
         energytitle = 'signed fractional energy'
     else:
         axes[0].plot(time,abs(dE), 'o', ms=ms, markeredgecolor='none',color='blue')
-        axes[0].plot(time,abs(angM), 'o', ms=ms, markeredgecolor='none',color='green',label='dL/L(0)')
+        if plot_angmom == 1:
+            axes[0].plot(time,abs(angM), 'o', ms=ms, markeredgecolor='none',color='green',label='dL/L(0)')
         axes[0].plot(time,0.5e-12*time, color='red', label='t')
         axes[0].plot(time,1e-12*time**0.5, color='black', label='t^0.5')
         energytitle = 'fractional energy'
