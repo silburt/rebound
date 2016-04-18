@@ -41,17 +41,20 @@ def remove_particle_plot(file_name):
             Nej += 1
         time = sort_index(time, val)
         Ntot += 1
-    axes[3].plot(time, cdf(time)*Ntot, color='red', label='Avg. tot. removed particles')
-    axes[3].plot(collide, cdf(collide)*Ncoll, color='green', linestyle='--',label='Avg. collided particles')
-    axes[3].plot(eject, cdf(eject)*Nej, color='blue',linestyle='-.',label='Avg. ejected particles')
+    axes[3].plot(time, cdf(time)*Ntot, color='red', label='Avg. tot. removed particles (N='+str(Ntot)+')')
+    axes[3].plot(collide, cdf(collide)*Ncoll, color='green', linestyle='--',label='Avg. collided particles (N='+str(Ncoll)+')')
+    axes[3].plot(eject, cdf(eject)*Nej, color='blue',linestyle='-.',label='Avg. ejected particles (N='+str(Nej)+')')
     axes[3].set_ylabel('removed particles')
     axes[3].set_xlabel('time')
     axes[3].legend(loc='upper left',prop={'size':10})
-    axes[0].plot(collide, cdf(collide)*Ncoll*1e-12, color='brown', label='theory energy')
+    #axes[0].plot(collide, cdf(collide)*Ncoll*1e-12, color='brown', label='theory energy')
 
 colors=['b','g','m','r','c','y']
 
 file_name=str(sys.argv[1])
+dont_plot = 0
+if len(sys.argv) > 2:
+    dont_plot = sys.argv[2]
 
 diagnostics = 1
 plot_dr_or_com = 1  #0 = dr, 1 = com
@@ -118,4 +121,5 @@ else:
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'.png')
-plt.show()
+if dont_plot == 0:
+    plt.show()
