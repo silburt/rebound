@@ -21,12 +21,12 @@ for i in xrange(0,params[0]):
     runs.append((Np,seed,name))
 '''
 
-#legend:[planet mass fac]
-params = range(1,10,1)
+#legend:[planet radius fac]
+params = [1.,1.67,2.78,4.64,7.74,12.92,21.54,35.93,59.94,100.]
 seed = random.sample(range(0,1000),len(params))
 runs = []
 for i in xrange(0,len(params)):
-    name = 'output/HYBARID_Np500_sd'+str(seed[i])+'_mfac'+str(params[i])
+    name = 'output/HYBARID_Np1000_sd'+str(seed[i])+'_rpfac'+str(params[i])
     runs.append((params[i],seed[i],name))
 
 os.system('make')

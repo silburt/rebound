@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
     
     double tmax = INFINITY;
     int N_planetesimals = 1000;
-    double planet_mass_fac = atof(argv[1]);
+    double planet_radius_fac = atof(argv[1]);
     int seed = atoi(argv[2]);
     strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
     
@@ -78,10 +78,10 @@ int main(int argc, char* argv[]){
     {
         double e,a,m;
         if(planetesimal_nearmiss_hit_tests){a = 0.5, m = 1e-5; e=0.1;    //for collisions with planetesimals
-        }else{a=0.5,m=5e-5*planet_mass_fac,e=0;}
+        }else{a=0.5,m=5e-5,e=0;}
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
-        p.r = 1.6e-4;              //radius of particle is in AU!
+        p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
         p.id = r->N;
         reb_add(r, p);
     }
