@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
     t_log_output = 1.00048;
     t_output = r->dt;
     
-    int planetesimal_nearmiss_hit_tests = 0;
+    int planetesimal_nearmiss_hit_tests = 1;
     
     //planet 1
     {
@@ -89,6 +89,7 @@ int main(int argc, char* argv[]){
     r->N_active = r->N;
     
     //planetesimals
+    if(planetesimal_nearmiss_hit_tests) N_planetesimals = 0;
     double planetesimal_mass = 1e-8;
     double amin = 0.4, amax = 0.6;        //for planetesimal disk
     double powerlaw = 0.5;
@@ -176,7 +177,9 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         
         int N_mini = 0;
-        if(r->integrator == REB_INTEGRATOR_HYBARID) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
+        if(r->integrator == REB_INTEGRATOR_HYBARID){
+            if(r->ri_hybarid.mini_active) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
+        }
         
         FILE *append;
         append = fopen(output_name, "a");
