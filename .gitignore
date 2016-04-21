@@ -52,3 +52,6 @@ examples/planetesimals_massiveSS/*
 examples/planetesimals_restartbinary/*
 examples/planetesimals2/*
 examples/planetesimals_hr/*
+examples/planetesimal_Chelsea_Cristobel/output/*
+examples/planetesimal_Chelsea_Cristobel/saved_output/*
+examples/planetesimals_vanilla/*

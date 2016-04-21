@@ -9,24 +9,18 @@
 void heartbeat(struct reb_simulation* r);
 double E0;
 
-char output_name[100] = {0}; char* argv4;
-time_t t_ini;
-int N_prev;
-
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = atof(argv[2]);  //units of Hill radii
+    r->ri_hybarid.switch_ratio = 2;  //units of Hill radii
     r->ri_hybarid.CE_radius = 15.;   //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     
-    r->dt = atof(argv[1]);
-    double tmax = 1e6*6.2832;
-    
-    strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
+    r->dt = 0.001;
+    double tmax = 1e6*6.2832;   //time in units of yr/2pi
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -104,31 +98,13 @@ int main(int argc, char* argv[]){
     r->N_active = r->N;
     reb_move_to_com(r);
     
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv[3]); strcat(syss,"*");
-    system(syss);
-    //system("rm -f energy.txt");
-    
-    //temp
-    t_ini = time(NULL);
-    struct tm *tmp = gmtime(&t_ini);
-    N_prev = r->N;
+    system("rm -f energy.txt");
     
     //calculate initial energy
     E0 = reb_tools_energy(r);
     
     //Integrate!
     reb_integrate(r, tmax);
-    
-    //elapsed time stuff
-    time_t t_fini = time(NULL);
-    struct tm *tmp2 = gmtime(&t_fini);
-    double time = t_fini - t_ini;
-    char timeout[200] = {0};
-    strcat(timeout,argv[3]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
-    FILE* outt = fopen(timeout,"w");
-    fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fclose(outt);
-    printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     
 }
 
@@ -138,18 +114,12 @@ void heartbeat(struct reb_simulation* r){
         tout *=1.01;
         double E = reb_tools_energy(r) + r->collisions_dE;
         double dE = fabs((E-E0)/E0);
-        //FILE* f = fopen("energy.txt","a+");
-        
-        time_t t_curr = time(NULL);
-        struct tm *tmp2 = gmtime(&t_curr);
-        double time = t_curr - t_ini;
-        
-        FILE* f = fopen(output_name, "a");
+        FILE* f = fopen("energy.txt","a+");
         int N_mini = 0;
         if (r->ri_hybarid.mini_active){
             N_mini = r->ri_hybarid.mini->N;
         }
-        fprintf(f,"%e,%e,%d,%e,%d,%d,%e\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini,time);
+        fprintf(f,"%e,%e,%d,%e,%d,%d\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini);
         fclose(f);
     }
     
@@ -163,41 +133,4 @@ void heartbeat(struct reb_simulation* r){
         }
         printf("dE=%e,N_mini=%d",dE,N_mini);
     }
-    
-    //temp
-    //record collisions in mini
-    if(r->N < N_prev){
-        char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed.txt");
-        FILE* append = fopen(removed,"a");
-        fprintf(append,"Collision,%.5f\n",r->t);
-        fclose(append);
-        
-        N_prev = r->N;
-    }
-    
-    //ejections
-    {
-        struct reb_particle* global = r->particles;
-        const double ED2 = 36;
-        struct reb_particle p0 = global[0];
-        for(int i=1;i<r->N;i++){
-            const double dx = global[i].x - p0.x;
-            const double dy = global[i].y - p0.y;
-            const double dz = global[i].z - p0.z;
-            if(dx*dx+dy*dy+dz*dz > ED2){
-                const double Ei = reb_tools_energy(r);
-                reb_remove(r,i,1);
-                const double Ef = reb_tools_energy(r);
-                r->collisions_dE += Ei - Ef;
-                
-                char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
-                FILE* append = fopen(removed,"a");
-                fprintf(append,"Ejection,%.5f\n",r->t);
-                fclose(append);
-                
-                N_prev = r->N;
-            }
-        }
-    }
-    
 }

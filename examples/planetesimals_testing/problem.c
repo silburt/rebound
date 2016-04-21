@@ -40,7 +40,8 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     double tmax = INFINITY;
-    int N_planetesimals = 1000;
+    //int N_planetesimals = 1000;
+    int N_planetesimals = 0;
     double planet_radius_fac = atof(argv[1]);
     int seed = atoi(argv[2]);
     strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
@@ -52,6 +53,7 @@ int main(int argc, char* argv[]){
     r->heartbeat	= heartbeat;
     r->ri_hybarid.switch_ratio = 6;        //Hill radii
     r->dt = 0.001;
+    r->usleep = 1000;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]){
     t_log_output = 1.00048;
     t_output = r->dt;
     
-    int planetesimal_nearmiss_hit_tests = 1;
+    int planetesimal_nearmiss_hit_tests = 0;
     
     //planet 1
     {
@@ -81,6 +83,18 @@ int main(int argc, char* argv[]){
         }else{a=0.5,m=5e-5,e=0;}
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
+        p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
+        p.id = r->N;
+        reb_add(r, p);
+    }
+    
+    //massive body collision - com issues during collision I think, and energy scaling issues?
+    if(planetesimal_nearmiss_hit_tests == 0){
+        double e,a,m,f;
+        a=0.55,m=1e-5;e=0.4,f=-1.252;    //for collisions with planetesimals
+        //a=0.55,m=5e-5,e=0.4,f=-1.254;
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
         p.id = r->N;
         reb_add(r, p);
@@ -166,20 +180,18 @@ void heartbeat(struct reb_simulation* r){
         double dLA = 0, dLL = 0; //angular momentum, linear momentum
         if(calc_mom) c_momentum(r, &dLA, &dLL, LA0, LL0);
         
+        int N_mini = 0;
+        if(r->ri_hybarid.mini_active) N_mini = r->ri_hybarid.mini->N;
+        
         double E = reb_tools_energy(r) + r->collisions_dE;// + r->ri_hybarid.com_dE;
         //double dE = fabs((E-E0)/E0);
         double dE = (E-E0)/E0;
         reb_output_timing(r, 0);
-        printf("    dE=%e",dE);
+        printf("    dE=%e,N_mini=%d",dE,N_mini);
         
         time_t t_curr = time(NULL);
         struct tm *tmp2 = gmtime(&t_curr);
         double time = t_curr - t_ini;
-        
-        int N_mini = 0;
-        if(r->integrator == REB_INTEGRATOR_HYBARID){
-            if(r->ri_hybarid.mini_active) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
-        }
         
         FILE *append;
         append = fopen(output_name, "a");
