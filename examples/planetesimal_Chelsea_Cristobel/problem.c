@@ -9,17 +9,22 @@
 void heartbeat(struct reb_simulation* r);
 double E0;
 
+//temp
+char* argv4;
+char output_name[100] = {0};
+
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = 2;  //units of Hill radii
+    r->ri_hybarid.switch_ratio = atof(argv[1]);  //units of Hill radii
     r->ri_hybarid.CE_radius = 15.;   //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
+    strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
     
-    r->dt = 0.001;
+    r->dt = atof(argv[2]);
     double tmax = 1e6*6.2832;   //time in units of yr/2pi
     
     r->collision = REB_COLLISION_DIRECT;
@@ -114,7 +119,7 @@ void heartbeat(struct reb_simulation* r){
         tout *=1.01;
         double E = reb_tools_energy(r) + r->collisions_dE;
         double dE = fabs((E-E0)/E0);
-        FILE* f = fopen("energy.txt","a+");
+        FILE* f = fopen(output_name,"a+");
         int N_mini = 0;
         if (r->ri_hybarid.mini_active){
             N_mini = r->ri_hybarid.mini->N;
