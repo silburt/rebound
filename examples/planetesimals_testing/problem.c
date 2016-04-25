@@ -40,8 +40,7 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     double tmax = INFINITY;
-    //int N_planetesimals = 1000;
-    int N_planetesimals = 0;
+    int N_planetesimals = 1000;
     double planet_radius_fac = atof(argv[1]);
     int seed = atoi(argv[2]);
     strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
@@ -51,9 +50,8 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 6;        //Hill radii
+    r->ri_hybarid.switch_ratio = 3;        //Hill radii
     r->dt = 0.001;
-    r->usleep = 1000;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -83,18 +81,6 @@ int main(int argc, char* argv[]){
         }else{a=0.5,m=5e-5,e=0;}
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
-        p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
-        reb_add(r, p);
-    }
-    
-    //massive body collision - com issues during collision I think, and energy scaling issues?
-    if(planetesimal_nearmiss_hit_tests == 0){
-        double e,a,m,f;
-        a=0.55,m=1e-5;e=0.4,f=-1.252;    //for collisions with planetesimals
-        //a=0.55,m=5e-5,e=0.4,f=-1.254;
-        struct reb_particle p = {0};
-        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
         p.id = r->N;
         reb_add(r, p);
