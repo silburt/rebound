@@ -12,6 +12,7 @@ double E0;
 //temp
 char* argv4;
 char output_name[100] = {0};
+time_t t_ini;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
@@ -108,6 +109,9 @@ int main(int argc, char* argv[]){
     //calculate initial energy
     E0 = reb_tools_energy(r);
     
+    t_ini = time(NULL);
+    struct tm *tmp = gmtime(&t_ini);
+    
     //Integrate!
     reb_integrate(r, tmax);
     
@@ -120,11 +124,16 @@ void heartbeat(struct reb_simulation* r){
         double E = reb_tools_energy(r) + r->collisions_dE;
         double dE = fabs((E-E0)/E0);
         FILE* f = fopen(output_name,"a+");
+        
+        time_t t_curr = time(NULL);
+        struct tm *tmp2 = gmtime(&t_curr);
+        double time = t_curr - t_ini;
+        
         int N_mini = 0;
         if (r->ri_hybarid.mini_active){
             N_mini = r->ri_hybarid.mini->N;
         }
-        fprintf(f,"%e,%e,%d,%e,%d,%d\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini);
+        fprintf(f,"%e,%e,%d,%e,%d,%d,%f\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini,time);
         fclose(f);
     }
     
