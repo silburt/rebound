@@ -92,7 +92,7 @@ if diagnostics == 1:
     axes[0].set_yscale('log')
     axes[0].legend(loc='upper left',prop={'size':10})
     axes[0].set_ylabel(energytitle)
-#axes[1].plot(time,data[:,2], 'o', ms=ms, markeredgecolor='none', label='global: Np')
+    axes[1].plot(time,data[:,2], 'o', ms=ms, markeredgecolor='none', label='global: Np')
     axes[1].plot(time,data[:,3], 'o', ms=ms, markeredgecolor='none', label='mini: Np')
     axes[1].legend(loc='upper left',prop={'size':10})
 #axes[1].set_yscale('log')
