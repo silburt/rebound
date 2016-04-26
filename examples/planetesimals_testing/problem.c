@@ -169,7 +169,7 @@ void heartbeat(struct reb_simulation* r){
         int N_mini = 0;
         if(r->ri_hybarid.mini_active) N_mini = r->ri_hybarid.mini->N;
         
-        double E = reb_tools_energy(r) + r->collisions_dE;// + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r);// + r->ri_hybarid.com_dE;
         //double dE = fabs((E-E0)/E0);
         double dE = (E-E0)/E0;
         reb_output_timing(r, 0);

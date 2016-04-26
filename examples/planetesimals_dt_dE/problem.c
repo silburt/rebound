@@ -202,7 +202,7 @@ void heartbeat(struct reb_simulation* r){
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
         
-        double E = reb_tools_energy(r) + r->collisions_dE + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r) + r->ri_hybarid.com_dE;
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
