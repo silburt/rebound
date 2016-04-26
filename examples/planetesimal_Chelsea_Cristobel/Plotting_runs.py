@@ -14,7 +14,7 @@ HSR = [ 3.99436153,  3.29998598,  3.00573604,  3.47210691,  3.90949609,
        3.95028692,  3.2805955 ,  2.17323678,  2.64272983,  3.48236786]
 runs = []
 for i in xrange(0,len(dt)):
-    dtstr = "{:.4f}".format(dt[i])
+    dtstr = "{:.6f}".format(dt[i])
     HSRstr = "{:.2f}".format(HSR[i])
     name = 'output/Chelsea_HSR'+HSRstr+'_dt'+dtstr
     runs.append((HSRstr,dtstr,name))

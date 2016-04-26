@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
+	r->integrator	= REB_INTEGRATOR_IAS15;
     r->ri_hybarid.switch_ratio = atof(argv[1]);  //units of Hill radii
     r->ri_hybarid.CE_radius = 15.;   //X*radius
     r->testparticle_type = 1;
