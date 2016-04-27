@@ -4,6 +4,7 @@
 M = 1
 HSR = 1
 HSR_frac = 0.1
+safe_factor = 4
 
 #planet 1
 m1 = 1e-3
@@ -20,4 +21,4 @@ e2 = 0.5
 v_rel = ((M/a2)*(1+e2)/(1-e2))**0.5 - ((M/a1)*(1+e1)/(1-e1))**0.5
 dr = HSR_frac*HSR*r1_hill
 dt = dr/v_rel
-print dt/4.
+print dt/safe_factor

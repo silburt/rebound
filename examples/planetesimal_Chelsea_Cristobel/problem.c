@@ -32,6 +32,10 @@ int main(int argc, char* argv[]){
     r->collision_resolve = reb_collision_resolve_merge;
     r->collisions_track_dE = 1;
     
+    r->boundary	= REB_BOUNDARY_OPEN;
+    const double boxsize = 12;
+    reb_configure_box(r,boxsize,2,2,1);
+    
 	// Initial conditions
 	struct reb_particle star = {0};
 	star.m 		= 1;
