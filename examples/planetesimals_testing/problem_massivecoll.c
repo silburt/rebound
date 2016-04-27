@@ -96,7 +96,7 @@ double tout = 0.1;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
         tout *=1.01;
-        double E = reb_tools_energy(r) + r->collisions_dE;
+        double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         FILE* f = fopen("energy.txt","a+");
         int N_mini = 0;
@@ -108,7 +108,7 @@ void heartbeat(struct reb_simulation* r){
     }
     
     if (reb_output_check(r, 100.*r->dt)){
-        double E = reb_tools_energy(r) + r->collisions_dE;
+        double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         int N_mini = 0;

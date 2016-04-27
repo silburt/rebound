@@ -10,17 +10,18 @@
 
 void heartbeat(struct reb_simulation* r);
 double E0;
+int N_prev;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_IAS15;
-    r->ri_hybarid.switch_ratio = 5;  //units of Hill radii
+	r->integrator	= REB_INTEGRATOR_HYBARID;
+    r->ri_hybarid.switch_ratio = 3;  //units of Hill radii
     r->ri_hybarid.CE_radius = 15.;   //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
-    r->usleep = 50000;
+    r->usleep = 5000;
     
     r->dt = 0.001;
     double tmax = INFINITY;
@@ -28,6 +29,10 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->collisions_track_dE = 1;
+    
+    r->boundary	= REB_BOUNDARY_OPEN;
+    const double boxsize = 3;
+    reb_configure_box(r,boxsize,1,1,1);
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -46,36 +51,40 @@ int main(int argc, char* argv[]){
         reb_add(r, p);
     }
     
-    //massive body collision - com issues during collision I think, and energy scaling issues?
+    /*
+    //massive body collision with star?
     {
         double e,a,m,f;
-        a=0.55,m=1e-5;e=0.4,f=-1.252;    //for collisions with planetesimals
+        a=0.7,m=1e-5;e=0.999,f=0;    //for collisions with planetesimals
         //a=0.55,m=5e-5,e=0.4,f=-1.254;
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = 1.6e-4;              //radius of particle is in AU!
         p.id = r->N;
         reb_add(r, p);
-    }
+    }*/
     
     {
         double e,a,m,f;
-        a=0.7,m=1e-5;e=0,f=0;    //for collisions with planetesimals
+        a=1.0,m=1e-5;e=0,f=0;    //for collisions with planetesimals
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
-        p.r = 1.6e-4;              //radius of particle is in AU!
+        p.r = 1.6e-4; //radius of particle is in AU!
+        p.vy *=2;
         p.id = r->N;
         reb_add(r, p);
     }
     
     r->N_active = r->N;
 
+
     {//planetesimal
         double e,a,m,f;
-        a=0.71,m=1e-9;e=0,f=0.1;    //for collisions with planetesimals
+        a=0.71,m=1e-9;e=0,f=0;    //for collisions with planetesimals
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = 1.6e-4;              //radius of particle is in AU!
+        //p.vy *= 2;
         p.id = r->N;
         reb_add(r, p);
     }
@@ -86,6 +95,7 @@ int main(int argc, char* argv[]){
     
     //calculate initial energy
     E0 = reb_tools_energy(r);
+    N_prev = r->N;
     
     //Integrate!
     reb_integrate(r, tmax);
