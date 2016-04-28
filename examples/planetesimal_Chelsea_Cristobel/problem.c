@@ -36,6 +36,8 @@ int main(int argc, char* argv[]){
     const double boxsize = 12;
     reb_configure_box(r,boxsize,2,2,1);
     
+    r->usleep=100;
+    
 	// Initial conditions
 	struct reb_particle star = {0};
 	star.m 		= 1;
@@ -108,7 +110,8 @@ int main(int argc, char* argv[]){
     r->N_active = r->N;
     reb_move_to_com(r);
     
-    system("rm -f energy.txt");
+    char sys[200] = {0}; strcat(sys,"rm -f "); strcat(sys,output_name);
+    system(sys);
     
     //calculate initial energy
     E0 = reb_tools_energy(r);
