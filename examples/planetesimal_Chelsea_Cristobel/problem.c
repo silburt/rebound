@@ -128,6 +128,7 @@ double tout = 0.1;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
         tout *=1.01;
+        //tout += 1;
         double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         FILE* f = fopen(output_name,"a+");

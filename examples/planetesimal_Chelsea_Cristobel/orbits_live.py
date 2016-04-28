@@ -16,6 +16,9 @@ fig, ax = plt.subplots()
 line, = ax.plot([], [], 'k-')
 ax.margins(0.05)
 ax.set_yscale('log')
+ax.set_ylim([1e-6,1e-2])
+ax.set_ylabel('Fractional Energy Error')
+ax.set_xlabel('Time')
 
 def init():
     line.set_data(x[:2],y[:2])
@@ -28,16 +31,16 @@ def file_len(file):
     return i + 1
 
 def animate(i):
+    window = 100
     len = file_len('output/test.txt')
     with open('output/test.txt') as f:
-        d=np.genfromtxt(itertools.islice(f,len-50,len),delimiter=',',usecols=(0,1))
+        d=np.genfromtxt(itertools.islice(f,len-100,len),delimiter=',',usecols=(0,1))
     xdata=d[:,0]
     ydata=d[:,1]
     line.set_data(xdata, ydata)
     ax.relim()
-    ax.autoscale()
+    ax.autoscale(axis='x')
     return line,
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, interval=25)
-
 plt.show()
