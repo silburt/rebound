@@ -6,8 +6,8 @@ import sys
 import time
 import random
 
-dt = [10e-3,9e-3,8e-3,5e-3,4e-3,3e-3,2e-3,1e-3,0.5e-3]
-HSR = [1,1.01,0.99,1.02,1.03,1.04,1.05,1.06,1.07]
+dt = [1e-3,1e-4,1e-3,1e-4,1e-3,1e-4,1e-3,1e-4,1e-3,1e-4,1e-3,1e-4]
+HSR = [1,1,1.05,1.05,1.1,1.1,1.15,1.15,1.2,1.2,1.25,1.25]
 runs = []
 for i in xrange(0,len(dt)):
     dtstr = "{:.4f}".format(dt[i])

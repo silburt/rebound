@@ -36,8 +36,6 @@ int main(int argc, char* argv[]){
     const double boxsize = 12;
     reb_configure_box(r,boxsize,2,2,1);
     
-    r->usleep=100;
-    
 	// Initial conditions
 	struct reb_particle star = {0};
 	star.m 		= 1;
@@ -47,6 +45,17 @@ int main(int argc, char* argv[]){
     //massive bodies
     double J2AU = 0.00046731951;    //conversion factor from jupiter radius to AU
     double d2r = 0.0174533;
+    /*
+     {
+     double m=4.84568e-5, rad=1.*J2AU;
+     double a=9.703237608614e-2, e=2.626647049513e-2, inc=4.767341227875e-1*d2r;
+     double g=1.249385857281e2*d2r, n=2.397754395330e2*d2r, M=1.719987629785e2*d2r;
+     struct reb_particle p1 = {0};
+     p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, n, g, M);
+     p1.r = rad;
+     p1.id = r->N;
+     reb_add(r, p1);
+     }*/
     {
         double m=1.04157e-3, rad=1.*J2AU;
         double a=2.515, e=6.994025330588e-3, inc=8.856892519209e-1*d2r;
@@ -71,16 +80,6 @@ int main(int argc, char* argv[]){
         double m=1.08788e-3, rad=1.*J2AU;
         double a=4.383122343529, e=7.691604147363e-3, inc=1.310554328953e-1*d2r;
         double g=1.773477245097e2*d2r, n=1.405393882599e2*d2r, M=1.573696692684e2*d2r;
-        struct reb_particle p1 = {0};
-        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, n, g, M);
-        p1.r = rad;
-        p1.id = r->N;
-        reb_add(r, p1);
-    }
-    {
-        double m=4.84568e-5, rad=1.*J2AU;
-        double a=9.703237608614e-2, e=2.626647049513e-2, inc=4.767341227875e-1*d2r;
-        double g=1.249385857281e2*d2r, n=2.397754395330e2*d2r, M=1.719987629785e2*d2r;
         struct reb_particle p1 = {0};
         p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, n, g, M);
         p1.r = rad;
