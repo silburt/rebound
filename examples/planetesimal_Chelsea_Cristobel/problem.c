@@ -140,7 +140,7 @@ void heartbeat(struct reb_simulation* r){
         if (r->ri_hybarid.mini_active){
             N_mini = r->ri_hybarid.mini->N;
         }
-        fprintf(f,"%e,%e,%d,%e,%d,%d,%f\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini,time);
+        fprintf(f,"%e,%e,%d,%e,%d,%d,%f,%d\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini,time,r->ri_hybarid.timestep_too_large_warning);
         fclose(f);
     }
     
