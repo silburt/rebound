@@ -57,3 +57,4 @@ examples/planetesimals_vanilla/*
 examples/planetesimals_Kirsh/saved_output/*
 examples/planetesimals_Kirsh/output/*
 examples/planetesimals_Kirsh/energy_avg/*
+ipython_examples/HERMES_examples/output
