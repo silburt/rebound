@@ -24,6 +24,7 @@ def sort(x, y):
     return x, y
 
 def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
+    print scale_factor
     rhHSR = rh*HSR
     a2 = a*a
     M3 = Me*mp*Ms

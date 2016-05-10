@@ -42,6 +42,7 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
+    r->usleep = 1000;
     
     double afac = 1;
     
@@ -202,7 +203,7 @@ void heartbeat(struct reb_simulation* r){
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
         
-        double E = reb_tools_energy(r) + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
