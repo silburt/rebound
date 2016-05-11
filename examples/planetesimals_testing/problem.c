@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
     t_log_output = 1.00048;
     t_output = r->dt;
     
-    int planetesimal_nearmiss_hit_tests = 0;
+    int planetesimal_nearmiss_hit_tests = 1;
     
     //planet 1
     {
