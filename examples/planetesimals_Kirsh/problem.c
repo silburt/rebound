@@ -18,16 +18,16 @@ time_t t_ini;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     double m_earth = 0.000003003;
-    int seed = atoi(argv[2]);
+    int seed = atoi(argv[3]);
     srand(seed);
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = atof(argv[3]);  //Hill radii
+    r->ri_hybarid.switch_ratio = atof(argv[1]);  //Hill radii
     r->ri_hybarid.CE_radius = 15.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
-    r->dt = atof(argv[1]);
+    r->dt = atof(argv[2]);
     //r->dt = 12.56;  //planet's period = 125 years
     //r->dt = 1;
     double tmax = 1e5 * 6.283;
@@ -46,7 +46,8 @@ int main(int argc, char* argv[]){
     double a1=25, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
     struct reb_particle p1 = {0};
     p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
+    p1.r = atof(argv[4]);
+    //p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
     //p1.r = 5e-4;
     p1.id = r->N;
     reb_add(r, p1);
@@ -55,7 +56,7 @@ int main(int argc, char* argv[]){
     reb_move_to_com(r);
     
     //planetesimals
-    double planetesimal_mass = m1/600;     //each planetesimal = 1/600th of planet mass
+    double planetesimal_mass = m1/600.;     //each planetesimal = 1/600th of planet mass
     int N_planetesimals = 230.*m_earth/planetesimal_mass;
     double amin = a1 - 10.5, amax = a1 + 10.5;   //10.5AU on each side of the planet
     while(r->N<N_planetesimals + r->N_active){
