@@ -47,4 +47,4 @@ examples/planetesimals_testing/saved_output/*
 examples/planetesimals3/output/*
 examples/planetesimals3/saved_output/*
 examples/planetesimals3/energy_avg/*
-examples/ipython_examples/HERMES_examples/output/*
+ipython_examples/HERMES_examples/output/*
