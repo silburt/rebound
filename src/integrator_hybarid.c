@@ -137,7 +137,7 @@ void reb_integrator_hybarid_synchronize(struct reb_simulation* r){
 }
 
 void reb_integrator_hybarid_reset(struct reb_simulation* r){
-    r->ri_hybarid.timestep_too_large_warning = 0.;
+    //r->ri_hybarid.timestep_too_large_warning = 0.;
     
     reb_integrator_whfast_reset(r);
 
