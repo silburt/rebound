@@ -51,7 +51,7 @@ void reb_integrator_hybarid_part1(struct reb_simulation* r){
         r->ri_hybarid.mini = mini;
         mini->usleep = -1; // Disable visualiation
         mini->integrator = REB_INTEGRATOR_IAS15;
-        mini->gravity = REB_GRAVITY_BASIC;
+        //mini->gravity = REB_GRAVITY_BASIC;
         mini->dt = r->dt;
         mini->additional_forces = reb_integrator_hybarid_additional_forces_mini;
         mini->ri_hybarid.global = r;    //set to != 0 so that collision.c knows to remove from both
@@ -198,16 +198,15 @@ static void reb_integrator_hybarid_check_for_encounter(struct reb_simulation* gl
             const double dy = pi.y - pj.y;
             const double dz = pi.z - pj.z;
             const double rij2 = dx*dx + dy*dy + dz*dz;
-            
-            // Monitor hillradius/relative velocity every opportunity!
-            const double dvx = pi.vx - pj.vx;
-            const double dvy = pi.vy - pj.vy;
-            const double dvz = pi.vz - pj.vz;
-            const double vij2 = dvx*dvx + dvy*dvy + dvz*dvz;
-            const double dt_enc2 = switch_ratio2*rh_sum2/vij2;
-            min_dt_enc2 = MIN(min_dt_enc2,dt_enc2);
 
             if(rij2 < switch_ratio2*rh_sum2 || rij2 < radius_check2){
+                const double dvx = pi.vx - pj.vx;
+                const double dvy = pi.vy - pj.vy;
+                const double dvz = pi.vz - pj.vz;
+                const double vij2 = dvx*dvx + dvy*dvy + dvz*dvz;
+                const double dt_enc2 = switch_ratio2*rh_sum2/vij2;
+                min_dt_enc2 = MIN(min_dt_enc2,dt_enc2);
+                
                 global->ri_hybarid.mini_active = 1;
                 if (j>=_N_active && global->ri_hybarid.is_in_mini[j]==0){//make sure not already added
                     // Add particle to mini simulation

@@ -57,12 +57,13 @@ int main(int argc, char* argv[]){
     
     //planetesimals
     double planetesimal_mass = m1/600.;     //each planetesimal = 1/600th of planet mass
-    int N_planetesimals = 230.*m_earth/planetesimal_mass;
+    //int N_planetesimals = 230.*m_earth/planetesimal_mass;
+    int N_planetesimals = 5000;
     double amin = a1 - 10.5, amax = a1 + 10.5;   //10.5AU on each side of the planet
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
-		//double a	= reb_random_powerlaw(amin,amax,1);
-        double a = draw_ainv_powerlaw(amin,amax);
+		double a	= reb_random_powerlaw(amin,amax,1);
+        //double a = draw_ainv_powerlaw(amin,amax);
         double e = reb_random_rayleigh(0.01);   //rayleigh dist
         double inc = reb_random_rayleigh(0.005);
         double Omega = reb_random_uniform(0,2.*M_PI);
