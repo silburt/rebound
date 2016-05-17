@@ -39,7 +39,7 @@ struct reb_particle comr0;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    r->usleep = 10000;
+    r->usleep = 1000;
     
     double tmax = INFINITY;
     //int N_planetesimals = 1000;
@@ -49,11 +49,11 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_IAS15;
+	r->integrator	= REB_INTEGRATOR_HYBARID;
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 3;        //Hill radii
+    r->ri_hybarid.switch_ratio = 6;        //Hill radii
     r->dt = 0.001;
     
     r->collision = REB_COLLISION_DIRECT;
