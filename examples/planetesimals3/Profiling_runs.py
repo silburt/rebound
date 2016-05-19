@@ -6,12 +6,14 @@ import sys
 import time
 #import numpy as np
 
-#params=[(10000000,50,13,"output/Np50_sd13.txt"),(10000000,50,26,"output/Np50_sd26.txt"),(10000000,50,34,"output/Np50_sd34.txt"),(10000000,50,51,"output/Np50_sd51.txt"),(10000000,50,63,"output/Np50_sd63.txt"),(10000000,50,65,"output/Np50_sd65.txt"),(10000000,50,70,"output/Np50_sd70.txt"),(10000000,50,10,"output/Np50_sd10.txt"),(5000000,100,16,"output/Np100_sd16.txt"),(5000000,100,18,"output/Np100_sd18.txt"),(5000000,100,28,"output/Np100_sd28.txt"),(5000000,100,37,"output/Np100_sd37.txt"),(5000000,100,52,"output/Np100_sd52.txt"),(5000000,100,62,"output/Np100_sd62.txt"),(5000000,100,67,"output/Np100_sd67.txt"),(5000000,100,72,"output/Np100_sd72.txt"),(1000000,500,11,"output/Np500_sd11.txt"),(1000000,500,12,"output/Np500_sd12.txt"),(1000000,500,22,"output/Np500_sd22.txt"),(1000000,500,33,"output/Np500_sd33.txt"),(1000000,500,49,"output/Np500_sd49.txt"),(1000000,500,62,"output/Np500_sd62.txt"),(1000000,500,65,"output/Np500_sd65.txt"),(1000000,500,71,"output/Np500_sd71.txt")]
-
 #params=[(10000000,50,12,"output/Np50_sd12.txt"),(10000000,50,22,"output/Np50_sd22.txt"),(10000000,50,32,"output/Np50_sd32.txt"),(10000000,50,51,"output/Np50_sd51.txt"),(10000000,50,61,"output/Np50_sd61.txt"),(10000000,50,80,"output/Np50_sd80.txt"),(5000000,100,10,"output/Np100_sd10.txt"),(5000000,100,18,"output/Np100_sd18.txt"),(5000000,100,27,"output/Np100_sd27.txt"),(5000000,100,41,"output/Np100_sd41.txt"),(5000000,100,73,"output/Np100_sd73.txt"),(5000000,100,83,"output/Np100_sd83.txt"),(1000000,500,13,"output/Np500_sd13.txt"),(1000000,500,16,"output/Np500_sd16.txt"),(1000000,500,33,"output/Np500_sd33.txt"),(1000000,500,39,"output/Np500_sd39.txt"),(1000000,500,79,"output/Np500_sd79.txt"),(1000000,500,90,"output/Np500_sd90.txt")]
 
 #Mercury/Hybarid/Swifter comp tests
-params=[(50000000,50,12,"output/Np50_sd12"),(50000000,50,22,"output/Np50_sd22"),(50000000,50,32,"output/Np50_sd32"),(50000000,50,51,"output/Np50_sd51"),(50000000,50,61,"output/Np50_sd61"),(50000000,50,80,"output/Np50_sd80")]
+#params=[(50000000,50,12,"output/Np50_sd12"),(50000000,50,22,"output/Np50_sd22"),(50000000,50,32,"output/Np50_sd32"),(50000000,50,51,"output/Np50_sd51"),(50000000,50,61,"output/Np50_sd61"),(50000000,50,80,"output/Np50_sd80")]
+
+#May19 Mercury_swifter comps
+tmax=5e7
+params=[(tmax,50,12,"output/t5e7_Np50_sd12"),(tmax,50,22,"output/t5e7_Np50_sd22"),(tmax,50,32,"output/t5e7_Np50_sd32"),(tmax,50,51,"output/t5e7_Np50_sd51"),(tmax,50,61,"output/t5e7_Np50_sd61"),(tmax,50,80,"output/t5e7_Np50_sd80")]
 
 length = len(params)
 

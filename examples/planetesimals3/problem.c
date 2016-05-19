@@ -49,8 +49,8 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 6;        //Hill radii
-    r->dt = 0.0015;
+    r->ri_hybarid.switch_ratio = 1;        //Hill radii
+    r->dt = 0.015;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -68,6 +68,7 @@ int main(int argc, char* argv[]){
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
     
+    /*
     //planet 1
     {
         double a=0.5, m=5e-5, e=0, inc = reb_random_normal(0.00001);
@@ -76,18 +77,17 @@ int main(int argc, char* argv[]){
         p1.r = 1.6e-4;              //radius of particle is in AU!
         p1.id = r->N;
         reb_add(r, p1);
-    }
+    }*/
     
-    /*
     //planet 2
     {
-        double a=1, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
+        double a=2, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
-        p2.r = 1.6e-4;
+        p2.r = 2e-4;
         p2.id = r->N;
         reb_add(r, p2);
-    }*/
+    }
     
     r->N_active = r->N;
     
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]){
     //double total_planetesimal_mass = 500e-8;
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
     double planetesimal_mass = 1e-8;
-    double amin = 0.4, amax = 0.6;        //for planetesimal disk
-    //double amin = 0.45, amax = 1.05;
+    //double amin = 0.4, amax = 0.6;        //for planetesimal disk
+    double amin = 1.8, amax = 2.2;
     double powerlaw = 0.5;
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
@@ -161,7 +161,7 @@ void heartbeat(struct reb_simulation* r){
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
         
-        double E = reb_tools_energy(r) + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
@@ -170,6 +170,7 @@ void heartbeat(struct reb_simulation* r){
         struct tm *tmp2 = gmtime(&t_curr);
         double time = t_curr - t_ini;
         
+        /*
         //
         //counting close encounters + calculate angle
         int count_CE = 0;
@@ -223,11 +224,11 @@ void heartbeat(struct reb_simulation* r){
                     fclose(aa);
                 }
             }
-        }
+        }*/
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e,%e\n",r->t,dE,r->N,r->ri_hybarid.mini->N,time,N_CE,fabs(E-E0),E,E0,c_dcom(r));
+        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e\n",r->t,dE,r->N,r->ri_hybarid.mini->N,time,N_CE,fabs(E-E0),E,E0);
         fclose(append);
     }
     
@@ -368,7 +369,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(swifterparams,"J4             0.0E0\n");
     fprintf(swifterparams,"CHK_CLOSE      yes\n");
     fprintf(swifterparams,"CHK_RMIN       -1.0\n");
-    fprintf(swifterparams,"CHK_RMAX       1000.0\n");
+    fprintf(swifterparams,"CHK_RMAX       100.0\n");
     fprintf(swifterparams,"CHK_EJECT      -1.0\n");
     fprintf(swifterparams,"CHK_QMIN       -1.0\n");
     fprintf(swifterparams,"!CHK_QMIN_COORD HELIO\n");
