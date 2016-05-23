@@ -51,7 +51,7 @@ y_choice = int(sys.argv[1])      #0 = plot elapsed time, 1 = energy, 2=N_CE
 x_choice = 1                     #0 = dt, 1 = HSR, 2 = Np
 
 dirP = str('dtvdE_files/')
-Navg = 3                       #number of points at end of .txt file to average energy over
+Navg = 10                       #number of points at end of .txt file to average energy over
 xvals = []
 
 if x_choice == 0:   #dt
@@ -68,7 +68,7 @@ if x_choice == 1:   #HSR
     xname = 'HSR (hill radii)'
     #yvals = ['Np500','Np5000']
     #path = '_th*_elapsedtime.txt'
-    yvals = ['Np1000']
+    yvals = ['Np1000_sd*']
     path = '_elapsedtime.txt'
     labels = yvals
     marker = '.'
@@ -135,8 +135,8 @@ for i in xrange(0,leny):
             if x_choice != 2:
                 if CE[j] == 0:
                     CE[j] = 1
-                ratio[j] = dE[j]/np.sqrt(CE[j])
-                #ratio[j] = dE[j]/CE[j]
+                #ratio[j] = dE[j]/np.sqrt(CE[j])
+                ratio[j] = dE[j]/CE[j]
         except:
             print 'file: '+f+' will not be included in dataset'
     if y_choice == 0:

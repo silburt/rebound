@@ -24,7 +24,7 @@ HSR = np.logspace(-1,1.5,n_runs)
 seed = np.random.randint(0,1000,n_runs)
 names = []
 for i in xrange(0,n_runs):
-    names.append("HSR"+str(round(HSR[i],2))+"_Np1000_sd"+str(seed[i]))
+    names.append("output/HSR"+str(round(HSR[i],2))+"_Np1000_sd"+str(seed[i]))
 
 params = zip(HSR,seed,names)
 length = len(params)
