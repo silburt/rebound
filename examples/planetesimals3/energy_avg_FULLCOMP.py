@@ -30,8 +30,8 @@ N_planetesimals = raw_input("Enter # planetesimals for runs you wish to average:
 ms = 0.25
 alpha = 0.4
 
-swifter = 0
-mercury = 0
+swifter = 1
+mercury = 1
 
 fig = plt.figure(figsize=(8, 8))
 gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])

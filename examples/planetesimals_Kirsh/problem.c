@@ -73,6 +73,8 @@ int main(int argc, char* argv[]){
 		pt.r 		= 0.00000934532;
         pt.id = r->N;
 		reb_add(r, pt);
+        printf("%.16f\n",planetesimal_mass);
+        exit(0);
     }
     
     int n_output = 25000;
@@ -117,7 +119,7 @@ void heartbeat(struct reb_simulation* r){
     if(r->t > tlog_output || r->t > tlin_output){//log output or linear output!!
         if(r->t > tlog_output)tlog_output = r->t*log_constant; else tlin_output = r->t+lin_constant;
         
-        double E = reb_tools_energy(r) + r->collisions_dE;
+        double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         double a1 = calc_a(r);
         
