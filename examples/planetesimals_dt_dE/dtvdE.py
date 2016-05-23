@@ -67,8 +67,9 @@ if x_choice == 1:   #HSR
     ext = 'HSR'
     xname = 'HSR (hill radii)'
     #yvals = ['Np500','Np5000']
-    yvals = ['Np0']
-    path = '_th*_elapsedtime.txt'
+    #path = '_th*_elapsedtime.txt'
+    yvals = ['Np1000']
+    path = '_elapsedtime.txt'
     labels = yvals
     marker = '.'
     title = 'HSR: Integrating 2p, 2pl system for 1M orbits'
