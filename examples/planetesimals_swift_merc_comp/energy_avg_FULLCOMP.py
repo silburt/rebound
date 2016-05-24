@@ -182,7 +182,11 @@ axes[1].set_yticks(range(1,4))
 axes[1].set_yticklabels(['HERMES','SyMBA','MERCURY'])
 axes[1].set_ylim([0.5,3.5])
 print 'Preparing PDF'
-plt.savefig(dirP+'energy_avg_FULL.png')
+
+#from matplotlib.backends.backend_pdf import PdfPages
+#pp = PdfPages(dirP+'energy_avg_FULL.pdf')
+#plt.savefig(pp, format='pdf')
+plt.savefig(dirP+'energy_avg_FULL.pdf', format='pdf')
 plt.show()
 
 
