@@ -12,13 +12,9 @@
 #include "rebound.h"
 
 void heartbeat(struct reb_simulation* r);
-double c_angle(struct reb_simulation* r, double r_ps, int i, int incoming);
-struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice);
-double c_dcom(struct reb_simulation* r);
 
 double E0, t_output, t_log_output, xyz_t = 0;
 int xyz_counter = 0, numdt = 20;
-char* mercury_dir; char* swifter_dir;
 
 //temp
 int output_xyz = 0; //switch to 0 for no outputs
@@ -45,9 +41,9 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = atof(argv[1]);        //Hill radii
+    r->ri_hybarid.switch_ratio = 6;        //Hill radii
     r->dt = 0.015;
-    double tmax = 5e3;
+    double tmax = atof(argv[1]);
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_hardsphere;
@@ -68,7 +64,7 @@ int main(int argc, char* argv[]){
     //planet 1
     double m_planet = 5e-5;
     {
-        double a=2, m=m_planet, e=0.01, inc=reb_random_normal(0.00001);
+        double a=1, m=m_planet, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = 2e-4;
@@ -81,9 +77,9 @@ int main(int argc, char* argv[]){
     //planetesimals
     //double total_planetesimal_mass = 500e-8;
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
-    int N_planetesimals = 1000;
+    int N_planetesimals = 200;
     double planetesimal_mass = m_planet/N_planetesimals;
-    double amin = 1.8, amax = 2.2;
+    double amin = 0.98, amax = 1.02;
     double powerlaw = 0.5;
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
@@ -148,14 +144,7 @@ void heartbeat(struct reb_simulation* r){
         int count_CE = 1;
         if(count_CE){
             struct reb_simulation* mini = r->ri_hybarid.mini;
-            double r_ps = 0, angle = 0;
-            //char ia[200] = {0}; strcat(ia,argv4); strcat(ia,"_inangle.txt");
-            //char oa[200] = {0}; strcat(oa,argv4); strcat(oa,"_outangle.txt");
-            //struct reb_particle* global = r->particles;
-            //double dx = global[0].x - global[1].x;
-            //double dy = global[0].y - global[1].y;
-            //r_ps = sqrt(dx*dx + dy*dy);  //planet-star distance
-            
+    
             int tempL_CE = L_CE;
             for(int i=mini->N_active;i<mini->N;i++){//check if entered
                 int mini_id = mini->particles[i].id;
@@ -167,12 +156,7 @@ void heartbeat(struct reb_simulation* r){
                 if(found_in_mini == 0){//particle must have just entered CE region
                     in_mini[L_CE] = mini_id;
                     L_CE++;
-                    //angle = c_angle(r, r_ps, mini_id,1);
-                    //printf("\nParticle entered, angle=%f, n_CE=%d,mini_id=%d\n",angle*57.29578,N_CE,mini_id);
                     N_CE++;
-                    //FILE* aa = fopen(ia, "a");
-                    //fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,mini_id,N_CE);
-                    //fclose(aa);
                 }
             }
             
@@ -189,11 +173,6 @@ void heartbeat(struct reb_simulation* r){
                     L_CE--;
                     for(int k=i;k<tempL_CE2-1;k++) in_mini[k] = in_mini[k+1];
                     in_mini[tempL_CE2] = 0;
-                    //angle = c_angle(r, r_ps, id,0);
-                    //printf("\nParticle left, angle=%f, n_CE=%d, id=%d\n",angle*57.29578,N_CE,id);
-                    //FILE* aa = fopen(oa, "a");
-                    //fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,id,N_CE);
-                    //fclose(aa);
                 }
             }
         }
@@ -238,36 +217,4 @@ void heartbeat(struct reb_simulation* r){
             }
         }
     }
-}
-
-struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice){
-    struct reb_particle com = {.m=0, .x=0, .y=0, .z=0, .vx=0, .vy=0, .vz=0};
-    struct reb_particle* restrict const particles = r->particles;
-    for (int i=0;i<N_choice;i++){
-        com = reb_get_com_of_pair(com, particles[i]);
-    }
-    return com;
-}
-
-//works only for one planet!
-double c_angle(struct reb_simulation* r, double r_ps, int id, int incoming){
-    struct reb_particle* p = r->particles;
-    for(int i=r->N_active;i<r->N;i++){//get correct index
-        if(p[i].id == id){
-            //atan2, sensitive to 2pi
-            double x1 = p[1].x - p[0].x;
-            double y1 = p[1].y - p[0].y;
-            double phi1 = atan2(y1,x1);
-            double x2 = p[i].x - p[1].x;
-            double y2 = p[i].y - p[1].y;
-            double phi2 = atan2(y2,x2);
-            double phi;
-            if(phi1 < M_PI) phi = (M_PI - phi1) + phi2; else phi = phi2 - (phi1 - M_PI);
-            while(phi > 2*M_PI) phi -= 2*M_PI;
-            while(phi < 0) phi += 2*M_PI;
-        
-            return phi;
-        }
-    }
-    return -1;
 }

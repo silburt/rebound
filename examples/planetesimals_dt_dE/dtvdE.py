@@ -51,7 +51,7 @@ y_choice = int(sys.argv[1])      #0 = plot elapsed time, 1 = energy, 2=N_CE
 x_choice = 1                     #0 = dt, 1 = HSR, 2 = Np
 
 dirP = str('dtvdE_files/')
-Navg = 10                       #number of points at end of .txt file to average energy over
+Navg = 3                       #number of points at end of .txt file to average energy over
 xvals = []
 
 if x_choice == 0:   #dt
@@ -59,18 +59,19 @@ if x_choice == 0:   #dt
     xname = 'timestep (years)'
     yvals = ['Np0']
     path = '_th*_elapsedtime.txt'
-    labels = yvals
+    labels = ['Simulation']
     marker = '.'
     title = 'dt: Integrating 2p, 2pl system for 1000 orbits'
     HSR = 6
 if x_choice == 1:   #HSR
     ext = 'HSR'
-    xname = 'HSR (hill radii)'
+    xname = 'HSB (hill radii)'
     #yvals = ['Np500','Np5000']
     #path = '_th*_elapsedtime.txt'
     yvals = ['Np1000_sd*']
+    #yvals = ['Np0_th*']
     path = '_elapsedtime.txt'
-    labels = yvals
+    labels = ['Simulation']
     marker = '.'
     title = 'HSR: Integrating 2p, 2pl system for 1M orbits'
     dt = np.array(1e-3)/twopi  #must be in yr/2pi format
@@ -160,7 +161,7 @@ if y_choice == 0:
     name = 'elapsed time (seconds)'
     oname = 'ET'
 elif y_choice == 1:
-    name = 'dE/E(0)'
+    name = 'Fractional Energy Error'
     oname = 'dE'
 elif y_choice == 2:
     name = '# Close Encouters'
@@ -170,11 +171,11 @@ else:
     oname = 'ratio'
 plt.yscale('log')
 plt.xscale('log')
-plt.ylabel(name, fontsize = 16)
-plt.xlabel(xname, fontsize = 16)
+plt.ylabel(name, fontsize = 13)
+plt.xlabel(xname, fontsize = 13)
 #plt.title(title)
 #plt.ylim([np.min(y),2])
 plt.legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=2)
-plt.savefig('dtvdE_files/'+ext+'_v_'+oname+'.png')
+plt.savefig('dtvdE_files/'+ext+'_v_'+oname+'.pdf')
 plt.show()
 
