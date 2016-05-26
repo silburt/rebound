@@ -53,23 +53,6 @@ class reb_simulation_integrator_hybrid(Structure):
     _fields_ = [("switch_ratio", c_double),
                 ("mode", c_int)]
 
-class reb_simulation_integrator_hybarid(Structure):
-    _fields_ = [("mini", c_void_p),
-                ("global", c_void_p),
-                ("switch_radius", c_double),
-                ("CE_radius", c_double),
-                ("mini_active", c_int),
-                ("collision_this_global_dt", c_int),
-                ("global_index_from_mini_index", POINTER(c_int)),
-                ("global_index_from_mini_index_N",c_int),
-                ("global_index_from_mini_index_Nmax",c_int),
-                ("is_in_mini", POINTER(c_int)),
-                ("is_in_mini_Nmax", c_int),
-                ("a_i", POINTER(c_double)),
-                ("a_f", POINTER(c_double)),
-                ("a_Nmax", c_int),
-                ("timestep_too_large_warning", c_int)]
-
 
 class reb_simulation_integrator_wh(Structure):
     _fields_ = [(("allocatedN"), c_int),
@@ -1127,6 +1110,23 @@ class Variation(Structure):
         ParticleList = Particle*N
         ps = ParticleList.from_address(ctypes.addressof(sim._particles.contents)+self.index*ctypes.sizeof(Particle))
         return ps
+
+class reb_simulation_integrator_hybarid(Structure):
+    _fields_ = [("mini", POINTER(Simulation)),
+                ("global", c_void_p),
+                ("switch_radius", c_double),
+                ("CE_radius", c_double),
+                ("mini_active", c_int),
+                ("collision_this_global_dt", c_int),
+                ("global_index_from_mini_index", POINTER(c_int)),
+                ("global_index_from_mini_index_N",c_int),
+                ("global_index_from_mini_index_Nmax",c_int),
+                ("is_in_mini", POINTER(c_int)),
+                ("is_in_mini_Nmax", c_int),
+                ("a_i", POINTER(c_double)),
+                ("a_f", POINTER(c_double)),
+                ("a_Nmax", c_int),
+                ("timestep_too_large_warning", c_int)]
 
 # Setting up fields after class definition (because of self-reference)
 Simulation._fields_ = [

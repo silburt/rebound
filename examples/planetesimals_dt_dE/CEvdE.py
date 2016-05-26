@@ -16,12 +16,12 @@ dirP = sys.argv[1]
 Navg = 3                       #number of points at end of .txt file to average energy over
 xvals = []
 
-a = np.array(2)             #AU
+a = np.array(1)             #AU
 Ms = np.array(1)            #Solar mass
-mp = np.array(5e-7)         #Solar mass
+mp = np.array(2.5e-7)         #Solar mass
 Me = np.array(5e-5)         #Solar mass
 rh = a*(Me/(3*Ms))**(1./3.) #AU
-HSR = 3
+HSR = 6
 dt = 0.015/twopi
 
 files = glob.glob(dirP+'*_elapsedtime.txt')
@@ -63,7 +63,7 @@ if y_choice == 0:
 elif y_choice == 1:
     y = ratio
     yname = 'dE/E/N$_{switch}$'
-plt.plot(CE, y, 'o')
+plt.plot(CE, y, '.')
 
 #theory
 rhHSR = rh*HSR
@@ -74,15 +74,16 @@ term2 = Me*Me*mp/(rhHSR**4)
 term3 = -M3/(2*rhHSR*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
 termp = 3*M3/((a*rhHSR**3))
 theory = (term1 + term2 + term3)*tau2*np.mean(scaling_factor)
-plt.plot(CE, theory*np.sqrt(CE),'+-',label='E$_{single} * \sqrt{CE}$')
-plt.plot(CE, theory*CE,'+-',label='E$_{single} * CE$')
+plt.plot(CE, theory*np.sqrt(CE),'+-',label='$E^{WH}_{floor} * \sqrt{CE}$')
+plt.plot(CE, theory*CE,'<-',markeredgecolor='none',label='$E^{WH}_{floor} * CE$')
 
 plt.yscale('log')
 plt.xscale('log')
 plt.ylabel(yname, fontsize = 13)
-plt.xlabel('number of Close Encounters', fontsize = 13)
+plt.xlabel('Number of Close Encounters', fontsize = 13)
+plt.xlim([5,1e4])
 plt.legend(loc='upper left',prop={'size':13}, numpoints=1, markerscale=2)
-plt.title('HSR=6, dt=0.015, a$_p$=2, N$_{pl}$=200')
+#plt.title('HSR='+str(HSR)+', dt='+str(round(dt*twopi,4))+', a$_p$='+str(a)+', N$_{pl}$=200')
 plt.savefig(dirP+'CEvdE.pdf')
 plt.show()
 
