@@ -15,7 +15,7 @@ import types
 ### The following enum and class definitions need to
 ### consitent with those in rebound.h
         
-INTEGRATORS = {"ias15": 0, "whfast": 1, "sei": 2, "wh": 3, "leapfrog": 4, "hybrid": 5, "hybarid": 6, "none": 7}
+INTEGRATORS = {"ias15": 0, "whfast": 1, "sei": 2, "wh": 3, "leapfrog": 4, "hybarid": 5, "none": 6}
 BOUNDARIES = {"none": 0, "open": 1, "periodic": 2, "shear": 3}
 GRAVITIES = {"none": 0, "basic": 1, "compensated": 2, "tree": 3}
 COLLISIONS = {"none": 0, "direct": 1, "tree": 2}
@@ -48,10 +48,6 @@ class reb_collision(Structure):
                 ("gb", reb_ghostbox),
                 ("time", c_double),
                 ("ri", c_int)]
-
-class reb_simulation_integrator_hybrid(Structure):
-    _fields_ = [("switch_ratio", c_double),
-                ("mode", c_int)]
 
 class reb_simulation_integrator_hybarid(Structure):
     _fields_ = [("mini", c_void_p),
@@ -422,7 +418,7 @@ class Simulation(Structure):
         - ``'sei'``
         - ``'wh'``
         - ``'leapfrog'``
-        - ``'hybrid'``
+        - ``'hybarid'``
         - ``'none'``
         
         Check the online documentation for a full description of each of the integrators. 
@@ -868,37 +864,39 @@ class Simulation(Structure):
         return orbits
 
 # COM calculation 
-    def calculate_com(self, last=None):
+    def calculate_com(self, first=0, last=None):
         """
         Returns the center of momentum for all particles in the simulation.
 
         Parameters
         ----------
+        first: int, optional
+            If ``first`` is specified, only calculate the center of momentum starting
+            from index=``first``.
         last : int or None, optional
-            If ``last`` is specified only calculate the center of momentum for the
-            first ``last`` particles in the array (i.e., indices up to i-1, as used 
-            in Jacobi coordinates).
+            If ``last`` is specified only calculate the center of momentum up to 
+            (but excluding) index=``last``.  Same behavior as Python's range function.
 
         Examples
         --------
         >>> sim = rebound.Simulation()
+        >>> sim.add(m=1, x=-20)
+        >>> sim.add(m=1, x=-10)
         >>> sim.add(m=1, x=0)
-        >>> sim.add(m=1, x=1)
+        >>> sim.add(m=1, x=10)
+        >>> sim.add(m=1, x=20)
         >>> com = sim.calculate_com()
         >>> com.x
-        0.5
+        0.0 
+        >>> com = sim.calculate_com(first=2,last=4) # Considers indices 2,3
+        >>> com.x
+        5.0
 
         """
-        if last is not None:
-            last = min(last, self.N_real-1)
-            clibrebound.reb_get_jacobi_com.restype = Particle
-            com = clibrebound.reb_get_jacobi_com(byref(self.particles[last]))
-            return com
-        else:
-            clibrebound.reb_get_com.restype = Particle
-            com = clibrebound.reb_get_com(byref(self))
-            return com
-        
+        if last is None:
+            last = self.N_real
+        clibrebound.reb_get_com_range.restype = Particle
+        return clibrebound.reb_get_com_range(byref(self), c_int(first), c_int(last))
 
 # Tools
     def move_to_com(self):
@@ -916,7 +914,15 @@ class Simulation(Structure):
         """
         clibrebound.reb_tools_energy.restype = c_double
         return clibrebound.reb_tools_energy(byref(self))
-    
+   
+    def calculate_angular_momentum(self):
+        """
+        Returns a list of the three (x,y,z) components of the total angular momentum of all particles in the simulation.
+        """
+        clibrebound.reb_tools_angular_momentum.restype = reb_vec3d
+        L = clibrebound.reb_tools_angular_momentum(byref(self))
+        return [L.x, L.y, L.z]
+
     def configure_box(self, boxsize, root_nx=1, root_ny=1, root_nz=1):
         """
         Initialize the simulation box.
@@ -1201,7 +1207,6 @@ Simulation._fields_ = [
                 ("_gravity", c_int),
                 ("ri_sei", reb_simulation_integrator_sei), 
                 ("ri_wh", reb_simulation_integrator_wh), 
-                ("ri_hybrid", reb_simulation_integrator_hybrid),
                 ("ri_whfast", reb_simulation_integrator_whfast),
                 ("ri_ias15", reb_simulation_integrator_ias15),
                 ("ri_hybarid", reb_simulation_integrator_hybarid),

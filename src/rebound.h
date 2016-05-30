@@ -121,39 +121,27 @@ struct reb_particle {
  * a Keplerian orbit from Cartesian coordinates. 
  */
 struct reb_orbit {
-	double d;	///< Radial distance from central object
-	double v;   ///< velocity relative to central object's velocity
-	double h;	///< Angular momentum
-	double P;	///< Orbital period
-	double n;	///< Mean motion
-	double a;	///< Semi-major axis
-	double e;	///< Eccentricity
-	double inc;	///< Inclination
-	double Omega; 	///< Longitude of ascending node
-	double omega; 	///< Argument of pericenter
-	double pomega;  ///< Longitude of pericenter
-	double f; 	///< True anomaly
-	double M;   ///< Mean anomaly
-	double l;	///< Mean Longitude
-	double theta; ///< True Longitude
-    double T;   ///< Time of pericenter passage
+    double d;        ///< Radial distance from central object
+    double v;        ///< velocity relative to central object's velocity
+    double h;        ///< Angular momentum
+    double P;        ///< Orbital period
+    double n;        ///< Mean motion
+    double a;        ///< Semi-major axis
+    double e;        ///< Eccentricity
+    double inc;      ///< Inclination
+    double Omega;    ///< Longitude of ascending node
+    double omega;    ///< Argument of pericenter
+    double pomega;   ///< Longitude of pericenter
+    double f;        ///< True anomaly
+    double M;        ///< Mean anomaly
+    double l;        ///< Mean Longitude
+    double theta;    ///< True Longitude
+    double T;        ///< Time of pericenter passage
 };
 
 
 ////////////////////////////////
-// Integrator structs 
-
-/**
- * @brief This structure contains variables and pointer used by the HYBRID integrator.
- */
-struct reb_simulation_integrator_hybrid {
-    double switch_ratio;    ///< Default is 8 mutual Hill Radii 
-    enum {
-        SYMPLECTIC,     ///< HYBRID integrator is currently using a symplectic integrator
-        HIGHORDER   ///< HYBRID integrator is currently using a high order non-symplectic integrator
-        } 
-        mode;       ///< Flag determining the current integrator used
-};
+// Integrator structs
 
 /**
  * @brief This structure contains variables and pointer used by the IAS15 integrator.
@@ -511,9 +499,8 @@ struct reb_simulation {
         REB_INTEGRATOR_SEI = 2,     ///< SEI integrator for shearing sheet simulations, symplectic, needs OMEGA variable
         REB_INTEGRATOR_WH = 3,      ///< WH integrator (based on swifter), WHFast is recommended, this integrator is in REBOUND for comparison tests only
         REB_INTEGRATOR_LEAPFROG = 4,    ///< LEAPFROG integrator, simple, 2nd order, symplectic
-        REB_INTEGRATOR_HYBRID = 5,  ///< HYBRID Integrator for close encounters (experimental)
-        REB_INTEGRATOR_HYBARID = 6,  ///< HYBARID Integrator for close encounters (experimental)
-        REB_INTEGRATOR_NONE = 7,    ///< Do not integrate anything
+        REB_INTEGRATOR_HYBARID = 5,  ///< HYBARID Integrator for close encounters (experimental)
+        REB_INTEGRATOR_NONE = 6,    ///< Do not integrate anything
         } integrator;
 
     /**
@@ -544,7 +531,6 @@ struct reb_simulation {
      */
     struct reb_simulation_integrator_sei ri_sei;        ///< The SEI struct 
     struct reb_simulation_integrator_wh ri_wh;      ///< The WH struct 
-    struct reb_simulation_integrator_hybrid ri_hybrid;  ///< The Hybrid struct 
     struct reb_simulation_integrator_whfast ri_whfast;  ///< The WHFast struct 
     struct reb_simulation_integrator_ias15 ri_ias15;    ///< The IAS15 struct
     struct reb_simulation_integrator_hybarid ri_hybarid;    ///< The HYBARID struct
@@ -838,11 +824,31 @@ struct reb_particle reb_get_com_of_pair(struct reb_particle p1, struct reb_parti
 /** @} */
 
 /**
+ * @brief Takes the center of mass of a system of particles and returns the center of mass with one of the particles removed. 
+ * @param com A particle structure that holds the center of mass state for a system of particles (mass, position, velocity).
+ * @param p The particle to be removed from com.
+ * @return The center of mass with particle p removed.
+ */
+
+struct reb_particle reb_get_com_without_particle(struct reb_particle com, struct reb_particle p);
+
+/**
  * @brief Returns a particle pointer's index in the simulation it's in.
  * @param p A pointer to the particle 
  * @return The integer index of the particle in its simulation (will return -1 if not found in the simulation).
  */
 int reb_get_particle_index(struct reb_particle* p);
+
+/**
+ * @brief Returns the center of mass for particles with indices between first (inclusive) and last (exclusive).
+ * @details For example, reb_get_com_range(r, 6, 9) returns COM for particles 6, 7 and 8. 
+ * @param r A pointer to the simulation structure.
+ * @param first First index in range to consider.
+ * @param last Will consider particles with indices < last (i.e., particle with index last not considered).
+ * @return A reb_particle structure for the center of mass of all particles in range [first, last). Returns particle filled with zeros if passed last <= first.
+ */
+
+struct reb_particle reb_get_com_range(struct reb_simulation* r, int first, int last);
 
 /**
  * @brief Returns the jacobi center of mass for a given particle
@@ -1163,7 +1169,51 @@ struct reb_particle reb_derivatives_m_omega(double G, struct reb_particle primar
 struct reb_particle reb_derivatives_m_f(double G, struct reb_particle primary, struct reb_particle po);
 /** @} */
 
+/**
+ * \name Particle manipulation functions
+ * @{
+ */
+/**
+ * @defgroup ParticleManipFunctions List of reb_particle manipulation functions for REBOUND
+ * @{
+ */
+/**
+ * @brief Subtract particle p2 from particle p1 (p1 - p2).
+ * @details Subtracts positions, velocities, accelerations and mass element by element. 
+ * @param p1 First reb_particle.
+ * @param p2 Second reb_particle to subtract from p1.
+ * @returns A new particle with no pointers (not in any simulation etc.) set.
+ */
+struct reb_particle reb_particle_minus(struct reb_particle p1, struct reb_particle p2);
 
+/**
+ * @brief Add particle p1 to particle p1.
+ * @details Adds positions, velocities, accelerations and mass element by element. 
+ * @param p1 First reb_particle.
+ * @param p2 Second reb_particle.
+ * @returns A new particle with no pointers (not in any simulation etc.) set.
+ */
+struct reb_particle reb_particle_plus(struct reb_particle p1, struct reb_particle p2);
+
+/**
+ * @brief Multiply a particle's members by a constant.
+ * @brief Multiplies particle's positions, velocities, accelerations and mass by a constant.
+ * @param p1 reb_particle to modify.
+ * @param value Value by which to multiply particle's fields.
+ * @returns A new particle with no pointers (not in any simulation etc.) set.
+ */
+struct reb_particle reb_particle_multiply(struct reb_particle p1, double value);
+
+/**
+ * @brief Divide a particle's members by a constant.
+ * @brief Divides particle's positions, velocities, accelerations and mass by a constant.
+ * @param p1 reb_particle to modify.
+ * @param value Value by which to divide particle's fields.
+ * @returns A new particle with no pointers (not in any simulation etc.) set.
+ */
+struct reb_particle reb_particle_divide(struct reb_particle p1, double value);
+/** @} */
+/** @} */
 
 /**
  * \name Miscellaneous tools
@@ -1176,10 +1226,17 @@ struct reb_particle reb_derivatives_m_f(double G, struct reb_particle primary, s
 /**
  * @brief Calculate the total energy (potential and kinetic).
  * @details Does not work for WH/SEI.
- * @param r The rebound simulation to be considered
+ * @param r The rebound simulation to be considered.
  * @return Total energy. 
  */
 double reb_tools_energy(const struct reb_simulation* const r);
+
+/**
+ * @brief Calculate the system's angular momentum.
+ * @param r The rebound simulation to be considered.
+ * @return The angular momentum vector as a reb_vec3d struct.
+ */
+struct reb_vec3d reb_tools_angular_momentum(const struct reb_simulation* const r);
 
 /**
  * @brief Add and initialize a set of first order variational particles

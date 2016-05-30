@@ -1,9 +1,9 @@
 /**
- * @file 	rebound.c
- * @brief 	Main REBOUND control structures and routine, iteration loop.
- * @author 	Hanno Rein <hanno@hanno-rein.de>
+ * @file    rebound.c
+ * @brief   Main REBOUND control structures and routine, iteration loop.
+ * @author  Hanno Rein <hanno@hanno-rein.de>
  * 
- * @section 	LICENSE
+ * @section LICENSE
  * Copyright (c) 2011 Hanno Rein, Shangfei Liu
  *
  * This file is part of rebound.
@@ -57,78 +57,78 @@
 #ifdef OPENMP
 #include <omp.h>
 #endif
-#define MAX(a, b) ((a) < (b) ? (b) : (a))		///< Returns the maximum of a and b
+#define MAX(a, b) ((a) < (b) ? (b) : (a))       ///< Returns the maximum of a and b
 
 #ifndef LIBREBOUND
-static const char* logo[];				/**< Logo of rebound. */
+static const char* logo[];              /**< Logo of rebound. */
 #endif // LIBREBOUND
-const char* reb_build_str = __DATE__ " " __TIME__;	// Date and time build string. 
-const char* reb_version_str = "2.16.0";			// **VERSIONLINE** This line gets updated automatically. Do not edit manually.
+const char* reb_build_str = __DATE__ " " __TIME__;  // Date and time build string. 
+const char* reb_version_str = "2.16.6";         // **VERSIONLINE** This line gets updated automatically. Do not edit manually.
 
 
 void reb_step(struct reb_simulation* const r){
-	// A 'DKD'-like integrator will do the first 'D' part.
-	PROFILING_START()
-	reb_integrator_part1(r);
-	PROFILING_STOP(PROFILING_CAT_INTEGRATOR)
+    // A 'DKD'-like integrator will do the first 'D' part.
+    PROFILING_START()
+    reb_integrator_part1(r);
+    PROFILING_STOP(PROFILING_CAT_INTEGRATOR)
 
-	// Update and simplify tree. 
-	// Prepare particles for distribution to other nodes. 
-	// This function also creates the tree if called for the first time.
-	if (r->tree_needs_update || r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE){
+    // Update and simplify tree. 
+    // Prepare particles for distribution to other nodes. 
+    // This function also creates the tree if called for the first time.
+    if (r->tree_needs_update || r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE){
         // Check for root crossings.
         PROFILING_START()
         reb_boundary_check(r);     
         PROFILING_STOP(PROFILING_CAT_BOUNDARY)
 
         // Update tree (this will remove particles which left the box)
-	    PROFILING_START()
-		reb_tree_update(r);          
-	    PROFILING_STOP(PROFILING_CAT_GRAVITY)
-	}
+        PROFILING_START()
+        reb_tree_update(r);          
+        PROFILING_STOP(PROFILING_CAT_GRAVITY)
+    }
 
-	PROFILING_START()
+    PROFILING_START()
 #ifdef MPI
-	// Distribute particles and add newly received particles to tree.
-	reb_communication_mpi_distribute_particles(r);
+    // Distribute particles and add newly received particles to tree.
+    reb_communication_mpi_distribute_particles(r);
 #endif // MPI
 
-	if (r->tree_root!=NULL && r->gravity==REB_GRAVITY_TREE){
-		// Update center of mass and quadrupole moments in tree in preparation of force calculation.
-		reb_tree_update_gravity_data(r); 
+    if (r->tree_root!=NULL && r->gravity==REB_GRAVITY_TREE){
+        // Update center of mass and quadrupole moments in tree in preparation of force calculation.
+        reb_tree_update_gravity_data(r); 
 #ifdef MPI
-		// Prepare essential tree (and particles close to the boundary needed for collisions) for distribution to other nodes.
-		reb_tree_prepare_essential_tree_for_gravity(r);
+        // Prepare essential tree (and particles close to the boundary needed for collisions) for distribution to other nodes.
+        reb_tree_prepare_essential_tree_for_gravity(r);
 
-		// Transfer essential tree and particles needed for collisions.
-		reb_communication_mpi_distribute_essential_tree_for_gravity(r);
+        // Transfer essential tree and particles needed for collisions.
+        reb_communication_mpi_distribute_essential_tree_for_gravity(r);
 #endif // MPI
-	}
+    }
 
-	// Calculate accelerations. 
-	reb_calculate_acceleration(r);
-	if (r->N_var){
-		reb_calculate_acceleration_var(r);
-	}
-	// Calculate non-gravity accelerations. 
-	if (r->additional_forces) r->additional_forces(r);
-	PROFILING_STOP(PROFILING_CAT_GRAVITY)
+    // Calculate accelerations. 
+    reb_calculate_acceleration(r);
+    if (r->N_var){
+        reb_calculate_acceleration_var(r);
+    }
+    // Calculate non-gravity accelerations. 
+    if (r->additional_forces) r->additional_forces(r);
+    PROFILING_STOP(PROFILING_CAT_GRAVITY)
 
-	// A 'DKD'-like integrator will do the 'KD' part.
-	PROFILING_START()
-	reb_integrator_part2(r);
-	if (r->post_timestep_modifications){
-		reb_integrator_synchronize(r);
-		r->post_timestep_modifications(r);
-		r->ri_whfast.recalculate_jacobi_this_timestep = 1;
-	}
-	PROFILING_STOP(PROFILING_CAT_INTEGRATOR)
+    // A 'DKD'-like integrator will do the 'KD' part.
+    PROFILING_START()
+    reb_integrator_part2(r);
+    if (r->post_timestep_modifications){
+        reb_integrator_synchronize(r);
+        r->post_timestep_modifications(r);
+        r->ri_whfast.recalculate_jacobi_this_timestep = 1;
+    }
+    PROFILING_STOP(PROFILING_CAT_INTEGRATOR)
 
-	// Do collisions here. We need both the positions and velocities at the same time.
-	// Check for root crossings.
-	PROFILING_START()
-	reb_boundary_check(r);     
-	if (r->tree_needs_update){
+    // Do collisions here. We need both the positions and velocities at the same time.
+    // Check for root crossings.
+    PROFILING_START()
+    reb_boundary_check(r);     
+    if (r->tree_needs_update){
         // Update tree (this will remove particles which left the box)
 		reb_tree_update(r);          
 	}
@@ -143,42 +143,42 @@ void reb_step(struct reb_simulation* const r){
 }
 
 void reb_exit(const char* const msg){
-	// This function should also kill all children. 
-	// Not implemented as pid is not easy to get to.
-	// kill(pid, SIGKILL);
-	fprintf(stderr,"\n\033[1mError!\033[0m %s\n",msg);
-	exit(EXIT_FAILURE);
+    // This function should also kill all children. 
+    // Not implemented as pid is not easy to get to.
+    // kill(pid, SIGKILL);
+    fprintf(stderr,"\n\033[1mError!\033[0m %s\n",msg);
+    exit(EXIT_FAILURE);
 }
 
 void reb_warning(const char* const msg){
-	fprintf(stderr,"\n\033[1mWarning!\033[0m %s\n",msg);
+    fprintf(stderr,"\n\033[1mWarning!\033[0m %s\n",msg);
 }
 
 
 void reb_configure_box(struct reb_simulation* const r, const double root_size, const int root_nx, const int root_ny, const int root_nz){
-	r->root_size = root_size;
-	r->root_nx = root_nx;
-	r->root_ny = root_ny;
-	r->root_nz = root_nz;
-	// Setup box sizes
-	r->boxsize.x = r->root_size *(double)r->root_nx;
-	r->boxsize.y = r->root_size *(double)r->root_ny;
-	r->boxsize.z = r->root_size *(double)r->root_nz;
-	r->root_n = r->root_nx*r->root_ny*r->root_nz;
-	r->boxsize_max = MAX(r->boxsize.x, MAX(r->boxsize.y, r->boxsize.z));
-	if (r->root_nx <=0 || r->root_ny <=0 || r->root_nz <= 0){
-		reb_exit("Number of root boxes must be greater or equal to 1 in each direction.");
-	}
+    r->root_size = root_size;
+    r->root_nx = root_nx;
+    r->root_ny = root_ny;
+    r->root_nz = root_nz;
+    // Setup box sizes
+    r->boxsize.x = r->root_size *(double)r->root_nx;
+    r->boxsize.y = r->root_size *(double)r->root_ny;
+    r->boxsize.z = r->root_size *(double)r->root_nz;
+    r->root_n = r->root_nx*r->root_ny*r->root_nz;
+    r->boxsize_max = MAX(r->boxsize.x, MAX(r->boxsize.y, r->boxsize.z));
+    if (r->root_nx <=0 || r->root_ny <=0 || r->root_nz <= 0){
+        reb_exit("Number of root boxes must be greater or equal to 1 in each direction.");
+    }
 }
 #ifdef MPI
 void reb_mpi_init(struct reb_simulation* const r){
     reb_communication_mpi_init(r,0,NULL);
-	// Make sure domain can be decomposed into equal number of root boxes per node.
-	if ((r->root_n/r->mpi_num)*r->mpi_num != r->root_n){
-		if (r->mpi_id==0) fprintf(stderr,"ERROR: Number of root boxes (%d) not a multiple of mpi nodes (%d).\n",r->root_n,r->mpi_num);
-		exit(-1);
-	}
-	printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
+    // Make sure domain can be decomposed into equal number of root boxes per node.
+    if ((r->root_n/r->mpi_num)*r->mpi_num != r->root_n){
+        if (r->mpi_id==0) fprintf(stderr,"ERROR: Number of root boxes (%d) not a multiple of mpi nodes (%d).\n",r->root_n,r->mpi_num);
+        exit(-1);
+    }
+    printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
 }
 
 void reb_mpi_finalize(struct reb_simulation* const r){
@@ -189,18 +189,18 @@ void reb_mpi_finalize(struct reb_simulation* const r){
 #endif // MPI
 
 static void set_dp7_null(struct reb_dp7 * dp){
-	dp->p0 = NULL;
-	dp->p1 = NULL;
-	dp->p2 = NULL;
-	dp->p3 = NULL;
-	dp->p4 = NULL;
-	dp->p5 = NULL;
-	dp->p6 = NULL;
+    dp->p0 = NULL;
+    dp->p1 = NULL;
+    dp->p2 = NULL;
+    dp->p3 = NULL;
+    dp->p4 = NULL;
+    dp->p5 = NULL;
+    dp->p6 = NULL;
 }
 
 void reb_free_simulation(struct reb_simulation* const r){
-	reb_free_pointers(r);
-	free(r);
+    reb_free_pointers(r);
+    free(r);
 }
 
 void reb_free_pointers(struct reb_simulation* const r){
@@ -258,24 +258,24 @@ void reb_reset_temporary_pointers(struct reb_simulation* const r){
 }
 
 void reb_reset_function_pointers(struct reb_simulation* const r){
-	r->coefficient_of_restitution 	= NULL;
-	r->collision_resolve    	= NULL;
-	r->additional_forces 		= NULL;
-	r->heartbeat			= NULL;
-	r->post_timestep_modifications	= NULL;
+    r->coefficient_of_restitution   = NULL;
+    r->collision_resolve        = NULL;
+    r->additional_forces        = NULL;
+    r->heartbeat            = NULL;
+    r->post_timestep_modifications  = NULL;
 }
 
 struct reb_simulation* reb_create_simulation(){
-	struct reb_simulation* r = calloc(1,sizeof(struct reb_simulation));
-	reb_init_simulation(r);
-	return r;
+    struct reb_simulation* r = calloc(1,sizeof(struct reb_simulation));
+    reb_init_simulation(r);
+    return r;
 }
 
 void reb_init_simulation(struct reb_simulation* r){
 #ifndef LIBREBOUND
-	int i =0;
-	while (logo[i]!=NULL){ printf("%s",logo[i++]); }
-	printf("Built: %s\n\n",reb_build_str);
+    int i =0;
+    while (logo[i]!=NULL){ printf("%s",logo[i++]); }
+    printf("Built: %s\n\n",reb_build_str);
 #endif // LIBREBOUND
 	reb_tools_init_srand();
 	reb_reset_temporary_pointers(r);
@@ -351,23 +351,19 @@ void reb_init_simulation(struct reb_simulation* r){
     r->ri_hybarid.CE_radius = 0.;
     r->ri_hybarid.mini_active = 0;
     r->ri_hybarid.timestep_too_large_warning = 0;
-    
-    // ********** HYBRID
-	r->ri_hybrid.switch_ratio = 8; // Default of 8 mutual Hill radii
-	r->ri_hybrid.mode = SYMPLECTIC;
 
 	// Tree parameters. Will not be used unless gravity or collision search makes use of tree.
     r->tree_needs_update= 0;
-	r->tree_root		= NULL;
-	r->opening_angle2	= 0.25;
+    r->tree_root        = NULL;
+    r->opening_angle2   = 0.25;
 
 #ifdef MPI
     r->mpi_id = 0;                            
     r->mpi_num = 0;                           
     r->particles_send = NULL;  
-    r->particles_send_N = 0;	              
-    r->particles_send_Nmax = 0;	              
-    r->particles_recv = NULL;	  
+    r->particles_send_N = 0;                  
+    r->particles_send_Nmax = 0;               
+    r->particles_recv = NULL;     
     r->particles_recv_N = 0;                  
     r->particles_recv_Nmax = 0;               
     
@@ -380,118 +376,118 @@ void reb_init_simulation(struct reb_simulation* r){
 
 #else // MPI
 #ifndef LIBREBOUND
-	printf("Process id: %d.\n", getpid());
+    printf("Process id: %d.\n", getpid());
 #endif // LIBREBOUND
 #endif // MPI
 #ifdef OPENMP
-	printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
+    printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
 #endif // OPENMP
 }
 
 int reb_check_exit(struct reb_simulation* const r, const double tmax, double* last_full_dt){
-	while(r->status == REB_RUNNING_PAUSED){
-		// Wait for user to disable paused simulation
-		usleep(1000);
-	}
-	const double dtsign = copysign(1.,r->dt); 	// Used to determine integration direction
-	if (r->status>=0){
-		// Exit now.
-	}else if(tmax!=INFINITY){
-		if(r->exact_finish_time==1){
-			if ((r->t+r->dt)*dtsign>=tmax*dtsign){  // Next step would overshoot
-				double tscale = 1e-12*fabs(tmax);	// Find order of magnitude for time
-				if (tscale<1e-200){		// Failsafe if tmax==0.
-					tscale = 1e-12;
-				}
-				if (r->t==tmax){
-					r->status = REB_EXIT_SUCCESS;
-				}else if(r->status == REB_RUNNING_LAST_STEP){
-					if (fabs(r->t-tmax)<tscale){
-						r->status = REB_EXIT_SUCCESS;
-					}else{
-						// not there yet, do another step.
-						reb_integrator_synchronize(r);
-						r->dt = tmax-r->t;
-					}
-				}else{
-					r->status = REB_RUNNING_LAST_STEP; // Do one small step, then exit.
-					reb_integrator_synchronize(r);
-					if (r->dt_last_done!=0.){  	// If first timestep is also last, do not use dt_last_done (which would be 0.)
-						*last_full_dt = r->dt_last_done; // store last full dt before decreasing the timestep to match finish time
-					}
-					r->dt = tmax-r->t;
-				}
-			}else{
-				if (r->status == REB_RUNNING_LAST_STEP){
-					// This will get executed if an adaptive integrator reduces
-					// the timestep in what was supposed to be the last timestep.
-					r->status = REB_RUNNING;
-				}
-			}
-		}else{
-			if (r->t*dtsign>=tmax*dtsign){  // Past the integration time
-				r->status = REB_EXIT_SUCCESS; // Exit now.
-			}
-		}
-	}
+    while(r->status == REB_RUNNING_PAUSED){
+        // Wait for user to disable paused simulation
+        usleep(1000);
+    }
+    const double dtsign = copysign(1.,r->dt);   // Used to determine integration direction
+    if (r->status>=0){
+        // Exit now.
+    }else if(tmax!=INFINITY){
+        if(r->exact_finish_time==1){
+            if ((r->t+r->dt)*dtsign>=tmax*dtsign){  // Next step would overshoot
+                double tscale = 1e-12*fabs(tmax);   // Find order of magnitude for time
+                if (tscale<1e-200){     // Failsafe if tmax==0.
+                    tscale = 1e-12;
+                }
+                if (r->t==tmax){
+                    r->status = REB_EXIT_SUCCESS;
+                }else if(r->status == REB_RUNNING_LAST_STEP){
+                    if (fabs(r->t-tmax)<tscale){
+                        r->status = REB_EXIT_SUCCESS;
+                    }else{
+                        // not there yet, do another step.
+                        reb_integrator_synchronize(r);
+                        r->dt = tmax-r->t;
+                    }
+                }else{
+                    r->status = REB_RUNNING_LAST_STEP; // Do one small step, then exit.
+                    reb_integrator_synchronize(r);
+                    if (r->dt_last_done!=0.){   // If first timestep is also last, do not use dt_last_done (which would be 0.)
+                        *last_full_dt = r->dt_last_done; // store last full dt before decreasing the timestep to match finish time
+                    }
+                    r->dt = tmax-r->t;
+                }
+            }else{
+                if (r->status == REB_RUNNING_LAST_STEP){
+                    // This will get executed if an adaptive integrator reduces
+                    // the timestep in what was supposed to be the last timestep.
+                    r->status = REB_RUNNING;
+                }
+            }
+        }else{
+            if (r->t*dtsign>=tmax*dtsign){  // Past the integration time
+                r->status = REB_EXIT_SUCCESS; // Exit now.
+            }
+        }
+    }
 #ifndef MPI
-	if (r->N<=0){
-		reb_warning("No particles found. Will exit.");
-		r->status = REB_EXIT_NOPARTICLES; // Exit now.
-	}
+    if (r->N<=0){
+        reb_warning("No particles found. Will exit.");
+        r->status = REB_EXIT_NOPARTICLES; // Exit now.
+    }
 #else
-	int status_max = 0;
-	MPI_Allreduce(&(r->status), &status_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
+    int status_max = 0;
+    MPI_Allreduce(&(r->status), &status_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
     if (status_max>=0){
         r->status = status_max;
     }
 
 #endif // MPI
-	return r->status;
+    return r->status;
 }
 
 void reb_run_heartbeat(struct reb_simulation* const r){
-	if (r->heartbeat){ r->heartbeat(r); }				// Heartbeat
-	if (r->exit_max_distance){
-		// Check for escaping particles
-		const double max2 = r->exit_max_distance * r->exit_max_distance;
-		const struct reb_particle* const particles = r->particles;
-		const int N = r->N - r->N_var;
-		for (int i=0;i<N;i++){
-			struct reb_particle p = particles[i];
-			double r2 = p.x*p.x + p.y*p.y + p.z*p.z;
-			if (r2>max2){
-				r->status = REB_EXIT_ESCAPE;
-			}
-		}
-	}
-	if (r->exit_min_distance){
-		// Check for close encounters
-		const double min2 = r->exit_min_distance * r->exit_min_distance;
-		const struct reb_particle* const particles = r->particles;
-		const int N = r->N - r->N_var;
-		for (int i=0;i<N;i++){
-			struct reb_particle pi = particles[i];
-			for (int j=0;j<i;j++){
-				struct reb_particle pj = particles[j];
-				const double x = pi.x-pj.x;
-				const double y = pi.y-pj.y;
-				const double z = pi.z-pj.z;
-				const double r2 = x*x + y*y + z*z;
-				if (r2<min2){
-					r->status = REB_EXIT_ENCOUNTER;
-				}
-			}
-		}
-	}
-	if (r->usleep > 0){
-		usleep(r->usleep);
-	}
+    if (r->heartbeat){ r->heartbeat(r); }               // Heartbeat
+    if (r->exit_max_distance){
+        // Check for escaping particles
+        const double max2 = r->exit_max_distance * r->exit_max_distance;
+        const struct reb_particle* const particles = r->particles;
+        const int N = r->N - r->N_var;
+        for (int i=0;i<N;i++){
+            struct reb_particle p = particles[i];
+            double r2 = p.x*p.x + p.y*p.y + p.z*p.z;
+            if (r2>max2){
+                r->status = REB_EXIT_ESCAPE;
+            }
+        }
+    }
+    if (r->exit_min_distance){
+        // Check for close encounters
+        const double min2 = r->exit_min_distance * r->exit_min_distance;
+        const struct reb_particle* const particles = r->particles;
+        const int N = r->N - r->N_var;
+        for (int i=0;i<N;i++){
+            struct reb_particle pi = particles[i];
+            for (int j=0;j<i;j++){
+                struct reb_particle pj = particles[j];
+                const double x = pi.x-pj.x;
+                const double y = pi.y-pj.y;
+                const double z = pi.z-pj.z;
+                const double r2 = x*x + y*y + z*z;
+                if (r2<min2){
+                    r->status = REB_EXIT_ENCOUNTER;
+                }
+            }
+        }
+    }
+    if (r->usleep > 0){
+        usleep(r->usleep);
+    }
 }
 enum REB_STATUS reb_integrate(struct reb_simulation* const r_user, double tmax){
 #ifdef MPI
-	// Distribute particles
-	reb_communication_mpi_distribute_particles(r_user);
+    // Distribute particles
+    reb_communication_mpi_distribute_particles(r_user);
 #endif // MPI
 #ifdef OPENGL
     int opengl_enabled = 1;
@@ -506,7 +502,7 @@ enum REB_STATUS reb_integrate(struct reb_simulation* const r_user, double tmax){
    
     if (opengl_enabled){
         r = (struct reb_simulation*)mmap(r_user, sizeof(struct reb_simulation), PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
-	    memcpy(r, r_user, sizeof(struct reb_simulation));
+        memcpy(r, r_user, sizeof(struct reb_simulation));
         // Copy and share particle array
         r->particles = (struct reb_particle*)mmap(NULL, r->allocatedN*sizeof(struct reb_particle), PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
         memcpy(r->particles, r_user->particles, r->allocatedN*sizeof(struct reb_particle));
@@ -538,23 +534,23 @@ enum REB_STATUS reb_integrate(struct reb_simulation* const r_user, double tmax){
     }
 
 #else // OPENGL
-	struct reb_simulation* const r = r_user;
+    struct reb_simulation* const r = r_user;
 #endif // OPENGL
 
 
 
 #ifndef LIBREBOUND
-	struct timeval tim;
-	gettimeofday(&tim, NULL);
-	double timing_initial = tim.tv_sec+(tim.tv_usec/1000000.0);
+    struct timeval tim;
+    gettimeofday(&tim, NULL);
+    double timing_initial = tim.tv_sec+(tim.tv_usec/1000000.0);
 #endif // LIBREBOUND
 
-	double last_full_dt = r->dt; // need to store r->dt in case timestep gets artificially shrunk to meet exact_finish_time=1
+    double last_full_dt = r->dt; // need to store r->dt in case timestep gets artificially shrunk to meet exact_finish_time=1
 
-	r->status = REB_RUNNING;
-	reb_run_heartbeat(r);
+    r->status = REB_RUNNING;
+    reb_run_heartbeat(r);
 
-	
+    
 #ifdef OPENGL
     if (opengl_enabled){
         pid_t   childpid;

@@ -28,9 +28,7 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
-#ifndef LIBREBOUNDX
 #include "particle.h"
-#endif // LIBREBOUNDX
 #include "rebound.h"
 #include "tools.h"
 
@@ -91,38 +89,23 @@ double reb_tools_energy(const struct reb_simulation* const r){
             e_pot -= r->G*pj.m*pi.m/sqrt(dx*dx + dy*dy + dz*dz);
         }
     }
-    /* Don't need this anymore I think. Comment out for now and test, delete later.
-    double e_global = 0;
-    if (r->ri_hybarid.global){
-        if (r->testparticle_type){
-            struct reb_simulation* global = r->ri_hybarid.global;
-            struct reb_particle* global_particles = global->particles;
-            struct reb_particle* mini_particles = r->particles;
-            const int N_active = global->N_active;
-            const double G = global->G;
-            for(int i=0;i<r->N_active;i++){              //massive bodies in mini
-                struct reb_particle pi = mini_particles[i];
-                for(int j=N_active;j<global->N;j++){        //planetesimals in global
-                    if(global->ri_hybarid.is_in_mini[j]==0){
-                        const double ix = global_particles[j].x; // Note: no interpolated values
-                        const double iy = global_particles[j].y;
-                        const double iz = global_particles[j].z;
-                        const double mp = global_particles[j].m;
-                        const double ddx = pi.x - ix;
-                        const double ddy = pi.y - iy;
-                        const double ddz = pi.z - iz;
-                        
-                        const double rijinv2 = 1.0/(ddx*ddx + ddy*ddy + ddz*ddz);
-                        e_global -= G*mp*pi.m*sqrt(rijinv2);
-                    }
-                }
-            }
-        }
-    }*/
     
     return e_kin + e_pot + r->collisions_dE;
 }
 
+struct reb_vec3d reb_tools_angular_momentum(const struct reb_simulation* const r){
+	const int N = r->N;
+	const struct reb_particle* restrict const particles = r->particles;
+	const int N_var = r->N_var;
+    struct reb_vec3d L = {0};
+    for (int i=0;i<N-N_var;i++){
+		struct reb_particle pi = particles[i];
+        L.x += pi.m*(pi.y*pi.vz - pi.z*pi.vy);
+        L.y += pi.m*(pi.z*pi.vx - pi.x*pi.vz);
+        L.z += pi.m*(pi.x*pi.vy - pi.y*pi.vx);
+	}
+	return L;
+}
 
 void reb_move_to_com(struct reb_simulation* const r){
     const int N_real = r->N - r->N_var;
@@ -290,16 +273,6 @@ void reb_move_to_com(struct reb_simulation* const r){
 	}
 }
 
-struct reb_particle reb_get_com(struct reb_simulation* r){
-	struct reb_particle com = {0.};
-    const int N_real = r->N - r->N_var;
-	struct reb_particle* restrict const particles = r->particles;
-	for (int i=0;i<N_real;i++){
-		com = reb_get_com_of_pair(com, particles[i]);
-	}
-	return com;
-}
-
 struct reb_particle reb_get_com_of_pair(struct reb_particle p1, struct reb_particle p2){
 	p1.x   = p1.x*p1.m + p2.x*p2.m;		
 	p1.y   = p1.y*p1.m + p2.y*p2.m;
@@ -326,6 +299,32 @@ struct reb_particle reb_get_com_of_pair(struct reb_particle p1, struct reb_parti
 	return p1;
 }
 
+struct reb_particle reb_get_com_without_particle(struct reb_particle com, struct reb_particle p){
+    com.x = com.x*com.m - p.x*p.m;
+    com.y = com.y*com.m - p.y*p.m;
+    com.z = com.z*com.m - p.z*p.m;
+    com.vx = com.vx*com.m - p.vx*p.m;
+    com.vy = com.vy*com.m - p.vy*p.m;
+    com.vz = com.vz*com.m - p.vz*p.m;
+    com.ax = com.ax*com.m - p.ax*p.m;
+    com.ay = com.ay*com.m - p.ay*p.m;
+    com.az = com.az*com.m - p.az*p.m;
+    com.m -= p.m; 
+
+    if (com.m > 0.){
+        com.x /= com.m;
+        com.y /= com.m;
+        com.z /= com.m;
+        com.vx /= com.m;
+        com.vy /= com.m;
+        com.vz /= com.m;
+        com.ax /= com.m;
+        com.ay /= com.m;
+        com.az /= com.m;
+    }
+    return com;
+}
+
 int reb_get_particle_index(struct reb_particle* p){
 	struct reb_simulation* r = p->sim;
 	int i = 0;
@@ -339,17 +338,25 @@ int reb_get_particle_index(struct reb_particle* p){
 	return i;
 }
 
-struct reb_particle reb_get_jacobi_com(struct reb_particle* p){
-	int p_index = reb_get_particle_index(p);
-	struct reb_simulation* r = p->sim;
-	struct reb_particle com = r->particles[0];
-	for(int i=1; i<p_index; i++){
+struct reb_particle reb_get_com_range(struct reb_simulation* r, int first, int last){
+	struct reb_particle com = {0};
+	for(int i=first; i<last; i++){
 		com = reb_get_com_of_pair(com, r->particles[i]);
 	}
 	return com;
 }
+
+struct reb_particle reb_get_com(struct reb_simulation* r){
+    int N_real = r->N-r->N_var;
+	return reb_get_com_range(r, 0, N_real); 
+}
+
+struct reb_particle reb_get_jacobi_com(struct reb_particle* p){
+	int p_index = reb_get_particle_index(p);
+	struct reb_simulation* r = p->sim;
+    return reb_get_com_range(r, 0, p_index);
+}
 	
-#ifndef LIBREBOUNDX
 void reb_tools_init_plummer(struct reb_simulation* r, int _N, double M, double R) {
 	// Algorithm from:	
 	// http://adsabs.harvard.edu/abs/1974A%26A....37..183A
@@ -390,7 +397,6 @@ void reb_tools_init_plummer(struct reb_simulation* r, int _N, double M, double R
 		reb_add(r, star);
 	}
 }
-#endif // LIBREBOUNDX
 
 static double mod2pi(double f){
 	while(f < 0.){
@@ -402,7 +408,7 @@ static double mod2pi(double f){
 	return f;
 }
 
-double reb_M_to_E(double e, double M){
+double reb_tools_M_to_E(double e, double M){
 	double E;
 	if(e < 1.){
 		E = e < 0.8 ? M : M_PI;
@@ -433,7 +439,7 @@ double reb_M_to_E(double e, double M){
 }
 
 double reb_tools_M_to_f(double e, double M){
-	double E = reb_M_to_E(e, M);
+	double E = reb_tools_M_to_E(e, M);
 	if(e > 1.){
 		return 2.*atan(sqrt((1.+e)/(e-1.))*tanh(0.5*E));
 	}
@@ -720,7 +726,7 @@ void reb_tools_solve_kepler_pal(double h, double k, double lambda, double* p, do
         double pomega = atan2(h,k);
         double M = lambda-pomega;
         double e = sqrt(e2);
-        double E = reb_M_to_E(e, M);
+        double E = reb_tools_M_to_E(e, M);
         *p = e*sin(E); 
         *q = e*cos(E); 
     }
@@ -839,7 +845,6 @@ int reb_add_var_2nd_order(struct reb_simulation* const r, int testparticle, int 
     return index;
 }
 
-#ifndef LIBREBOUNDX
 void reb_tools_megno_init(struct reb_simulation* const r){
 	r->megno_Ys = 0.;
 	r->megno_Yss = 0.;
@@ -925,5 +930,4 @@ void reb_tools_megno_update(struct reb_simulation* r, double dY){
 					*(r->t-r->megno_mean_t)
 					*(r->t-r->megno_mean_t);
 }
-#endif // LIBREBOUNDX
 

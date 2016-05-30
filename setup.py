@@ -26,7 +26,6 @@ libreboundmodule = Extension('librebound',
                                 'src/integrator_wh.c',
                                 'src/integrator_leapfrog.c',
                                 'src/integrator_sei.c',
-                                'src/integrator_hybrid.c',
                                 'src/integrator.c',
                                 'src/gravity.c',
                                 'src/boundary.c',
@@ -49,7 +48,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='rebound',
-    version='2.16.0',
+    version='2.16.6',
     description='An open-source multi-purpose N-body code',
     long_description=long_description,
     url='http://github.com/hannorein/rebound',
