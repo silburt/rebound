@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = 2;  //Hill radii
+    r->ri_hybarid.switch_ratio = 3;  //Hill radii
     r->ri_hybarid.CE_radius = 15.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
@@ -29,14 +29,14 @@ int main(int argc, char* argv[]){
     double tmax = 1000 * 6.283;
     
     //for this example if the boundaries are enforced then the itegration fails
-    //r->usleep = 1000;
-    //r->boundary	= REB_BOUNDARY_OPEN;
-    //const double boxsize = 100;
-    //reb_configure_box(r,boxsize,1,1,1);
+    r->usleep = 1000;
+    r->collisions_track_dE = 1;
+    r->boundary	= REB_BOUNDARY_OPEN;
+    const double boxsize = 100;
+    reb_configure_box(r,boxsize,1,1,1);
     
     //r->collision = REB_COLLISION_DIRECT;
     //r->collision_resolve = reb_collision_resolve_merge;
-    //r->collisions_track_dE = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -77,16 +77,16 @@ int main(int argc, char* argv[]){
         p4.id = r->N;
         reb_add(r, p4);
     }
+    
     r->N_active = r->N;
     reb_move_to_com(r);
+    E0 = reb_tools_energy(r);
     
     int n_output = 25000;
     log_constant = pow(tmax + 1, 1./(n_output - 1));
     tlog_output = r->dt;
     lin_constant = tmax/n_output;
     tlin_output = r->dt;
-    
-    E0 = reb_tools_energy(r);
     
     //naming stuff
     char seedstr[15];
