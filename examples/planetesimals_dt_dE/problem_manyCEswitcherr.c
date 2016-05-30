@@ -71,6 +71,7 @@ int main(int argc, char* argv[]){
         p2.id = r->N;
         reb_add(r, p2);
     }
+    double rh = pow(m_planet/3.,1./3.);
     
     r->N_active = r->N;
     
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]){
     //double total_planetesimal_mass = 500e-8;
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
     int N_planetesimals = 200;
-    double planetesimal_mass = m_planet/N_planetesimals;
+    double planetesimal_mass = 2.5e-7;
     double amin = 0.98, amax = 1.02;
     double powerlaw = 0.5;
     while(r->N<N_planetesimals + r->N_active){
@@ -89,6 +90,21 @@ int main(int argc, char* argv[]){
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
+        /*
+        double dx = pt.x - r->particles[1].x;
+        double dy = pt.y - r->particles[1].y;
+        double dz = pt.z - r->particles[1].z;
+        while (pow(dx*dx+dy*dy+dz*dz,0.5) < rh*r->ri_hybarid.switch_ratio){
+            a	= reb_random_powerlaw(amin,amax,powerlaw);
+            phi 	= reb_random_uniform(0,2.*M_PI);
+            inc = reb_random_normal(0.00001);
+            Omega = reb_random_uniform(0,2.*M_PI);
+            apsis = reb_random_uniform(0,2.*M_PI);
+            pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
+            dx = pt.x - r->particles[1].x;
+            dy = pt.y - r->particles[1].y;
+            dz = pt.z - r->particles[1].z;
+        }*/
 		pt.r 		= 4e-5;
         pt.id = r->N;
 		reb_add(r, pt);

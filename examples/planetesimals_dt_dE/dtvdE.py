@@ -68,8 +68,8 @@ if x_choice == 1:   #HSR
     xname = 'HSB (hill radii)'
     #yvals = ['Np500','Np5000']
     #path = '_th*_elapsedtime.txt'
-    yvals = ['Np1000_sd*']
-    #yvals = ['Np0_th*']
+    #yvals = ['Np1000_sd*']
+    yvals = ['Np0_th*']
     path = '_elapsedtime.txt'
     labels = ['Simulation']
     marker = '.'

@@ -18,9 +18,9 @@ xvals = []
 
 a = np.array(1)             #AU
 Ms = np.array(1)            #Solar mass
-mp = np.array(2.5e-7)         #Solar mass
+mp = np.array(2.5e-7)       #Solar mass
 Me = np.array(5e-5)         #Solar mass
-rh = a*(Me/(3*Ms))**(1./3.) #AU
+rh = a*(Me/(3.*Ms))**(1./3.) #AU
 HSR = 6
 dt = 0.015/twopi
 
@@ -29,6 +29,7 @@ lenf = len(files)
 ET = np.zeros(lenf)
 dE = np.zeros(lenf)
 CE = np.zeros(lenf)
+Ei = np.zeros(lenf)
 ratio = np.zeros(lenf)  #ratio of energy to N_CE
 scaling_factor = np.zeros(0)
 for j,f in enumerate(files):
