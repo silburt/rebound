@@ -47,4 +47,4 @@ examples/planetesimals_testing/saved_output/*
 examples/planetesimals_swift_merc_comp/output/*
 examples/planetesimals_swift_merc_comp/saved_output/*
 examples/planetesimals_swift_merc_comp/energy_avg/*
-ipython_examples/HERMES_examples/output/*
+ipython_examples/HERMES_long_examples/output/*
