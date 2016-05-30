@@ -10,8 +10,6 @@ import os
 import re
 twopi = 6.283185307
 
-y_choice = int(sys.argv[2])      #1 = energy, 2=energy / sqrt(N_CE)
-
 dirP = sys.argv[1]
 Navg = 3                       #number of points at end of .txt file to average energy over
 xvals = []
@@ -58,13 +56,11 @@ for j,f in enumerate(files):
     except:
         print 'file: '+f+' will not be included in dataset'
 
-if y_choice == 0:
-    y = dE
-    yname = 'Fractional Energy Error'
-elif y_choice == 1:
-    y = ratio
-    yname = 'dE/E/N$_{switch}$'
-plt.plot(CE, y, '.')
+yname = 'Fractional Energy Error'
+plt.plot(CE, dE, '.')
+
+#plt.plot(CE, 0.5e-9*np.sqrt(CE),'+-',label='$E^{HERMES}_{scheme,tot} \propto \sqrt{CE}$')
+#plt.plot(CE, 1e-10*CE,'<-',markeredgecolor='none',label='$E^{HERMES}_{scheme,tot} \propto CE$')
 
 #theory
 rhHSR = rh*HSR
@@ -75,8 +71,8 @@ term2 = Me*Me*mp/(rhHSR**4)
 term3 = -M3/(2*rhHSR*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
 termp = 3*M3/((a*rhHSR**3))
 theory = (term1 + term2 + term3)*tau2*np.mean(scaling_factor)
-plt.plot(CE, theory*np.sqrt(CE),'+-',label='$E^{WH}_{floor} * \sqrt{CE}$')
-plt.plot(CE, theory*CE,'<-',markeredgecolor='none',label='$E^{WH}_{floor} * CE$')
+plt.plot(CE, 15*theory*np.sqrt(CE),'+-',label='$K * E^{HERMES}_{\mathrm{scheme}} * \sqrt{CE}$')
+plt.plot(CE, theory*CE,'<-',markeredgecolor='none',label='$E^{HERMES}_{\mathrm{scheme}} * CE$')
 
 plt.yscale('log')
 plt.xscale('log')
