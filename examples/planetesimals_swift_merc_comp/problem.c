@@ -14,7 +14,6 @@
 void heartbeat(struct reb_simulation* r);
 double c_angle(struct reb_simulation* r, double r_ps, int i, int incoming);
 struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice);
-double c_dcom(struct reb_simulation* r);
 
 double E0, t_output, t_log_output, xyz_t = 0;
 int xyz_counter = 0, numdt = 20;
@@ -29,7 +28,6 @@ char output_name[100] = {0};
 int *in_mini;
 int N_CE = 0;
 int L_CE = 0;
-int comr0 = 0;
 
 //swifter/mercury compare
 void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax, int n_output);
@@ -49,8 +47,8 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 1;        //Hill radii
-    r->dt = 0.015;
+    r->ri_hybarid.switch_ratio = 3;        //Hill radii
+    r->dt = 0.01;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -68,20 +66,9 @@ int main(int argc, char* argv[]){
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
     
-    /*
-    //planet 1
-    {
-        double a=0.5, m=5e-5, e=0, inc = reb_random_normal(0.00001);
-        struct reb_particle p1 = {0};
-        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
-        p1.r = 1.6e-4;              //radius of particle is in AU!
-        p1.id = r->N;
-        reb_add(r, p1);
-    }*/
-    
     //planet 2
     {
-        double a=2, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
+        double a=1, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = 2e-4;
@@ -96,7 +83,7 @@ int main(int argc, char* argv[]){
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
     double planetesimal_mass = 1e-8;
     //double amin = 0.4, amax = 0.6;        //for planetesimal disk
-    double amin = 1.8, amax = 2.2;
+    double amin = 0.8, amax = 1.2;
     double powerlaw = 0.5;
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
@@ -113,8 +100,6 @@ int main(int argc, char* argv[]){
     
     //com
     reb_move_to_com(r);
-    struct reb_particle com = reb_get_com(r);
-    comr0 = sqrt(com.x*com.x + com.y*com.y + com.z*com.z);
     
     //energy
     E0 = reb_tools_energy(r);
@@ -150,10 +135,6 @@ int main(int argc, char* argv[]){
     fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hybarid.switch_ratio,N_planetesimals,r->N_active);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    
-    //I think the binary file is currently not carrying through hybarid
-    //char binary[200] = {0}; strcat(binary,argv[4]); strcat(binary,".bin");
-    //reb_output_binary(r, binary);
     
 }
 
@@ -266,15 +247,6 @@ void heartbeat(struct reb_simulation* r){
             }
         }
     }
-}
-
-struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice){
-    struct reb_particle com = {.m=0, .x=0, .y=0, .z=0, .vx=0, .vy=0, .vz=0};
-    struct reb_particle* restrict const particles = r->particles;
-    for (int i=0;i<N_choice;i++){
-        com = reb_get_com_of_pair(com, particles[i]);
-    }
-    return com;
 }
 
 //works only for one planet!
@@ -459,9 +431,4 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fclose(swifter);
     fclose(swifterparams);
     fclose(mercuryparams);
-}
-
-double c_dcom(struct reb_simulation* r){
-    struct reb_particle com = reb_get_com(r);
-    return sqrt(com.x*com.x + com.y*com.y + com.z*com.z) - comr0;
 }

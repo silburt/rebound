@@ -62,7 +62,7 @@ gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 axes0 = plt.subplot(gs[0])
 axes1 = plt.subplot(gs[1])
 axes = [axes0,axes1]
-plt.subplots_adjust(hspace = 0.1)
+plt.subplots_adjust(hspace = 0.3)
 ms = 0.25
 alpha = 0.4
 
@@ -168,16 +168,18 @@ times_M = get_times(files,'/elapsed_time.txt')
 ##############################################
 #Final plotting stuff
 axes[0].legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=3)
-axes[0].set_ylabel('dE/E(0)', fontsize=16)
+axes[0].set_ylabel('Fractional Energy Error', fontsize=13)
+axes[0].set_xlabel('Time (Years)', fontsize=13)
 axes[0].set_yscale('log')
 axes[0].set_ylim([1e-12, 1e-3])
 axes[0].set_xscale('log')
 axes[0].set_xlim([0.5,time[-1]])
 
-axes[1].plot(times_H, np.ones(len(times_H)), 'o', markeredgecolor='none', color='lightgreen')
-axes[1].plot(times_S, np.ones(len(times_S))*2, 'o', markeredgecolor='none', color='dodgerblue')
-axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', color='salmon')
-axes[1].set_xlabel("Elapsed Simulation Time (hours)")
+ms=10
+axes[1].plot(times_H, np.ones(len(times_H)), 'o', markeredgecolor='none', ms=ms, color='lightgreen')
+axes[1].plot(times_S, np.ones(len(times_S))*2, 'o', markeredgecolor='none', ms=ms, color='dodgerblue')
+axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', ms=ms,color='salmon')
+axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=13)
 axes[1].set_yticks(range(1,4))
 axes[1].set_yticklabels(['HERMES','SyMBA','MERCURY'])
 axes[1].set_ylim([0.5,3.5])
@@ -186,7 +188,7 @@ print 'Preparing PDF'
 #from matplotlib.backends.backend_pdf import PdfPages
 #pp = PdfPages(dirP+'energy_avg_FULL.pdf')
 #plt.savefig(pp, format='pdf')
-plt.savefig(dirP+'energy_avg_FULL.pdf', format='pdf')
+plt.savefig(dirP+'energy_avg_FULL.png')
 plt.show()
 
 

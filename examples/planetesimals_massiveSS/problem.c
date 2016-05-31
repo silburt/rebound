@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
-#include <time.h>
 #include <string.h>
 #include "rebound.h"
 
@@ -12,11 +11,10 @@ double calc_a(struct reb_simulation* r, int i);
 double E0;
 char output_name[100] = {0};
 double log_constant, tlog_output, lin_constant, tlin_output;
-time_t t_ini;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
-    int seed = 14;
+    int seed = 13;
     srand(seed);
     
 	//Simulation Setup
@@ -29,7 +27,7 @@ int main(int argc, char* argv[]){
     double tmax = 1000 * 6.283;
     
     //for this example if the boundaries are enforced then the itegration fails
-    r->usleep = 1000;
+    //r->usleep = 1000;
     r->collisions_track_dE = 1;
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 100;
@@ -48,7 +46,8 @@ int main(int argc, char* argv[]){
     {
         double a=5.2, m=0.0009543*mm, e=0, inc = reb_random_normal(0.00001);
         struct reb_particle p1 = {0};
-        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0.85);
+        double f = 0.85;
+        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, f);
         p1.r = 0.00046732617;
         p1.id = r->N;
         reb_add(r, p1);
@@ -92,25 +91,12 @@ int main(int argc, char* argv[]){
     char seedstr[15];
     sprintf(seedstr, "%d", seed);
     strcat(output_name,"output/outerSS"); strcat(output_name,"_sd"); strcat(output_name,seedstr);
-    char timeout[200] = {0};
-    strcat(timeout,output_name);
     strcat(output_name,".txt");
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name);
     system(syss);
-    time_t t_ini = time(NULL);
-    struct tm *tmp = gmtime(&t_ini);
     
     //Integrate!
     reb_integrate(r, tmax);
-    
-    time_t t_fini = time(NULL);
-    struct tm *tmp2 = gmtime(&t_fini);
-    double time = t_fini - t_ini;
-    strcat(timeout,"_elapsedtime.txt");
-    FILE* outt = fopen(timeout,"w");
-    fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fclose(outt);
-    printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     
 }
 
@@ -121,24 +107,21 @@ void heartbeat(struct reb_simulation* r){
         double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         
-        time_t t_curr = time(NULL);
-        struct tm *tmp2 = gmtime(&t_curr);
-        double time = t_curr - t_ini;
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%.2f",r->t,dE,r->N,time);
-        struct reb_particle* particles = r->particles;
-        struct reb_particle p0 = particles[0];
-        for(int i=0;i<r->N;i++){
+        fprintf(append, "%.16f,%e,%d",r->t,dE,r->N);
+        
+        double a[4] = {0};
+        for(int i=1;i<r->N;i++){
             //double a = calc_a(r,i);
-            struct reb_particle p = particles[i];
-            double dx = p.x - p0.x;
-            double dy = p.y - p0.y;
-            double dz = p.z - p0.z;
-            double a = sqrt(dx*dx + dy*dy + dz*dz);
-            fprintf(append,",%.8f",a);
+            //struct reb_particle p = particles[i];
+            //double dx = p.x - p0.x;
+            //double dy = p.y - p0.y;
+            //double dz = p.z - p0.z;
+            //a[i-1] = sqrt(dx*dx + dy*dy + dz*dz);
+            a[i-1] = calc_a(r,i);
         }
-        fprintf(append,"\n");
+        fprintf(append,",%.8f,%.8f,%.8f,%.8f\n",a[0],a[1],a[2],a[3]);
         fclose(append);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
