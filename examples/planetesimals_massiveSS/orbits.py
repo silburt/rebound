@@ -46,5 +46,5 @@ axes[1].set_xlabel('Time (Years)', fontsize=13)
 axes[1].set_ylim([0,50])
 
 file_output_name = re.sub('\.txt$', '', file_name)
-plt.savefig(file_output_name+'.pdf')
+plt.savefig(file_output_name+'.png')
 plt.show()

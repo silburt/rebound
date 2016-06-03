@@ -43,6 +43,30 @@ def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
         x = HSR
     plt.plot(x, theory,'+-',label='R3B theory')
 
+'''
+def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
+    print scale_factor
+    rhHSR = rh*HSR
+    p = mp/np.sqrt(a)
+    a2 = a*a
+    ar = (a*a - rhHSR*rhHSR)**0.5
+    M3 = Me*mp*Ms
+    tau2 = dt*dt / 12.
+    #theory
+    original = Me*p*p/(mp*rhHSR**3) + 0.5*Me*Me*mp/rhHSR**4 - 0.5*Me*mp/(rhHSR*ar**3)
+    term1 = -(0.5*p*p/mp)*(1./(ar**3) + 3*rhHSR*rhHSR/ar**5)
+    term2 = mp*rhHSR*rhHSR/(2*ar**6)
+    term3 = 0.5*Me*mp/rhHSR
+    theory = (original + term3)*tau2*scale_factor
+    #theory = (term1 + term2+ term3)*tau2*scale_factor
+    #plot
+    if choice == 0:
+        x = dt
+    else:
+        x = HSR
+    plt.plot(x, theory,'+-',label='R3B theory')
+'''
+
 def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
