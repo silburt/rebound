@@ -1,4 +1,5 @@
 //Example problem for ERESS 2016
+//Agenda: Add additional force, add second planet, add 50 planetesimals, add 500 planetesimals, push to github.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +16,8 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     //Parameter List
-    int N_planetesimals = 0;
     int N_planets = 1;
+    int N_planetesimals = 0;
     
 	//Setup - Simulation
 	r->integrator	= REB_INTEGRATOR_HYBARID;
@@ -40,12 +41,12 @@ int main(int argc, char* argv[]){
     srand(12);
 
     //Add Particles
-    {//Star
-        struct reb_particle star = {0};
-        star.m 		= 1;
-        star.r		= 0.005;        // Radius of particle is in AU!
-        reb_add(r, star);
-    }
+    //Star
+    struct reb_particle star = {0};
+    star.m 		= 1;
+    star.r		= 0.005;        // Radius of particle is in AU!
+    reb_add(r, star);
+    
     double m=5e-4, e=0, inc=reb_random_normal(0.00001), rp=0.00042;
     {//Planet 1
         double a=2;
