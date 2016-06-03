@@ -17,7 +17,6 @@ int main(int argc, char* argv[]){
     //Parameter List
     int N_planetesimals = 0;
     int N_planets = 1;
-    r->usleep = 1000;
     
 	//Setup - Simulation
 	r->integrator	= REB_INTEGRATOR_HYBARID;
@@ -26,6 +25,7 @@ int main(int argc, char* argv[]){
     r->ri_hybarid.CE_radius = 20.;
     r->testparticle_type = 1;
     r->dt = 0.01;
+    r->usleep = 1000;
     
     //Setup - Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -38,17 +38,16 @@ int main(int argc, char* argv[]){
     reb_configure_box(r,boxsize,2,2,1);
     
     srand(12);
-    
-	//Add Star
-	struct reb_particle star = {0};
-	star.m 		= 1;
-    star.r		= 0.005;        // Radius of particle is in AU!
-	reb_add(r, star);
-    
-    
-    //Add Planets
+
+    //Add Particles
+    {//Star
+        struct reb_particle star = {0};
+        star.m 		= 1;
+        star.r		= 0.005;        // Radius of particle is in AU!
+        reb_add(r, star);
+    }
     double m=5e-4, e=0, inc=reb_random_normal(0.00001), rp=0.00042;
-    {
+    {//Planet 1
         double a=2;
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]){
         reb_add(r, p);
     }
     double a_outer = 3;
-    if(N_planets>1){
+    if(N_planets>1){//Planet 2
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a_outer, e, inc, 0, 0, 0);
         p.r = rp;       //radius of planet (AU)
