@@ -1,5 +1,5 @@
 //Example problem for ERESS 2016
-//Agenda: Add additional force (rebx and custom, r->usleep=0), add second planet, add 500 planetesimals, push to github.
+//Agenda: Add additional force (rebx and custom, r->usleep=0), add second planet, add 500 planetesimals, compare to WHFAST.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,8 +18,8 @@ int main(int argc, char* argv[]){
     
     //Parameter List
     int add_gr = 0;
-    int N_planets = 2;
-    int N_planetesimals = 500;
+    int N_planets = 1;
+    int N_planetesimals = 0;
     
 	//Setup - Simulation
 	r->integrator	= REB_INTEGRATOR_HYBARID;
