@@ -66,7 +66,7 @@ int main(int argc, char* argv[]){
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
     
-    //planet 2
+    //planet
     {
         double a=1, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};

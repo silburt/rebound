@@ -163,7 +163,7 @@ if mercury == 1:
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
 
 #Elapsed time
-#times_M = get_times(files,'/elapsed_time.txt')
+times_M = get_times(files,'/elapsed_time.txt')
 
 ##############################################
 #Final plotting stuff
@@ -178,7 +178,7 @@ axes[0].set_xlim([0.5,time[-1]])
 ms=10
 axes[1].plot(times_H, np.ones(len(times_H)), 'o', markeredgecolor='none', ms=ms, color='lightgreen')
 axes[1].plot(times_S, np.ones(len(times_S))*2, 'o', markeredgecolor='none', ms=ms, color='dodgerblue')
-#axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', ms=ms,color='salmon')
+axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', ms=ms,color='salmon')
 axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=13)
 axes[1].set_yticks(range(1,4))
 axes[1].set_yticklabels(['HERMES','SyMBA','MERCURY'])
