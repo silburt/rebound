@@ -46,7 +46,6 @@ int main(int argc, char* argv[]){
     struct reb_particle p1 = {0};
     p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
     p1.r = 0.00042;       //radius of planet (AU)
-    p1.id = r->N;
     reb_add(r, p1);
     
     //Planet 2 - outer smaller planet to migrate in the disk
@@ -55,7 +54,6 @@ int main(int argc, char* argv[]){
     struct reb_particle p2 = {0};
     p2 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
     p2.r = 0.0000788215;
-    p2.id = r->N;
     reb_add(r, p2);
     
     r->N_active = r->N;
@@ -77,7 +75,6 @@ int main(int argc, char* argv[]){
         double phi 	= reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
-        pt.id = r->N;
 		reb_add(r, pt);
     }
 
