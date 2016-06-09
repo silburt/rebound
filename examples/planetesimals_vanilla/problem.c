@@ -37,15 +37,15 @@ int main(int argc, char* argv[]){
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
-    r->ri_hybarid.switch_ratio = 3;         //Hill radii
-    r->ri_hybarid.CE_radius = 20.;          //X*radius
+    r->ri_hermes.hill_switch_factor = 3;         //Hill radii
+    r->ri_hermes.radius_switch_factor = 20.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     double tmax = 1e5 * 6.283;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;
+    r->track_energy_offset = 1;
     
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 11;
@@ -57,24 +57,24 @@ int main(int argc, char* argv[]){
     star.r		= 0.005;        // Radius of particle is in AU!
 	reb_add(r, star);
     
-    //does order of adding bodies matter?
+    //does order of adding bodies matter? Yes, apparently it does says Hanno. Jacobi coords.
     
     //inner massive planet to scatter planetesimals out
     double a2=3, m2=5e-4, e2=0, inc2=reb_random_normal(0.00001);
-    struct reb_particle p2 = {0};
-    p2 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
-    p2.r = 0.000467;       //radius of Jupiter (AU)
-    p2.id = r->N;
-    reb_add(r, p2);
-    
-    //planet 1
-    double a1=5, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
     struct reb_particle p1 = {0};
-    p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
-    //p1.r = 5e-4;
-    p1.id = r->N;
+    p1 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
+    p1.r = 0.000467;       //radius of Jupiter (AU)
+    p1.hash = r->N;
     reb_add(r, p1);
+    
+    //planet 2
+    double a1=5, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
+    struct reb_particle p2 = {0};
+    p2 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
+    p2.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
+    //p2.r = 5e-4;
+    p2.hash = r->N;
+    reb_add(r, p2);
 
     r->N_active = r->N;
     r->dt = pow(a2,1.5)/30;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
         double phi 	= reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
-        pt.id = r->N;
+        pt.hash = r->N;
 		reb_add(r, pt);
     }
     
@@ -173,7 +173,7 @@ void heartbeat(struct reb_simulation* r){
         if(calc_mom) c_momentum(r, &dLA, &dLL, LA0, LL0);
         
         int N_mini = 0;
-        if(r->integrator == REB_INTEGRATOR_HYBARID) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
+        if(r->integrator == REB_INTEGRATOR_HERMES) N_mini = r->ri_hermes.mini->N - r->ri_hermes.mini->N_active;
         
         time_t t_curr = time(NULL);
         struct tm *tmp2 = gmtime(&t_curr);
@@ -217,7 +217,7 @@ void heartbeat(struct reb_simulation* r){
                 reb_remove(r,i,1);
                 reb_move_to_com(r);
                 const double Ef = reb_tools_energy(r);
-                r->collisions_dE += Ei - Ef;
+                r->energy_offset += Ei - Ef;
                 
                 //char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
                 FILE* append = fopen(removed,"a");
@@ -331,7 +331,7 @@ void eia_snapshot(struct reb_simulation* r, int output_number){
         const double a = -mu/( v2 - 2.*mu*dinv );
         const double inc = acos(hz/h);
         const double rdist = sqrt((p.x-p0.x)*(p.x-p0.x)+(p.y-p0.y)*(p.y-p0.y)+(p.z-p0.z)*(p.z-p0.z));
-        fprintf(append,"%f,%d,%f,%f,%f,%f,%e\n",t,p.id,a,e,inc,rdist,p.m);
+        fprintf(append,"%f,%u,%f,%f,%f,%f,%e\n",t,p.hash,a,e,inc,rdist,p.m);
     }
     
     fclose(append);

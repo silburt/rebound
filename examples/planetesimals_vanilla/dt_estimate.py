@@ -1,4 +1,4 @@
-#This is used to estimate what the timestep should be for HYBARID given the initial conditions.
+#This is used to estimate what the timestep should be for HERMES given the initial conditions.
 
 #Global params
 M = 1

@@ -17,7 +17,7 @@ runs = []
 Np = str(params[1])
 for i in xrange(0,params[0]):
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/HYBARID_Np'+Np+'_sd'+seed
+    name = 'output/HERMES_Np'+Np+'_sd'+seed
     runs.append((Np,seed,name))
 '''
 
@@ -26,7 +26,7 @@ params = [1.,1.67,2.78,4.64,7.74,12.92,21.54,35.93,59.94,100.]
 seed = random.sample(range(0,1000),len(params))
 runs = []
 for i in xrange(0,len(params)):
-    name = 'output/HYBARID_Np1000_sd'+str(seed[i])+'_rpfac'+str(params[i])
+    name = 'output/HERMES_Np1000_sd'+str(seed[i])+'_rpfac'+str(params[i])
     runs.append((params[i],seed[i],name))
 
 os.system('make')

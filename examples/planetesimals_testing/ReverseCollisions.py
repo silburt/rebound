@@ -44,14 +44,14 @@ if setup_checkpoint == 1:
 if do_reverse == 1:
     sim = rebound.Simulation.from_file("ReverseCollisions.bin")
     print(sim.particles[1].r)
-    sim.integrator='hybarid'
-    sim.collisions_track_dE = 1
+    sim.integrator='hermes'
+    sim.track_energy_offset = 1
     sim.collision = 'direct'
     sim.collision_resolve = 'merge'
     sim.testparticle_type = 1
     sim.dt = 0.0001
-    sim.ri_hybarid.switch_radius = 6
-    sim.ri_hybarid.CE_radius = 20
+    sim.ri_hermes.switch_radius = 6
+    sim.ri_hermes.radius_switch_factor = 20
     sim.N_active = 2
     E0 = sim.calculate_energy()
     dE = np.zeros(0)
@@ -59,7 +59,7 @@ if do_reverse == 1:
     sim.status()
     for t in times:
         sim.integrate(t)
-        Ei = sim.calculate_energy() + sim.collisions_dE
+        Ei = sim.calculate_energy() + sim.energy_offset
         dE = np.append(dE,(Ei-E0)/E0)
         sys.stdout.write("\r" + str(sim.t))
         sys.stdout.flush()

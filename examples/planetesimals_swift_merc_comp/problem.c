@@ -43,16 +43,16 @@ int main(int argc, char* argv[]){
     int mercury_swifter_comp = 1;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.CE_radius = 20.;         //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.radius_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 3;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 3;        //Hill radii
     r->dt = 0.01;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = 2e-4;
-        p2.id = r->N;
+        p2.hash = r->N;
         reb_add(r, p2);
     }
     
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
 		pt.r 		= 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
 		reb_add(r, pt);
     }
     
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
     if(mercury_swifter_comp){
         mercury_dir = argv[5];
         swifter_dir = argv[6];
-        output_to_mercury_swifter(r, r->ri_hybarid.switch_ratio, tmax, n_output);
+        output_to_mercury_swifter(r, r->ri_hermes.hill_switch_factor, tmax, n_output);
     }
     
     t_ini = time(NULL);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]){
     strcat(timeout,argv[4]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hybarid.switch_ratio,N_planetesimals,r->N_active);
+    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hermes.hill_switch_factor,N_planetesimals,r->N_active);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     
@@ -156,7 +156,7 @@ void heartbeat(struct reb_simulation* r){
         //counting close encounters + calculate angle
         int count_CE = 0;
         if(count_CE){
-            struct reb_simulation* mini = r->ri_hybarid.mini;
+            struct reb_simulation* mini = r->ri_hermes.mini;
             double r_ps = 0, angle = 0;
             char ia[200] = {0}; strcat(ia,argv4); strcat(ia,"_inangle.txt");
             char oa[200] = {0}; strcat(oa,argv4); strcat(oa,"_outangle.txt");
@@ -167,7 +167,7 @@ void heartbeat(struct reb_simulation* r){
             
             int tempL_CE = L_CE;
             for(int i=mini->N_active;i<mini->N;i++){//check if entered
-                int mini_id = mini->particles[i].id;
+                int mini_id = mini->particles[i].hash;
                 int found_in_mini = 0;
                 for(int j=0;j<tempL_CE;j++)
                     if(in_mini[j] == mini_id){//already in in_mini?
@@ -190,7 +190,7 @@ void heartbeat(struct reb_simulation* r){
                 int id = in_mini[i];
                 int found_in_mini = 0;
                 for(int j=mini->N_active;j<mini->N;j++){
-                    if(mini->particles[j].id == id){
+                    if(mini->particles[j].hash == id){
                         found_in_mini = 1;
                     }
                 }
@@ -209,7 +209,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e\n",r->t,dE,r->N,r->ri_hybarid.mini->N,time,N_CE,fabs(E-E0),E,E0);
+        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E,E0);
         fclose(append);
     }
     
@@ -236,7 +236,7 @@ void heartbeat(struct reb_simulation* r){
                 const double Ei = reb_tools_energy(r);
                 reb_remove(r,i,1);
                 const double Ef = reb_tools_energy(r);
-                r->collisions_dE += Ei - Ef;
+                r->energy_offset += Ei - Ef;
                 
                 char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
                 FILE* append = fopen(removed,"a");
@@ -253,7 +253,7 @@ void heartbeat(struct reb_simulation* r){
 double c_angle(struct reb_simulation* r, double r_ps, int id, int incoming){
     struct reb_particle* p = r->particles;
     for(int i=r->N_active;i<r->N;i++){//get correct index
-        if(p[i].id == id){
+        if(p[i].hash == id){
             //atan2, sensitive to 2pi
             double x1 = p[1].x - p[0].x;
             double y1 = p[1].y - p[0].y;

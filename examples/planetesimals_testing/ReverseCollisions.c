@@ -26,17 +26,17 @@ int main(int argc, char* argv[]){
     strcat(output_name,"output/ReverseCollisions");
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.CE_radius = 20.;         //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.radius_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 6;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 6;        //Hill radii
     r->dt = -0.001;
     double tmax = -2;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
     
     t_log_output = 1.00048;
     t_output = r->t;
@@ -74,7 +74,7 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         
         int N_mini = 0;
-        if(r->integrator == REB_INTEGRATOR_HYBARID) N_mini = r->ri_hybarid.mini->N - r->ri_hybarid.mini->N_active;
+        if(r->integrator == REB_INTEGRATOR_HERMES) N_mini = r->ri_hermes.mini->N - r->ri_hermes.mini->N_active;
         
         FILE *append;
         

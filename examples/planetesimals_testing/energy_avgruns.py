@@ -41,7 +41,7 @@ def sort_index(array, val):
 def cdf(array):
     return np.arange(1,len(array)+1)/float(len(array))
 
-runs = ['HYBARIDcoll_Np500','HYBARIDcoll2xR_Np500','HYBARIDcoll4xR_Np500']
+runs = ['HERMEScoll_Np500','HERMEScoll2xR_Np500','HERMEScoll4xR_Np500']
 names = ['R','2R','4R']
 colordark = ['darkgreen','darkblue','darkred']
 colorlight = ['lightgreen','dodgerblue','salmon']

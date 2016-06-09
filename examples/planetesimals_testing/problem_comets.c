@@ -41,16 +41,16 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[1]); strcat(output_name,".txt"); argv4=argv[1];
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.CE_radius = 50.;         //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.radius_switch_factor = 50.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 3;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 3;        //Hill radii
     r->dt = 5;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
     
     //For many ejected planetesimals this leads to error jumps.
     r->boundary	= REB_BOUNDARY_OPEN;
@@ -123,11 +123,11 @@ void heartbeat(struct reb_simulation* r){
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
         
-        double E = reb_tools_energy(r);// + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r);// + r->ri_hermes.com_dE;
         //double dE = fabs((E-E0)/E0);
         double dE = (E-E0)/E0;
         reb_output_timing(r, 0);
-        printf("    dE=%e,N_mini=%d",dE,r->ri_hybarid.mini->N);
+        printf("    dE=%e,N_mini=%d",dE,r->ri_hermes.mini->N);
         
         time_t t_curr = time(NULL);
         struct tm *tmp2 = gmtime(&t_curr);
@@ -135,7 +135,7 @@ void heartbeat(struct reb_simulation* r){
 
         FILE *append;
         append = fopen("output/energy.txt", "a");
-        fprintf(append, "%.16f,%.16f,%d,%d\n",r->t,dE,r->N,r->ri_hybarid.mini->N);
+        fprintf(append, "%.16f,%.16f,%d,%d\n",r->t,dE,r->N,r->ri_hermes.mini->N);
         fclose(append);
         
     }

@@ -49,16 +49,16 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.CE_radius = 20.;         //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.radius_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 6;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 6;        //Hill radii
     r->dt = 0.001;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
     
     //For many ejected planetesimals this leads to error jumps.
     //r->boundary	= REB_BOUNDARY_OPEN;
@@ -150,7 +150,7 @@ void heartbeat(struct reb_simulation* r){
             double Eicom = reb_tools_energy(r);
             reb_move_to_com(r);
             double Efcom = reb_tools_energy(r);
-            r->ri_hybarid.com_dE += Eicom - Efcom;
+            r->ri_hermes.com_dE += Eicom - Efcom;
         }*/
         
         //calc e, w
@@ -170,9 +170,9 @@ void heartbeat(struct reb_simulation* r){
         if(calc_mom) c_momentum(r, &dLA, &dLL, LA0, LL0);
         
         int N_mini = 0;
-        if(r->ri_hybarid.mini_active) N_mini = r->ri_hybarid.mini->N;
+        if(r->ri_hermes.mini_active) N_mini = r->ri_hermes.mini->N;
         
-        double E = reb_tools_energy(r);// + r->ri_hybarid.com_dE;
+        double E = reb_tools_energy(r);// + r->ri_hermes.com_dE;
         //double dE = fabs((E-E0)/E0);
         double dE = (E-E0)/E0;
         reb_output_timing(r, 0);
@@ -212,7 +212,7 @@ void heartbeat(struct reb_simulation* r){
                 reb_remove(r,i,1);
                 reb_move_to_com(r);
                 const double Ef = reb_tools_energy(r);
-                r->collisions_dE += Ei - Ef;
+                r->energy_offset += Ei - Ef;
                 
                 char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
                 FILE* append = fopen(removed,"a");
@@ -339,7 +339,7 @@ void apsidal_precession(struct reb_simulation* r, int index, double dwdt){
     p->vx = vx_new;
     p->vy = vy_new;
     
-    r->collisions_dE += Ei - reb_tools_energy(r); //account for energy change because of this.
+    r->energy_offset += Ei - reb_tools_energy(r); //account for energy change because of this.
 }
 
 void c_momentum(struct reb_simulation* r, double* dL_ang, double* dL_lin, double Lang0, double Llin0){

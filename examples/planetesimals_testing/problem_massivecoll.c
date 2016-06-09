@@ -15,9 +15,9 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = 5;  //units of Hill radii
-    r->ri_hybarid.CE_radius = 15.;   //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.hill_switch_factor = 5;  //units of Hill radii
+    r->ri_hermes.radius_switch_factor = 15.;   //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     r->usleep = 1000;
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;
+    r->track_energy_offset = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -100,10 +100,10 @@ void heartbeat(struct reb_simulation* r){
         double dE = fabs((E-E0)/E0);
         FILE* f = fopen("energy.txt","a+");
         int N_mini = 0;
-        if (r->ri_hybarid.mini_active){
-            N_mini = r->ri_hybarid.mini->N;
+        if (r->ri_hermes.mini_active){
+            N_mini = r->ri_hermes.mini->N;
         }
-        fprintf(f,"%e,%e,%d,%e,%d,%d\n",r->t,dE,N_mini,r->collisions_dE,r->N,N_mini);
+        fprintf(f,"%e,%e,%d,%e,%d,%d\n",r->t,dE,N_mini,r->energy_offset,r->N,N_mini);
         fclose(f);
     }
     
@@ -112,8 +112,8 @@ void heartbeat(struct reb_simulation* r){
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         int N_mini = 0;
-        if (r->ri_hybarid.mini_active){
-            N_mini = r->ri_hybarid.mini->N;
+        if (r->ri_hermes.mini_active){
+            N_mini = r->ri_hermes.mini->N;
         }
         printf("dE=%e,N_mini=%d",dE,N_mini);
     }

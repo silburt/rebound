@@ -38,8 +38,8 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.CE_radius = 20.;         //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.radius_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->usleep = 1000;
@@ -52,12 +52,12 @@ int main(int argc, char* argv[]){
     if(test_dt){//testing dt
         tmax = 1e5;
         //tmax = 10 * pow(afac,1.5);
-        r->ri_hybarid.switch_ratio = 6;        //units of Hill radii
+        r->ri_hermes.hill_switch_factor = 6;        //units of Hill radii
         r->dt = atof(argv[1]) * 6.28319;
     } else {//testing HSR
         //tmax = 10 * pow(afac,1.5);
         tmax = 7;
-        r->ri_hybarid.switch_ratio = atof(argv[1]);
+        r->ri_hermes.hill_switch_factor = atof(argv[1]);
         //r->dt = 0.001 * 6.28319; //1000 dt's per orbital period
         r->dt = 0.001;
     }
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     //collision
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
     
     //boundary
     //r->boundary			= REB_BOUNDARY_OPEN;
@@ -91,7 +91,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p1 = {0};
         p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p1.r = 1.6e-4;              //radius of particle is in AU!
-        p1.id = r->N;
         reb_add(r, p1);
     }
     
@@ -103,7 +102,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = 1.6e-4;
-        p2.id = r->N;
         reb_add(r, p2);
     }*/
     
@@ -123,7 +121,6 @@ int main(int argc, char* argv[]){
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
 		pt.r 		= 4e-5;
-        pt.id = r->N;
 		reb_add(r, pt);
     }
 
@@ -135,7 +132,6 @@ int main(int argc, char* argv[]){
         //pt.vy += 0.1*r->particles[1].vy;
         //pt.vx -= 0.1*r->particles[1].vx;
         pt.r = 4e-5;
-        pt.id = r->N;
         reb_add(r, pt);
     }*/
     
@@ -146,7 +142,6 @@ int main(int argc, char* argv[]){
         pt = reb_tools_orbit_to_particle(r->G, star, r->particles[1].m, r->particles[1].x, 0, 0, 0, 0, x);
         pt.m = planetesimal_mass;
         pt.r = 4e-5;
-        pt.id = r->N;
         reb_add(r, pt);
     }*/
     //
@@ -165,7 +160,6 @@ int main(int argc, char* argv[]){
         pt.vy += vy;
         pt.vx += vx;
         pt.r = 4e-5;
-        pt.id = r->N;
         reb_add(r, pt);
     }
     
@@ -193,7 +187,7 @@ int main(int argc, char* argv[]){
     strcat(timeout,argv[4]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hybarid.switch_ratio,N_planetesimals,r->N_active);
+    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hermes.hill_switch_factor,N_planetesimals,r->N_active);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     
@@ -213,15 +207,15 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         
         for(int i=0;i<r->N;i++){
-            if(in_mini[i] != r->ri_hybarid.is_in_mini[i]){
-                in_mini[i] = r->ri_hybarid.is_in_mini[i];
+            if(in_mini[i] != r->ri_hermes.is_in_mini[i]){
+                in_mini[i] = r->ri_hermes.is_in_mini[i];
                 N_CE++;
             }
         }
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%.16f,%.16f\n",r->t,dE,r->N,r->ri_hybarid.mini->N,time,N_CE,fabs(E-E0),E);
+        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%.16f,%.16f\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E);
         fclose(append);
     }
     
@@ -241,7 +235,7 @@ void heartbeat(struct reb_simulation* r){
         //record max velocity
         struct reb_particle* particles = r->particles;
         double min_dt_enc2 = INFINITY;
-        double switch_ratio2 = r->ri_hybarid.switch_ratio*r->ri_hybarid.switch_ratio;
+        double hill_switch_factor2 = r->ri_hermes.hill_switch_factor*r->ri_hermes.hill_switch_factor;
         struct reb_particle p0 = particles[0];
         for(int i=1;i<r->N_active;i++){
             struct reb_particle pi = particles[i];
@@ -267,12 +261,12 @@ void heartbeat(struct reb_simulation* r){
                 const double dy = pi.y - pj.y;
                 const double dz = pi.z - pj.z;
                 const double rij2 = dx*dx + dy*dy + dz*dz;
-                if(rij2 < switch_ratio2*rh_sum2){
+                if(rij2 < hill_switch_factor2*rh_sum2){
                     const double dvx = pi.vx - pj.vx;
                     const double dvy = pi.vy - pj.vy;
                     const double dvz = pi.vz - pj.vz;
                     const double vij2 = dvx*dvx + dvy*dvy + dvz*dvz;
-                    const double dt_enc2 = switch_ratio2*rh_sum2/vij2;
+                    const double dt_enc2 = hill_switch_factor2*rh_sum2/vij2;
                     min_dt_enc2 = MIN(min_dt_enc2,dt_enc2);
                     if (warning_message==0 && min_dt_enc2 < 16.*r->dt*r->dt){
                         warning_message = 1;
@@ -300,7 +294,7 @@ void heartbeat(struct reb_simulation* r){
             const double Ei = reb_tools_energy(r);
             reb_remove(r,i,1);
             const double Ef = reb_tools_energy(r);
-            r->collisions_dE += Ei - Ef;
+            r->energy_offset += Ei - Ef;
             
             char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
             FILE* append = fopen(removed,"a");
@@ -309,21 +303,6 @@ void heartbeat(struct reb_simulation* r){
             
             N_prev = r->N;
         }
-    }*/
-    /*
-    //xyz movie plots
-    if(r->t >= xyz_t - 0.01*r->dt && output_xyz){
-        double E = reb_tools_energy(r) + r->collisions_dE;
-        double dE = fabs((E-E0)/E0);
-        xyz_t += numdt*r->dt;
-        //printf("\n%f,%d,%f,%f\n",xyz_t,numdt,r->dt,r->t);
-        xyz_counter++;
-        char filename[100]={0}; char ii[5] = {0};
-        sprintf(ii, "%d", xyz_counter);
-        strcat(filename,"xyz_outputs/hybarid"); strcat(filename,ii); strcat(filename,".txt");
-        FILE* output = fopen(filename,"w");
-        for(int i=0; i<r->N;i++) fprintf(output,"%f,%d,%.16f,%.16f,%.16f,%.16f\n",r->t,r->particles[i].id,r->particles[i].x,r->particles[i].y,r->particles[i].z,dE);
-        fclose(output);
     }*/
 
 /*
@@ -361,6 +340,6 @@ void heartbeat(struct reb_simulation* r){
  pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, r->particles[1].x - rr*r->particles[1].x, 0, 0, 0, 0, f);
  pt.vy += term1 + term2;
  pt.r = 4e-5;
- pt.id = r->N;
+ pt.hash = r->N;
  reb_add(r, pt);
  }*/

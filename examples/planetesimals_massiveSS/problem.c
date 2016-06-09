@@ -18,9 +18,9 @@ int main(int argc, char* argv[]){
     srand(seed);
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = 3;  //Hill radii
-    r->ri_hybarid.CE_radius = 15.;          //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.hill_switch_factor = 3;  //Hill radii
+    r->ri_hermes.radius_switch_factor = 15.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     r->dt = 0.03 * 6.2832;
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     
     //for this example if the boundaries are enforced then the itegration fails
     //r->usleep = 1000;
-    r->collisions_track_dE = 1;
+    r->track_energy_offset = 1;
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 100;
     reb_configure_box(r,boxsize,1,1,1);
@@ -49,7 +49,6 @@ int main(int argc, char* argv[]){
         double f = 0.85;
         p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, f);
         p1.r = 0.00046732617;
-        p1.id = r->N;
         reb_add(r, p1);
     }
     {
@@ -57,7 +56,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = 0.000389256877;
-        p2.id = r->N;
         reb_add(r, p2);
     }
     {
@@ -65,7 +63,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p3 = {0};
         p3 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p3.r = 0.000169534499;
-        p3.id = r->N;
         reb_add(r, p3);
     }
     {
@@ -73,7 +70,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p4 = {0};
         p4 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p4.r = 1.6e-4;
-        p4.id = r->N;
         reb_add(r, p4);
     }
     

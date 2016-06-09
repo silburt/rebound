@@ -15,18 +15,18 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
+	r->integrator	= REB_INTEGRATOR_HERMES;
     //r->integrator	= REB_INTEGRATOR_IAS15;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 3;         //Hill radii
-    r->ri_hybarid.CE_radius = 20.;          //X*radius
+    r->ri_hermes.hill_switch_factor = 3;         //Hill radii
+    r->ri_hermes.radius_switch_factor = 20.;          //X*radius
     r->testparticle_type = 1;
     double tmax = 1e5 * 6.283;
     
     //collisions
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;
+    r->track_energy_offset = 1;
     
     //boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
@@ -97,16 +97,16 @@ void heartbeat(struct reb_simulation* r){
         double relE = fabs((E-E0)/E0);
         FILE* f = fopen("energy.txt","a+");
         int N_mini = 0;
-        if (r->ri_hybarid.mini_active){
-            N_mini = r->ri_hybarid.mini->N;
+        if (r->ri_hermes.mini_active){
+            N_mini = r->ri_hermes.mini->N;
         }
-        fprintf(f,"%e,%e,%d,%d,%e\n",r->t,relE,r->N,N_mini,r->collisions_dE);
+        fprintf(f,"%e,%e,%d,%d,%e\n",r->t,relE,r->N,N_mini,r->energy_offset);
         fclose(f);
     }
     
     if (reb_output_check(r, 100.*r->dt)){
         double E = reb_tools_energy(r);
-        double relE = fabs((E-E0+r->collisions_dE)/E0);
+        double relE = fabs((E-E0+r->energy_offset)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
     }

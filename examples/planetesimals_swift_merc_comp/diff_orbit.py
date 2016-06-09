@@ -20,9 +20,9 @@ def get_cmap(N):
 def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
-dirhybarid = 'xyz_outputs/'
+dirhermes = 'xyz_outputs/'
 dirswifter = '../../../swifter/example/xyz_outputs/'
-filesh = glob.glob(dirhybarid+'*.txt')
+filesh = glob.glob(dirhermes+'*.txt')
 filesh = sorted(filesh, key = natural_key)
 filess = glob.glob(dirswifter+'*.txt')
 filess = sorted(filess, key = natural_key)
@@ -56,11 +56,11 @@ for i in xrange(0,Nbods):
     plt.plot(time,dr[:,i+1], ms=0.5, color=cmap(i), alpha=0.75, label='body '+str(i))
 plt.plot(time, dr[:,0], 'o', markeredgecolor='none', color='black', label='Total Error')
 plt.legend(loc='upper left',prop={'size':10})
-plt.ylabel('dr deviation of swifter from hybarid')
+plt.ylabel('dr deviation of swifter from hermes')
 plt.xlabel('time (years)')
 plt.yscale('log')
 plt.xscale('log')
 #plt.xlim([0.5,time[-1]])
 plt.title('Integrator deviations between Hybarid/Swifter for '+str(Nbods)+' bodies')
-plt.savefig(dirhybarid+'integrator_drcomp_N'+str(Nbods)+'.png')
+plt.savefig(dirhermes+'integrator_drcomp_N'+str(Nbods)+'.png')
 plt.show()

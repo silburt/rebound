@@ -22,9 +22,9 @@ int main(int argc, char* argv[]){
     srand(seed);
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HYBARID;
-    r->ri_hybarid.switch_ratio = atof(argv[1]);  //Hill radii
-    r->ri_hybarid.CE_radius = 15.;          //X*radius
+	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->ri_hermes.hill_switch_factor = atof(argv[1]);  //Hill radii
+    r->ri_hermes.radius_switch_factor = 15.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     r->dt = atof(argv[2]);
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]){
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;
+    r->track_energy_offset = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -49,7 +49,6 @@ int main(int argc, char* argv[]){
     p1.r = atof(argv[4]);
     //p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
     //p1.r = 5e-4;
-    p1.id = r->N;
     reb_add(r, p1);
     
     r->N_active = r->N;
@@ -71,7 +70,6 @@ int main(int argc, char* argv[]){
         double phi 	= reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
-        pt.id = r->N;
 		reb_add(r, pt);
         printf("%.16f\n",planetesimal_mass);
         exit(0);
@@ -91,7 +89,7 @@ int main(int argc, char* argv[]){
     char dtstr[15];
     sprintf(dtstr, "%.2f", r->dt);
     char HSRstr[15];
-    sprintf(HSRstr, "%.2f", r->ri_hybarid.switch_ratio);
+    sprintf(HSRstr, "%.2f", r->ri_hermes.hill_switch_factor);
     strcat(output_name,"output/Kirsh_dt"); strcat(output_name,dtstr); strcat(output_name,"_HSR"); strcat(output_name,HSRstr); strcat(output_name,"_sd"); strcat(output_name,seedstr);
     char timeout[200] = {0};
     strcat(timeout,output_name);
@@ -128,7 +126,7 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f\n",r->t,dE,a1,r->N,r->ri_hybarid.mini->N,time);
+        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f\n",r->t,dE,a1,r->N,r->ri_hermes.mini->N,time);
         fclose(append);
         
         reb_output_timing(r, 0);
