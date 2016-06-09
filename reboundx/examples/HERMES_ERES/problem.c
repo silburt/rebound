@@ -16,26 +16,26 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     //Parameter List
-    int N_planets = 1;
-    int N_planetesimals = 0;
+    int N_planets = 2;
+    int N_planetesimals = 500;
     
     //Set GR Potential
     struct rebx_extras* rebx = rebx_init(r);
-    double c = 173.26203208556151;
-    rebx_add_gr_potential(rebx, 0, c);
+    rebx_add_gr_potential(rebx, 0, 173.26203208556151);
     
 	//Setup - Simulation
-	r->integrator	= REB_INTEGRATOR_HYBARID;
+	r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
-    r->ri_hybarid.switch_ratio = 3;
-    r->ri_hybarid.CE_radius = 20.;
+    r->ri_hermes.hill_switch_factor = 3;
+    r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
     r->dt = 0.01;
     
     //Setup - Collisions
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->collisions_track_dE = 1;
+    r->collision_resolve_keep_sorted = 1;
+    r->track_energy_offset = 1;
     
     srand(14);
 
@@ -70,7 +70,6 @@ int main(int argc, char* argv[]){
         double phi 	= reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, a, e, inc, Omega, apsis, phi);
         pt.r 		= 0.00000934532;
-        pt.id = r->N;
         reb_add(r, pt);
         r->usleep = 1000;
     }
@@ -87,7 +86,7 @@ void heartbeat(struct reb_simulation* r){
     //output energy
     if (reb_output_check(r, 100.*r->dt)){
         double E = reb_tools_energy(r);
-        double relE = fabs((E-E0+r->collisions_dE)/E0);
+        double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("dE = %e",relE);
     }
