@@ -3,12 +3,12 @@
  *
  * This example integrates a star, 2 planet, N planetesimal disk system, with the
  * outer planet at the inner edge of the planetesimal disk. If the system is
- * integrated for at least 10^4 years, outward migration of the outer planet in
+ * integrated for at least 10^5 years outward migration by the outer planet in
  * the planetesimal disk will be observed. By default, the semi-major axis of both
  * planets along with the fractional energy error are printed to energy.txt.
  *
- * Since many close encounters occur the ideal integrator choice for this problem 
- * is HERMES.
+ * The ideal integrator choice for this problem is HERMES due to the large number
+ * of close encounters.
  */
 
 #include <stdio.h>
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]){
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 12;
+    const double boxsize = 11;
     reb_configure_box(r,boxsize,2,2,1);
     
     srand(12);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
     
     // Planetesimal disk parameters
     double total_disk_mass = m2*10.;
-    int N_planetesimals = 1000;
+    int N_planetesimals = 2000;
     double planetesimal_mass = total_disk_mass/N_planetesimals;
     double amin = a2, amax = a2 + 2;                //planet at edge of disk
     double powerlaw = 0;
