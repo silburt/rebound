@@ -1256,8 +1256,6 @@ Simulation._fields_ = [
                 ("collisions_allocatedN", c_int),
                 ("minimum_collision_celocity", c_double),
                 ("collisions_plog", c_double),
-                ("track_energy_offset", c_int),
-                ("energy_offset", c_double),
                 ("max_radius", c_double*2),
                 ("collisions_Nlog", c_long),
                 ("_calculate_megno", c_int),
