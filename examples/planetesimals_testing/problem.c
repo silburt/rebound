@@ -59,6 +59,7 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
+    r->collision_resolve_keep_sorted = 1;
     
     //For many ejected planetesimals this leads to error jumps.
     //r->boundary	= REB_BOUNDARY_OPEN;
@@ -85,7 +86,7 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
         p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
+        p.hash = r->N;
         reb_add(r, p);
     }
     
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]){
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, e_pp, inc, Omega, apsis,phi);
 		pt.r 		= 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
         
         reb_add(r, pt);
     }
@@ -229,7 +230,7 @@ void heartbeat(struct reb_simulation* r){
 double c_angle(struct reb_simulation* r, double r_ps, int id, int incoming){
     struct reb_particle* p = r->particles;
     for(int i=r->N_active;i<r->N;i++){//get correct index
-        if(p[i].id == id){
+        if(p[i].hash == id){
             //atan2, sensitive to 2pi
             double x1 = p[1].x - p[0].x;
             double y1 = p[1].y - p[0].y;
@@ -380,7 +381,7 @@ void nearmiss_hit_tests(struct reb_simulation* r){
         struct reb_particle pt = {0};
         pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.4, 0, 0, 0, f);
         pt.r = 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
         reb_add(r, pt);
     }
     {//planetesimal 2
@@ -389,7 +390,7 @@ void nearmiss_hit_tests(struct reb_simulation* r){
         struct reb_particle pt = {0};
         pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.2, 0.4, 0, 0, 0, f);
         pt.r = 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
         reb_add(r, pt);
     }
     
@@ -399,7 +400,7 @@ void nearmiss_hit_tests(struct reb_simulation* r){
         struct reb_particle pt = {0};
         pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.3, 0, 0, M_PI, f);
         pt.r = 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
         reb_add(r, pt);
     }
     
@@ -409,7 +410,7 @@ void nearmiss_hit_tests(struct reb_simulation* r){
         struct reb_particle pt = {0};
         pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.8, 0, 0, M_PI, f);
         pt.r = 4e-5;
-        pt.id = r->N;
+        pt.hash = r->N;
         reb_add(r, pt);
     }
     
@@ -419,7 +420,7 @@ void nearmiss_hit_tests(struct reb_simulation* r){
      struct reb_particle pt = {0};
      pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, a, e, 0, 0, 0, f);
      pt.r = 4e-5;
-     pt.id = r->N;
+     pt.hash = r->N;
      reb_add(r, pt);
      }*/
 }

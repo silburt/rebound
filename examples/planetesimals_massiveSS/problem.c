@@ -28,13 +28,14 @@ int main(int argc, char* argv[]){
     
     //for this example if the boundaries are enforced then the itegration fails
     //r->usleep = 1000;
-    r->track_energy_offset = 1;
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 100;
     reb_configure_box(r,boxsize,1,1,1);
     
     //r->collision = REB_COLLISION_DIRECT;
     //r->collision_resolve = reb_collision_resolve_merge;
+    //r->track_energy_offset = 1;
+    //r->collision_resolve_keep_sorted = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};

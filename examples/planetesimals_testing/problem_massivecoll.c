@@ -28,6 +28,7 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
+    r->collision_resolve_keep_sorted = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -42,7 +43,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
         p.r = 1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
         reb_add(r, p);
     }
     
@@ -54,7 +54,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = 1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
         reb_add(r, p);
     }
     
@@ -64,7 +63,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = 1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
         reb_add(r, p);
     }
     
@@ -76,7 +74,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, f);
         p.r = 1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
         reb_add(r, p);
     }
     

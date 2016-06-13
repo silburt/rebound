@@ -16,12 +16,12 @@ int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
     //Parameter List
-    int N_planets = 2;
-    int N_planetesimals = 500;
+    int N_planets = 1;
+    int N_planetesimals = 0;
     
     //Set GR Potential
-    struct rebx_extras* rebx = rebx_init(r);
-    rebx_add_gr_potential(rebx, 0, 173.26203208556151);
+//    struct rebx_extras* rebx = rebx_init(r);
+//    rebx_add_gr_potential(rebx, 0, 173.26203208556151);
     
 	//Setup - Simulation
 	r->integrator	= REB_INTEGRATOR_HERMES;

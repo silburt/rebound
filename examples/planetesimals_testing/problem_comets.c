@@ -51,6 +51,7 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
+    r->collision_resolve_keep_sorted = 1;
     
     //For many ejected planetesimals this leads to error jumps.
     r->boundary	= REB_BOUNDARY_OPEN;
@@ -72,7 +73,6 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, 5e-5, 30, 0.01, 0, 0, 0, 0);
         p.r = 1.6e-4;              //radius of particle is in AU!
-        p.id = r->N;
         reb_add(r, p);
     }
     
@@ -92,7 +92,6 @@ int main(int argc, char* argv[]){
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, e, inc, Omega, apsis,phi);
 		pt.r 		= 1e-7;
-        pt.id = r->N;
         
         reb_add(r, pt);
     }

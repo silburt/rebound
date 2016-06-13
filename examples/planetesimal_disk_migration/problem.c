@@ -36,13 +36,15 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
+    r->collision_resolve_keep_sorted = 1;
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 11;
+    const double boxsize = 10;
     reb_configure_box(r,boxsize,2,2,1);
     
     srand(12);
+    double m_earth = 0.000003003;
     
 	// Star
 	struct reb_particle star = {0};
@@ -51,28 +53,30 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
     
     // Planet 1 - inner massive planet to scatter planetesimals out
-    double a1=2, m1=5e-4, e1=0, inc1=reb_random_normal(0.00001);
+    //double a1=2, m1=5e-4, e1=0, inc1=reb_random_normal(0.00001);
+    double a1=2, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
     struct reb_particle p1 = {0};
     p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    p1.r = 0.000467;
+    //p1.r = 0.000467;
+    p1.r = 0.0000788215;
     reb_add(r, p1);
     
     // Planet 2 - outer smaller planet to migrate in the disk
-    double m_earth = 0.000003003;
-    double a2=5, m2=2.3*m_earth, e2=0, inc2=reb_random_normal(0.00001);
-    struct reb_particle p2 = {0};
-    p2 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
-    p2.r = 0.0000788215;
-    reb_add(r, p2);
+//    double a2=4, m2=2.3*m_earth, e2=0, inc2=reb_random_normal(0.00001);
+//    struct reb_particle p2 = {0};
+//    p2 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
+//    p2.r = 0.0000788215;
+//    reb_add(r, p2);
     
     r->N_active = r->N;
     r->dt = pow(a1,1.5)/30;
     
     // Planetesimal disk parameters
-    double total_disk_mass = m2*10.;
-    int N_planetesimals = 2000;
+    double total_disk_mass = m1*10.;
+    int N_planetesimals = 2500;
     double planetesimal_mass = total_disk_mass/N_planetesimals;
-    double amin = a2, amax = a2 + 2;                //planet at edge of disk
+    //double amin = a2, amax = a2 + 2;                //planet at edge of disk
+    double amin = a1 - 1, amax = a1;
     double powerlaw = 0;
     
     // Generate Planetesimal Disk

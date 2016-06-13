@@ -35,6 +35,7 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
+    r->collision_resolve_keep_sorted = 1;
     
 	// Initial conditions
 	struct reb_particle star = {0};
