@@ -17,7 +17,7 @@
 #include <math.h>
 #include <string.h>
 #include "rebound.h"
-#include <sys/time.h>
+#include <time.h>
 
 void heartbeat(struct reb_simulation* r);
 double calc_a(struct reb_simulation* r, int index);
