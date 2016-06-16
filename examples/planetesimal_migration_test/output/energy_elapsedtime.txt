@@ -1,3 +1,0 @@
-
-Simulation complete. Elapsed simulation time is 15.00 s. 
-
