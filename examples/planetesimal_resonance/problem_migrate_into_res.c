@@ -93,13 +93,15 @@ int main(int argc, char* argv[]){
     
     //naming
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
+    binary[100] = {0}; strcat(binary,output_name); strcat(binary,".bin");
     system(syss);
     strcat(output_name,".txt");
     
     // Integrate!
     reb_integrate(r, tmax);
     
-    printf("\nSimulation complete. \n\n");
+    reb_output_binary(r, binary);
+    printf("\nSimulation complete. Saved to binary \n\n");
 }
 
 double tout = 0;
