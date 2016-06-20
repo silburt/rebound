@@ -33,7 +33,6 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    int N_planetesimals = atoi(argv[2]);
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
@@ -45,6 +44,8 @@ int main(int argc, char* argv[]){
     r->usleep = 1000;
     
     double afac = 1;
+    double mfac = atof(argv[2]);
+    double mpfac = 1;
     
     //which test?
     int test_dt = 0;
@@ -58,7 +59,6 @@ int main(int argc, char* argv[]){
         //tmax = 10 * pow(afac,1.5);
         tmax = 7;
         r->ri_hermes.hill_switch_factor = atof(argv[1]);
-        //r->dt = 0.001 * 6.28319; //1000 dt's per orbital period
         r->dt = 0.001;
     }
     
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]){
     
     //planet 1
     {
-        double a=1*afac, m=5e-5, e=0, inc = reb_random_normal(0.00001);
+        double a=1*afac, m=5e-5*mfac, e=0, inc = reb_random_normal(0.00001);
         //double a=1, m=5e-4, e=0, inc = reb_random_normal(0.00001);
         struct reb_particle p1 = {0};
         p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
@@ -95,36 +95,28 @@ int main(int argc, char* argv[]){
         reb_add(r, p1);
     }
     
-    /*
-    //planet 2
-    {
-        double a=5, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
-        //double a=1.3, m=5e-4, e=0, inc = reb_random_normal(0.00001);
-        struct reb_particle p2 = {0};
-        p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
-        p2.r = 1.6e-4;
-        reb_add(r, p2);
-    }*/
-    
     r->N_active = r->N;
-    reb_move_to_com(r);
     
-    //planetesimals
-    double planetesimal_mass = 1e-8;
-    double amin = 0.95, amax = 1.05;        //for planetesimal disk
-    double powerlaw = 1;
-    while(r->N<N_planetesimals + r->N_active){
-		struct reb_particle pt = {0};
-		double a	= reb_random_powerlaw(amin,amax,powerlaw);
-        double phi 	= reb_random_uniform(0,2.*M_PI);
-        double inc = reb_random_normal(0.0001);
-        double Omega = reb_random_uniform(0,2.*M_PI);
-        double apsis = reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
-		pt.r 		= 4e-5;
-		reb_add(r, pt);
+    double planetesimal_mass = 1e-8*mpfac;
+    {//planetesimal
+        double rr = 0.001;
+        double theta = atof(argv[5])*PI;
+        double f = rr*sin(theta);
+        double dx = rr*sin(theta - PI/2.);
+        double vy = pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
+        double vx = pow(2*r->G*r->particles[1].m/rr,0.5)*cos(theta);
+
+        printf("\nvx=%f,vy=%f\n",vx,vy);
+        
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, r->particles[1].x + dx, 0, 0, 0, 0, f);
+        pt.vy += vy;
+        pt.vx += vx;
+        pt.r = 4e-5;
+        reb_add(r, pt);
     }
 
+    reb_move_to_com(r);
     /*
     {//orbiting around body 1 satellite
         double x=0.01;
@@ -146,23 +138,6 @@ int main(int argc, char* argv[]){
         reb_add(r, pt);
     }*/
     //
-
-    {//planetesimal
-        double rr = 0.001;
-        double theta = atof(argv[5])*PI;
-        double f = rr*sin(theta);
-        double dx = rr*sin(theta - PI/2.);
-        double vy = pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
-        double vx = -1.2*pow(2*r->G*r->particles[1].m/rr,0.5)*cos(theta);
-        printf("\nvx=%f,vy=%f\n",vx,vy);
-        
-        struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, r->particles[1].x + dx, 0, 0, 0, 0, f);
-        pt.vy += vy;
-        pt.vx += vx;
-        pt.r = 4e-5;
-        reb_add(r, pt);
-    }
     
     //energy
     E0 = reb_tools_energy(r);
@@ -188,7 +163,7 @@ int main(int argc, char* argv[]){
     strcat(timeout,argv[4]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_planetesimals=%d,N_active=%d. \n",r->dt,tmax,r->ri_hermes.hill_switch_factor,N_planetesimals,r->N_active);
+    fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_active=%d. \n",r->dt,tmax,r->ri_hermes.hill_switch_factor,r->N_active);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     
@@ -231,6 +206,23 @@ void heartbeat(struct reb_simulation* r){
     }
     
 }
+
+/*
+ //planetesimals
+ double amin = 0.95, amax = 1.05;        //for planetesimal disk
+ double powerlaw = 1;
+ while(r->N<N_planetesimals + r->N_active){
+ struct reb_particle pt = {0};
+ double a	= reb_random_powerlaw(amin,amax,powerlaw);
+ double phi 	= reb_random_uniform(0,2.*M_PI);
+ double inc = reb_random_normal(0.0001);
+ double Omega = reb_random_uniform(0,2.*M_PI);
+ double apsis = reb_random_uniform(0,2.*M_PI);
+ pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
+ pt.r 		= 4e-5;
+ reb_add(r, pt);
+ }*/
+
     /*
     if(warning_message == 0 && r->t > r->dt){
         //record max velocity

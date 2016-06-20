@@ -20,7 +20,7 @@ Np = str(params[1])
 log_output = (params[3]/params[2])**(1./params[0])
 arg1 = params[2]
 for i in xrange(0,params[0]):
-    theta = "{:.2f}".format(random.random())       #range from 0-1, only matters for the single planetesimal tests
+    theta = "{:.2f}".format(np.random.uniform(low=0.1, high=0.9))   #range from 0-1, only matters for the single planetesimal tests
     arg1 *= log_output
     seed = "{:.0f}".format(int(1000*random.random()))
     if params[4] == 'dt':
