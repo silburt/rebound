@@ -55,4 +55,5 @@ examples/planetesimals_vanilla/energy_avg/*
 examples/planetesimals_testing/output/*
 examples/planetesimals_testing/saved_output/*
 examples/planetesimals_migration_test/output/*
+examples/planetesimals_migration_test/saved_output/*
 examples/planetesimals_resonance/output/*
