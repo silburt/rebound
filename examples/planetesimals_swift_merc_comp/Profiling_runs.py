@@ -4,19 +4,19 @@ import multiprocessing as mp
 import os
 import sys
 import time
-#import numpy as np
+import numpy as np
 
 #May31 Mercury_swifter comps
 #tmax=5e7
 #params=[(tmax,100,13,"output/t5e7_Np100_sd13"),(tmax,100,23,"output/t5e7_Np100_sd23"),(tmax,100,33,"output/t5e7_Np100_sd33"),(tmax,100,52,"output/t5e7_Np100_sd52"),(tmax,100,62,"output/t5e7_Np100_sd62"),(tmax,100,85,"output/t5e7_Np100_sd85")]
 
 params = []
-random.seed()
-tmax = 10000
+np.random.seed()
+tmax = "{:.0e}".format(10000)
 Np = np.logspace(1,4,50,dtype=int)
-for i in xrange(0,params[0]):
+for i in xrange(0,len(Np)):
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/t'+tmax+'_Np'+Np+'_HSR3_dt0.01'
+    name = 'output/t'+tmax+'_Np'+str(Np[i])+'_HSR3_dt0.01'
     params.append((tmax,Np[i],seed,name))
 
 length = len(params)
