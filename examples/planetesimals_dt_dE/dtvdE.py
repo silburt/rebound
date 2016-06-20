@@ -26,46 +26,18 @@ def sort(x, y):
 def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
     print scale_factor
     rhHSR = rh*HSR
-    a2 = a*a
-    M3 = Me*mp*Ms
-    tau2 = dt*dt / 12.
+    coeff = dt*dt*Me*mp/(12*rhHSR**2)
     #theory
-    term1 = M3/(a*rhHSR**3)
-    term2 = Me*Me*mp/(rhHSR**4)
-    term3 = -M3/(2*rhHSR*((a2 - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
-    termp = 3*M3/((a*rhHSR**3))
-    theory = (term1 + term2 + term3)*tau2*scale_factor
-    #theory = (termp)*tau2*scale_factor
+    term1 = 1./(a*rhHSR)
+    term2 = Me/(rhHSR**2)
+    term3 = -rhHSR/(2*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
+    theory = (term1 + term2 + term3)*coeff*scale_factor
     #plot
     if choice == 0:
         x = dt
     else:
         x = HSR
     plt.plot(x, theory,'+-',label='R3B theory')
-
-'''
-def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
-    print scale_factor
-    rhHSR = rh*HSR
-    p = mp/np.sqrt(a)
-    a2 = a*a
-    ar = (a*a - rhHSR*rhHSR)**0.5
-    M3 = Me*mp*Ms
-    tau2 = dt*dt / 12.
-    #theory
-    original = Me*p*p/(mp*rhHSR**3) + 0.5*Me*Me*mp/rhHSR**4 - 0.5*Me*mp/(rhHSR*ar**3)
-    term1 = -(0.5*p*p/mp)*(1./(ar**3) + 3*rhHSR*rhHSR/ar**5)
-    term2 = mp*rhHSR*rhHSR/(2*ar**6)
-    term3 = 0.5*Me*mp/rhHSR
-    theory = (original + term3)*tau2*scale_factor
-    #theory = (term1 + term2+ term3)*tau2*scale_factor
-    #plot
-    if choice == 0:
-        x = dt
-    else:
-        x = HSR
-    plt.plot(x, theory,'+-',label='R3B theory')
-'''
 
 def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
@@ -203,3 +175,50 @@ plt.legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=2)
 plt.savefig('dtvdE_files/'+ext+'_v_'+oname+'.pdf')
 plt.show()
 
+
+'''
+#old
+def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
+    print scale_factor
+    rhHSR = rh*HSR
+    a2 = a*a
+    M3 = Me*mp*Ms
+    tau2 = dt*dt / 12.
+    #theory
+    term1 = M3/(a*rhHSR**3)
+    term2 = Me*Me*mp/(rhHSR**4)
+    term3 = -M3/(2*rhHSR*((a2 - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
+    termp = 3*M3/((a*rhHSR**3))
+    theory = (term1 + term2 + term3)*tau2*scale_factor
+    #theory = (termp)*tau2*scale_factor
+    #plot
+    if choice == 0:
+    x = dt
+    else:
+    x = HSR
+    plt.plot(x, theory,'+-',label='R3B theory')
+    '''
+'''
+    #older
+def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
+    print scale_factor
+    rhHSR = rh*HSR
+    p = mp/np.sqrt(a)
+    a2 = a*a
+    ar = (a*a - rhHSR*rhHSR)**0.5
+    M3 = Me*mp*Ms
+    tau2 = dt*dt / 12.
+    #theory
+    original = Me*p*p/(mp*rhHSR**3) + 0.5*Me*Me*mp/rhHSR**4 - 0.5*Me*mp/(rhHSR*ar**3)
+    term1 = -(0.5*p*p/mp)*(1./(ar**3) + 3*rhHSR*rhHSR/ar**5)
+    term2 = mp*rhHSR*rhHSR/(2*ar**6)
+    term3 = 0.5*Me*mp/rhHSR
+    theory = (original + term3)*tau2*scale_factor
+    #theory = (term1 + term2+ term3)*tau2*scale_factor
+    #plot
+    if choice == 0:
+    x = dt
+    else:
+    x = HSR
+    plt.plot(x, theory,'+-',label='R3B theory')
+    '''

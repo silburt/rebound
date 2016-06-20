@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import numpy as np
+import random
 
 #May31 Mercury_swifter comps
 #tmax=5e7
