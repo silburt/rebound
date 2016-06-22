@@ -32,13 +32,12 @@ double* omega;
 double* lambda;
 double* a;
 double* e;
+double mig_time;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    double tmax = 1e5;
-    srand(atoi(argv[1]));
-    strcat(output_name,argv[2]);
+    strcat(output_name,argv[1]);
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_WHFAST;
@@ -46,9 +45,13 @@ int main(int argc, char* argv[]){
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->dt = 0.01;
+    double tmax = 1e5;
     
-    //Migration constants
-    double t_mig = 2e4;
+    srand(10);
+    
+    //Migration parameters
+    mig_time = 2e4;
+    double mig_rate = 2e4;
     double K = 100.0;       //Lee & Peale (2002) K.
     double e_ini = 0.01;
     
@@ -81,8 +84,8 @@ int main(int argc, char* argv[]){
     //migration stuff
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);
-    tau_a[2] = 2.*M_PI*t_mig;
-    tau_e[2] = 2.*M_PI*t_mig/K;
+    tau_a[2] = 2.*M_PI*mig_rate;
+    tau_e[2] = 2.*M_PI*mig_rate/K;
     a = calloc(sizeof(double),r->N);
     e = calloc(sizeof(double),r->N);
     omega = calloc(sizeof(double),r->N);
@@ -181,48 +184,50 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
 }
 
 void migration_forces(struct reb_simulation* r){
-    const double G = r->G;
-    const int N = r->N;
-    struct reb_particle* const particles = r->particles;
-    struct reb_particle com = reb_get_com(r);
-    for(int i=1;i<N;i++){
-        if (tau_e[i]!=0||tau_a[i]!=0){
-            struct reb_particle* p = &(particles[i]);
-            const double dvx = p->vx-com.vx;
-            const double dvy = p->vy-com.vy;
-            const double dvz = p->vz-com.vz;
-            
-            if (tau_a[i]!=0){ 	// Migration
-                p->ax -=  dvx/(2.*tau_a[i]);
-                p->ay -=  dvy/(2.*tau_a[i]);
-                p->az -=  dvz/(2.*tau_a[i]);
-            }
-            
-            if (tau_e[i]!=0){ 	// Eccentricity damping
-                const double mu = G*(com.m + p->m);
-                const double dx = p->x-com.x;
-                const double dy = p->y-com.y;
-                const double dz = p->z-com.z;
+    if(r->t < mig_time){
+        const double G = r->G;
+        const int N = r->N;
+        struct reb_particle* const particles = r->particles;
+        struct reb_particle com = reb_get_com(r);
+        for(int i=1;i<N;i++){
+            if (tau_e[i]!=0||tau_a[i]!=0){
+                struct reb_particle* p = &(particles[i]);
+                const double dvx = p->vx-com.vx;
+                const double dvy = p->vy-com.vy;
+                const double dvz = p->vz-com.vz;
                 
-                const double hx = dy*dvz - dz*dvy;
-                const double hy = dz*dvx - dx*dvz;
-                const double hz = dx*dvy - dy*dvx;
-                const double h = sqrt ( hx*hx + hy*hy + hz*hz );
-                const double v = sqrt ( dvx*dvx + dvy*dvy + dvz*dvz );
-                const double r = sqrt ( dx*dx + dy*dy + dz*dz );
-                const double vr = (dx*dvx + dy*dvy + dz*dvz)/r;
-                const double ex = 1./mu*( (v*v-mu/r)*dx - r*vr*dvx );
-                const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
-                const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
-                const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
-                const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
-                const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
-                const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
-                p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
-                p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
-                p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                if (tau_a[i]!=0){ 	// Migration
+                    p->ax -=  dvx/(2.*tau_a[i]);
+                    p->ay -=  dvy/(2.*tau_a[i]);
+                    p->az -=  dvz/(2.*tau_a[i]);
+                }
+                
+                if (tau_e[i]!=0){ 	// Eccentricity damping
+                    const double mu = G*(com.m + p->m);
+                    const double dx = p->x-com.x;
+                    const double dy = p->y-com.y;
+                    const double dz = p->z-com.z;
+                    
+                    const double hx = dy*dvz - dz*dvy;
+                    const double hy = dz*dvx - dx*dvz;
+                    const double hz = dx*dvy - dy*dvx;
+                    const double h = sqrt ( hx*hx + hy*hy + hz*hz );
+                    const double v = sqrt ( dvx*dvx + dvy*dvy + dvz*dvz );
+                    const double r = sqrt ( dx*dx + dy*dy + dz*dz );
+                    const double vr = (dx*dvx + dy*dvy + dz*dvz)/r;
+                    const double ex = 1./mu*( (v*v-mu/r)*dx - r*vr*dvx );
+                    const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
+                    const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
+                    const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
+                    const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
+                    const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
+                    const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
+                    p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
+                    p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
+                    p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                }
             }
+            com = reb_get_com_of_pair(com,particles[i]);
         }
-        com = reb_get_com_of_pair(com,particles[i]);
     }
 }

@@ -26,15 +26,19 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 double E0;
 char output_name[100] = {0};
 time_t t_ini;
+double tout = 0;
 
 int main(int argc, char* argv[]){
-    char binary[100] = {0}; strcat(binary, argv[3]); strcat(binary,".bin");
+    char binary[100] = {0}; strcat(binary, "output/energy"); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
     
-    double tmax = 1e5;
-    int N_planetesimals = atoi(argv[1]);
-    srand(atoi(argv[2]));
-    strcat(output_name,argv[3]); strcat(output_name,"_planetesimals");
+    //int N_planetesimals = atoi(argv[1]);
+    //srand(atoi(argv[2]));
+    //strcat(output_name,argv[3]); strcat(output_name,"_planetesimals");
+    
+    int N_planetesimals = 5000;
+    srand(10);
+    strcat(output_name,"output/energy"); strcat(output_name,"_planetesimals");
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -42,6 +46,9 @@ int main(int argc, char* argv[]){
     r->ri_hermes.hill_switch_factor = 3;
     r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
+    r->dt = 1e-3;
+    double tmax = 1e6;
+    tout = r->t;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -57,12 +64,13 @@ int main(int argc, char* argv[]){
     // Planetesimal disk parameters (Planets already added)
     double total_disk_mass = r->particles[1].m;
     double planetesimal_mass = total_disk_mass/N_planetesimals;
+    printf("%e,%e\n",total_disk_mass,planetesimal_mass);
     double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
     double powerlaw = 0;
     
     // Generate Planetesimal Disk
     struct reb_particle star = r->particles[0];
-    while(r->N<N_planetesimals + r->N_active){
+    while(r->N<(N_planetesimals + r->N_active)){
 		struct reb_particle pt = {0};
 		double a    = reb_random_powerlaw(amin,amax,powerlaw);
         double e    = reb_random_rayleigh(0.005);
@@ -101,10 +109,10 @@ int main(int argc, char* argv[]){
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
 }
 
-double tout = 0.1;
 void heartbeat(struct reb_simulation* r){
+    //printf("\nr->N=%d\n",r->N);
     if (tout <r->t){
-        tout *=1.01;
+        tout += 0.001;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -118,12 +126,12 @@ void heartbeat(struct reb_simulation* r){
         fclose(f);
     }
     
-    if (reb_output_check(r, 100.*r->dt)){
+    //if (reb_output_check(r, 100.*r->dt)){
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
-    }
+    //}
 }
 
 double calc_a(struct reb_simulation* r, int index){

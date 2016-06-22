@@ -44,8 +44,8 @@ int main(int argc, char* argv[]){
     r->usleep = 1000;
     
     double afac = 1;
-    double mfac = atof(argv[2]);
-    double mpfac = 1;
+    double mfac = 1;
+    double mpfac = atof(argv[2]);
     
     //which test?
     int test_dt = 0;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]){
         double theta = atof(argv[5])*PI;
         double f = rr*sin(theta);
         double dx = rr*sin(theta - PI/2.);
-        double vy = pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
+        double vy = 1.1*pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
         double vx = pow(2*r->G*r->particles[1].m/rr,0.5)*cos(theta);
 
         printf("\nvx=%f,vy=%f\n",vx,vy);
