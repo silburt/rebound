@@ -23,6 +23,8 @@ void heartbeat(struct reb_simulation* r);
 void migration_forces(struct reb_simulation* r);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 
+double calc_a(struct reb_simulation* r, int index);
+
 double E0;
 char output_name[100] = {0};
 time_t t_ini;
@@ -39,18 +41,26 @@ int main(int argc, char* argv[]){
     
     strcat(output_name,argv[1]);
     
+    r->integrator	= REB_INTEGRATOR_WHFAST;
+    //r->integrator	= REB_INTEGRATOR_HERMES;
+    int N_planetesimals = 0;
+    
 	// Simulation Setup
-	r->integrator	= REB_INTEGRATOR_WHFAST;
     r->heartbeat	= heartbeat;
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->dt = 0.01;
     double tmax = 1e5;
     
+    // Boundaries
+    r->boundary	= REB_BOUNDARY_OPEN;
+    const double boxsize = 5;
+    reb_configure_box(r,boxsize,2,2,1);
+    
     srand(10);
     
     //Migration parameters
-    mig_time = 2e4;
+    mig_time = 4000;
     double mig_rate = 2e4;
     double K = 100.0;       //Lee & Peale (2002) K.
     double e_ini = 0.01;
@@ -72,7 +82,7 @@ int main(int argc, char* argv[]){
     
     //Planet 2
     {
-        double a=1.75, m=5e-4, inc=reb_random_normal(0.00001);
+        double a=1.6, m=5e-4, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
         p.r = 0.000467;
@@ -80,6 +90,27 @@ int main(int argc, char* argv[]){
     }
     
     r->N_active = r->N;
+    
+    // Planetesimal disk parameters (Planets already added)
+    double total_disk_mass = r->particles[1].m;
+    double planetesimal_mass = total_disk_mass/N_planetesimals;
+    printf("%e,%e\n",total_disk_mass,planetesimal_mass);
+    double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
+    double powerlaw = 0;
+    
+    // Generate Planetesimal Disk
+    while(r->N<(N_planetesimals + r->N_active)){
+        struct reb_particle pt = {0};
+        double a    = reb_random_powerlaw(amin,amax,powerlaw);
+        double e    = reb_random_rayleigh(0.005);
+        double inc  = reb_random_rayleigh(0.005);
+        double Omega = reb_random_uniform(0,2.*M_PI);
+        double apsis = reb_random_uniform(0,2.*M_PI);
+        double phi 	= reb_random_uniform(0,2.*M_PI);
+        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
+        pt.r 		= 0.00000934532;
+        reb_add(r, pt);
+    }
     
     //migration stuff
     tau_a = calloc(sizeof(double),r->N);
@@ -110,7 +141,7 @@ int main(int argc, char* argv[]){
 double tout = 0;
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
-        tout += 100;
+        tout += 25;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -181,6 +212,26 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     
     fprintf(f,"%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3);
     
+}
+
+double calc_a(struct reb_simulation* r, int index){
+    struct reb_particle* const particles = r->particles;
+    struct reb_particle com = reb_get_com(r);
+    struct reb_particle p = particles[index];
+    const double mu = r->G*(com.m + p.m);
+    const double dvx = p.vx-com.vx;
+    const double dvy = p.vy-com.vy;
+    const double dvz = p.vz-com.vz;
+    const double dx = p.x-com.x;
+    const double dy = p.y-com.y;
+    const double dz = p.z-com.z;
+    
+    const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
+    const double d = sqrt(dx*dx + dy*dy + dz*dz);    //distance
+    const double dinv = 1./d;
+    const double a = -mu/(v2 - 2.*mu*dinv);
+    
+    return a;
 }
 
 void migration_forces(struct reb_simulation* r){

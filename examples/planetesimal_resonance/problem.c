@@ -29,24 +29,28 @@ time_t t_ini;
 double tout = 0;
 
 int main(int argc, char* argv[]){
-    char binary[100] = {0}; strcat(binary, "output/energy"); strcat(binary,".bin");
+    //char* name = "output/energy";
+    char* name = "output/June";
+    
+    char binary[100] = {0}; strcat(binary, name); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
     
     //int N_planetesimals = atoi(argv[1]);
     //srand(atoi(argv[2]));
     //strcat(output_name,argv[3]); strcat(output_name,"_planetesimals");
     
-    int N_planetesimals = 5000;
+    int N_planetesimals = 0;
     srand(10);
-    strcat(output_name,"output/energy"); strcat(output_name,"_planetesimals");
+    strcat(output_name,name); strcat(output_name,"_planetesimals");
     
 	// Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HERMES;
+	r->integrator	= REB_INTEGRATOR_WHFAST;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;
     r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
-    r->dt = 1e-3;
+    //r->dt = 1e-3;
+    r->dt = 0.01;
     double tmax = 1e6;
     tout = r->t;
     
@@ -110,7 +114,9 @@ int main(int argc, char* argv[]){
 }
 
 void heartbeat(struct reb_simulation* r){
-    //printf("\nr->N=%d\n",r->N);
+    //printf("%f")
+    //exit(0);
+    
     if (tout <r->t){
         tout += 0.001;
         double E = reb_tools_energy(r);
