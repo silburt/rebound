@@ -20,7 +20,7 @@ plt.subplots_adjust(hspace = 0.35)
 #plot
 axes[0].plot(time, dE,'o',ms=ms, markeredgecolor='none')
 axes[1].plot(time, N, 'o', ms=ms, markeredgecolor='none')
-axes[1].plot(time, N_mini, 'o', ms=ms, markeredgecolor='none')
+#axes[1].plot(time, N_mini, 'o', ms=ms, markeredgecolor='none')
 axes[2].plot(time, a1, 'o', ms=ms, markeredgecolor='none', label='planet 1')
 axes[2].plot(time, a2, 'o', ms=ms, markeredgecolor='none', label='planet 2')
 
