@@ -91,27 +91,6 @@ int main(int argc, char* argv[]){
     
     r->N_active = r->N;
     
-    // Planetesimal disk parameters (Planets already added)
-    double total_disk_mass = r->particles[1].m;
-    double planetesimal_mass = total_disk_mass/N_planetesimals;
-    printf("%e,%e\n",total_disk_mass,planetesimal_mass);
-    double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
-    double powerlaw = 0;
-    
-    // Generate Planetesimal Disk
-    while(r->N<(N_planetesimals + r->N_active)){
-        struct reb_particle pt = {0};
-        double a    = reb_random_powerlaw(amin,amax,powerlaw);
-        double e    = reb_random_rayleigh(0.005);
-        double inc  = reb_random_rayleigh(0.005);
-        double Omega = reb_random_uniform(0,2.*M_PI);
-        double apsis = reb_random_uniform(0,2.*M_PI);
-        double phi 	= reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
-        pt.r 		= 0.00000934532;
-        reb_add(r, pt);
-    }
-    
     //migration stuff
     tau_a = calloc(sizeof(double),r->N);
     tau_e = calloc(sizeof(double),r->N);

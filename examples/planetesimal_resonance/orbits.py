@@ -21,12 +21,16 @@ plt.subplots_adjust(hspace = 0.35)
 axes[0].plot(time, dE,'o',ms=ms, markeredgecolor='none')
 axes[1].plot(time, N, 'o', ms=ms, markeredgecolor='none')
 axes[1].plot(time, N_mini, 'o', ms=ms, markeredgecolor='none')
+axes[2].plot(time, a1, 'o', ms=ms, markeredgecolor='none', label='planet 1')
+axes[2].plot(time, a2, 'o', ms=ms, markeredgecolor='none', label='planet 2')
 
 #labelling
 axes[0].set_ylabel('Fractional Energy', fontsize=13)
 axes[0].set_yscale('log')
 axes[1].set_ylabel('Number of particles', fontsize=13)
 axes[1].set_xlabel('Time (Years)', fontsize=13)
+axes[2].set_ylabel('Semi-major axis (AU)', fontsize=13)
+axes[2].set_xlabel('Time (Years)', fontsize=13)
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'.png')
