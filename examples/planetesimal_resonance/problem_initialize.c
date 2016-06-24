@@ -43,14 +43,13 @@ int main(int argc, char* argv[]){
     
     r->integrator	= REB_INTEGRATOR_WHFAST;
     //r->integrator	= REB_INTEGRATOR_HERMES;
-    int N_planetesimals = 0;
     
 	// Simulation Setup
     r->heartbeat	= heartbeat;
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->dt = 0.01;
-    double tmax = 1e5;
+    double tmax = 1e4;
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
