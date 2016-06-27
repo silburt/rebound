@@ -94,13 +94,16 @@ int main(int argc, char* argv[]){
     // Integrate!
     reb_integrate(r, tmax);
     
-    //final
+    //final outputs
     time_t t_fini = time(NULL);
     struct tm *tmp2 = gmtime(&t_fini);
     double time = t_fini - t_ini;
     strcat(timeout,"_elapsedtime.txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
+    fprintf(outt, "Simulation Details:\n")
+    fprintf(outt, "Setup Parmaeters: HSF=%.2f,RSF=%.1f,dt=%e,tmax=%f\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax)
+    fprintf(outt, "Planetesimals: N_pl=%d,M_pl_tot=%e,amin_pl=%f,amax_pl=%f,powerlaw=%.2f\n",N_planetesimals,total_disk_mass,amin,amax,powerlaw);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
 }
