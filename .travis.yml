@@ -3,8 +3,8 @@ sudo: false
 
 
 env:
-  - TESTPART=C
   - TESTPART=CCOVERAGE
+  - TESTPART=C
   - TESTPART=PYTHON
   - TESTPART=IPYTHON1
   - TESTPART=IPYTHON2
@@ -89,7 +89,5 @@ script:
 
 after_success:
     - if [[ $TESTPART == "PYTHON" ]] && [[ ${TRAVIS_PYTHON_VERSION:0:3} == "2.7" ]]; then coveralls; fi
-    - if [[ $TESTPART == "CCOVERAGE" ]]; then find build/ -name "*.gcno" -exec cp {} src/ \; ; fi
-    - if [[ $TESTPART == "CCOVERAGE" ]]; then find build/ -name "*.gcda" -exec cp {} src/ \; ; fi
-    - if [[ $TESTPART == "CCOVERAGE" ]]; then find build/ -name "*.o" -exec cp {} src/ \; ; fi
-    - if [[ $TESTPART == "CCOVERAGE" ]]; then coveralls -i src/; fi
+    - if [[ $TESTPART == "CCOVERAGE" ]]; then cp -r src build/*/src/ ; fi
+    - if [[ $TESTPART == "CCOVERAGE" ]]; then coveralls ; fi

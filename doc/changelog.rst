@@ -3,6 +3,17 @@ Changelog
 
 This changelog only includes the most important changes in recent updates. For a full log of all changes, please refer to git.
 
+Version 2.19.0
+--------------
+* Added warning/error message system. This allows warning messages to be shown directly in iPython/python programs, rather than being shown on the console. To hide the warning messages, use a filter, e.g.
+.. code::  python
+    
+   with warnings.catch_warnings(record=True) as w:
+       warnings.simplefilter("always")
+       # Execute a command which triggers a warning message.
+       # The message will not show up.
+* Improvements regarding the WHFast logic for hyperbolic orbis. No changes should be noticable to users.
+
 Version 2.18.9
 --------------
 * Added the reb_serialize_particle_data function for fast access to particle data via numpy array. The full syntax is explain in the documentation. Here is a short example: 
@@ -12,6 +23,7 @@ Version 2.18.9
    a = np.zeros((sim.N,3),dtype="float64")
    sim.serialize_particle_data(xyz=a)
    print(a)
+>>>>>>> master
 
 
 Version 2.18.5

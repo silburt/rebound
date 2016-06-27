@@ -1,7 +1,7 @@
 REBOUND - An open-source multi-purpose N-body code
 ==================================================
 
-.. image:: http://img.shields.io/badge/rebound-v2.18.9-green.svg?style=flat
+.. image:: http://img.shields.io/badge/rebound-v2.19.0-green.svg?style=flat
     :target: http://rebound.readthedocs.org
 .. image:: https://badge.fury.io/py/rebound.svg
     :target: https://badge.fury.io/py/rebound
@@ -78,3 +78,7 @@ http://rebound.readthedocs.org
 We're alway trying to improve REBOUND and extending the documention is high on our to-do list.
 If you have trouble installing or using REBOUND, please open an issue on github and we'll try to help as much as we can.
 
+
+Changelog
+---------
+For a changelog of the most important changes in recent updates, see https://github.com/hannorein/rebound/blob/master/doc/changelog.rst 
