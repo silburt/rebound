@@ -68,6 +68,7 @@ int main(int argc, char* argv[]){
 	struct reb_particle star = {0};
 	star.m 		= 1;
     star.r		= 0.005;        // Radius of particle is in AU!
+    star.hash = 0;
 	reb_add(r, star);
     
     // Planet 1
@@ -76,6 +77,7 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
         p.r = 0.000467;
+        p.hash = r->N;
         reb_add(r, p);
     }
     
@@ -85,6 +87,7 @@ int main(int argc, char* argv[]){
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
         p.r = 0.000467;
+        p.hash = r->N;
         reb_add(r, p);
     }
     

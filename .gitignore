@@ -57,3 +57,4 @@ examples/planetesimals_testing/saved_output/*
 examples/planetesimals_migration_test/output/*
 examples/planetesimals_migration_test/saved_output/*
 examples/planetesimals_resonance/output/*
+examples/planetesimals_resonance/saved_output/*

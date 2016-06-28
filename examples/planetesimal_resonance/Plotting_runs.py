@@ -9,20 +9,21 @@ import numpy as np
 
 #Specify what runs you want *****************************
 #*****************************
+N_runs = 10
+
 random.seed()
 runs = []
-Np = np.logspace(1,4,50,dtype=int)
-for i in xrange(0,len(Np)):
+name = 'output/June28'
+for i in xrange(0,N_runs):
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/Np'+str(Np[i])+'_HSR3_dt0.05'
-    runs.append((Np[i],seed,name))
+    runs.append((name,seed))
 
 os.system('make')
 
 length = len(runs)
 
 def execute(pars):
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2]))
+    os.system('./rebound '+str(pars[0])+' '+str(pars[1]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':

@@ -28,12 +28,16 @@ char output_name[100] = {0};
 time_t t_ini;
 double tout = 0;
 
+//binary save
+char binary_output_name[100] = {0};
+double binary_output_time;
+
 int main(int argc, char* argv[]){
     char binary[100] = {0}; strcat(binary, argv[1]); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
     int N_planetesimals = 5000;
-    srand(10);
-    strcat(output_name,argv[1]); strcat(output_name,"_planetesimals");
+    srand(atoi(argv[2]));
+    strcat(output_name,argv[1]); strcat(output_name,"planetesimals_sd"); strcat(output_name,argv[2]);
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -43,7 +47,7 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     //r->gravity_ignore_10 = 0; //Use if created binary with WHFAST but using non-WHFAST now.
     r->dt = 0.01;
-    double tmax = 1e8;
+    double tmax = 1e6;
     tout = r->t;
     
     // Collisions
@@ -76,11 +80,16 @@ int main(int argc, char* argv[]){
         double phi 	= reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
+        pt.hash = r->N;
 		reb_add(r, pt);
     }
 
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
+    
+    //binary (temp)
+    strcat(binary_output_name, output_name); strcat(binary_output_name, "_t=");
+    binary_output_time = r->t;
     
     //naming
     char timeout[200] = {0};
@@ -101,8 +110,8 @@ int main(int argc, char* argv[]){
     strcat(timeout,"_elapsedtime.txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fprintf(outt, "Simulation Details:\n")
-    fprintf(outt, "Setup Parmaeters: HSF=%.2f,RSF=%.1f,dt=%e,tmax=%f\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax)
+    fprintf(outt, "Simulation Details:\n");
+    fprintf(outt, "Setup Parmaeters: HSF=%.2f,RSF=%.1f,dt=%e,tmax=%f\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax);
     fprintf(outt, "Planetesimals: N_pl=%d,M_pl_tot=%e,amin_pl=%f,amax_pl=%f,powerlaw=%.2f\n",N_planetesimals,total_disk_mass,amin,amax,powerlaw);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
@@ -130,6 +139,14 @@ void heartbeat(struct reb_simulation* r){
         double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
+    }
+    
+    //output binary, temp
+    if(binary_output_time < r->t){
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        char out[200] = {0}; strcat(out, binary_output_name); strcat(out, out_time); strcat(out, ".bin");
+        reb_output_binary(r, out);
+        binary_output_time += 1;
     }
 }
 
