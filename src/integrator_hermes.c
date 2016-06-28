@@ -42,7 +42,7 @@
 static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* r);
 static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* mini);
 static void calc_forces_on_planets(const struct reb_simulation* r, double* a);
-static void set_dt_and_HSF(struct reb_simulation* r, double min_dt_enc);
+static void check_HSF(struct reb_simulation* r);
 
 void reb_integrator_hermes_part1(struct reb_simulation* r){
     r->gravity_ignore_10 = 0;
@@ -81,6 +81,13 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         r->ri_hermes.a_Nmax = _N_active;
     }
     
+    //reset a and e arrays
+    if (r->N>r->ri_hermes.N_sma){
+        r->ri_hermes.N_sma = r->N;
+        r->ri_hermes.sma = realloc(r->ri_hermes.sma,r->N*sizeof(double));
+        r->ri_hermes.ecc = realloc(r->ri_hermes.ecc,r->N*sizeof(double));
+    }
+    
     //reset is_in_mini
     if (r->N>r->ri_hermes.is_in_mini_Nmax){
         r->ri_hermes.is_in_mini_Nmax = r->N;
@@ -101,6 +108,8 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
     }
     r->ri_hermes.mini->N_active = _N_active;
 
+    if(r->ri_hermes.adaptive_hill_switch_factor) check_HSF(r);
+    
     reb_integrator_hermes_check_for_encounter(r);
         
     if (r->N != r->ri_hermes.mini->N || mini_previously_active==0) {
@@ -237,16 +246,46 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
         }
     }
     if (global->ri_hermes.timestep_too_large_warning==0 && min_dt_enc2 < 16.*global->dt*global->dt){
-        if(global->ri_hermes.adaptive_timestep_and_hill_switch_factor) set_dt_and_HSF(global,sqrt(min_dt_enc2));
-    //    global->ri_hermes.timestep_too_large_warning = 1;
-    //    reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
+        global->ri_hermes.timestep_too_large_warning = 1;
+        reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
     }
 }
 
-static void set_dt_and_HSF(struct reb_simulation* r, double min_dt_enc){
+static void check_HSF(struct reb_simulation* r){
     double mu = r->G*r->particles[0].m;
     struct reb_particle com = reb_get_com(r);
+    struct reb_particle* particles = r->particles;
     
+    //get a and e
+    for(int i=1;i<r->N;i++){
+        struct reb_particle p = particles[i];
+        const double dvx = p.vx-com.vx;
+        const double dvy = p.vy-com.vy;
+        const double dvz = p.vz-com.vz;
+        const double dx = p.x-com.x;
+        const double dy = p.y-com.y;
+        const double dz = p.z-com.z;
+        
+        const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
+        const double d = sqrt(dx*dx + dy*dy + dz*dz);   //distance
+        const double dinv = 1./d;
+        const double vr = (dx*dvx + dy*dvy + dz*dvz)*dinv;
+        const double ex = 1./mu*( (v2-mu*dinv)*dx - d*vr*dvx );
+        const double ey = 1./mu*( (v2-mu*dinv)*dy - d*vr*dvy );
+        const double ez = 1./mu*( (v2-mu*dinv)*dz - d*vr*dvz );
+        
+        r->ri_hermes.ecc[i] = sqrt( ex*ex + ey*ey + ez*ez );
+        r->ri_hermes.sma[i] = -mu/(v2 - 2.*mu*dinv);
+    }
+    
+    //order particles by r_apsis
+    
+    //check if massive bodies overlap with any other orbits.
+    
+    //for overlapping orbits, calculate (dot(r_a) - dot(r_b))**2 + (r_adot(f_a) - r_bdot(f_b))**2
+    //i.e. Eq. 2.31 and 2.32 in SSD
+    
+    //everything below will change
     //get maximum possible relative velocity between two close bodies
     double v_max_rel = 0;       //max relative velocity between massive-massive and/or massive-passive
     int v_max_rel_index = 0;    //track which massive planet v_max_rel belongs to
@@ -380,3 +419,84 @@ static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* 
         global->additional_forces(mini);
     }
 }
+
+
+/*
+ static void set_dt_and_HSF_old(struct reb_simulation* r){
+ double mu = r->G*r->particles[0].m;
+ struct reb_particle com = reb_get_com(r);
+ 
+ //get maximum possible relative velocity between two close bodies
+ double v_max_rel = 0;       //max relative velocity between massive-massive and/or massive-passive
+ int v_max_rel_index = 0;    //track which massive planet v_max_rel belongs to
+ for(int i=1;i<r->N_active;i++){
+ double v_max_rel_temp = v_max_rel;
+ struct reb_particle pi = r->particles[i];
+ const double dvxi = pi.vx-com.vx;
+ const double dvyi = pi.vy-com.vy;
+ const double dvzi = pi.vz-com.vz;
+ const double dxi = pi.x-com.x;
+ const double dyi = pi.y-com.y;
+ const double dzi = pi.z-com.z;
+ const double v2i = dvxi*dvxi + dvyi*dvyi + dvzi*dvzi;
+ const double di = sqrt ( dxi*dxi + dyi*dyi + dzi*dzi );
+ const double vri = (dxi*dvxi + dyi*dvyi + dzi*dvzi)/di;
+ const double exi = 1./mu*( (v2i-mu/di)*dxi - di*vri*dvxi );
+ const double eyi = 1./mu*( (v2i-mu/di)*dyi - di*vri*dvyi );
+ const double ezi = 1./mu*( (v2i-mu/di)*dzi - di*vri*dvzi );
+ 
+ const double ei = sqrt( exi*exi + eyi*eyi + ezi*ezi );
+ const double aterm_i = (2.*mu/di - v2i);
+ const double ai = mu/aterm_i;
+ const double eterm_i = (1+ei)/(1-ei);
+ const double vmax_i = sqrt( aterm_i*eterm_i );
+ const double vmin_i = sqrt( aterm_i/eterm_i );
+ //printf("planet %d, vmax_i=%e, vmin_i=%e,ai=%e,ei=%e\n",i,vmax_i,vmin_i,ai,ei);
+ for(int j=i+1;j<r->N;j++){
+ struct reb_particle pj = r->particles[j];
+ const double dvxj = pj.vx-com.vx;
+ const double dvyj = pj.vy-com.vy;
+ const double dvzj = pj.vz-com.vz;
+ const double dxj = pj.x-com.x;
+ const double dyj = pj.y-com.y;
+ const double dzj = pj.z-com.z;
+ const double v2j = dvxj*dvxj + dvyj*dvyj + dvzj*dvzj;
+ const double dj = sqrt ( dxj*dxj + dyj*dyj + dzj*dzj );
+ const double aterm_j = (2.*mu/dj - v2j);
+ const double aj = mu/aterm_j;
+ if(fabs(ai - aj)/ai < 0.2){  //only want planetesimals with close orbits to massive body
+ const double vrj = (dxj*dvxj + dyj*dvyj + dzj*dvzj)/dj;
+ const double exj = 1./mu*( (v2j-mu/dj)*dxj - dj*vrj*dvxj );
+ const double eyj = 1./mu*( (v2j-mu/dj)*dyj - dj*vrj*dvyj );
+ const double ezj = 1./mu*( (v2j-mu/dj)*dzj - dj*vrj*dvzj );
+ const double ej = sqrt( exj*exj + eyj*eyj + ezj*ezj );
+ double eterm_j = (1+ej)/(1-ej);
+ double vmax_j = sqrt( aterm_j*eterm_j );
+ double vmin_j = sqrt( aterm_j/eterm_j );
+ v_max_rel = MAX(MAX(fabs(vmax_i - vmin_j),fabs(vmin_i - vmax_j)),v_max_rel);
+ //printf("planetesimal %d, a=%e, ai-aj/ai=%e,vmax_j=%e, vmin_j=%e, vmax_i-vmin_j=%e, vmin_i-vmax_j=%e,v_max_rel=%e\n",j,aj,fabs(ai - aj)/ai,vmax_j,vmin_j,fabs(vmax_i - vmin_j),fabs(vmin_i - vmax_j),v_max_rel);
+ }
+ }
+ if(v_max_rel > v_max_rel_temp) v_max_rel_index = i;
+ }
+ 
+ //get hill sphere
+ struct reb_particle p = r->particles[v_max_rel_index];
+ struct reb_particle p0 = r->particles[0];
+ const double dx = p0.x - p.x;
+ const double dy = p0.y - p.y;
+ const double dz = p0.z - p.z;
+ const double r0i2 = dx*dx + dy*dy + dz*dz;
+ const double m = p.m/(p0.m*3.);
+ double rh = pow(m*m*r0i2*r0i2*r0i2,1./6.);
+ 
+ //need to make sure that this passes the check_for_encounter criteria too.
+ r->ri_hermes.hill_switch_factor = min_dt_enc*v_max_rel/rh;
+ 
+ //get new parameters - maybe don't change dt?
+ //r->dt = 2.3213*pow(v_max_rel, 0.744186);
+ //r->ri_hermes.hill_switch_factor = 4*r->dt*v_max_rel/rh;
+ printf("\nAdaptive dt/HSF. New parameters are dt=%e, HSF=%e, rh=%e, v_max_rel=%e\n",r->dt,r->ri_hermes.hill_switch_factor,rh,v_max_rel);
+ 
+ }
+ */
