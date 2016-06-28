@@ -36,16 +36,17 @@ int main(int argc, char* argv[]){
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 3;
+    r->ri_hermes.hill_switch_factor = 1;
     r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
-    r->dt = 0.05;
+    r->dt = 0.1;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
     r->collision_resolve_keep_sorted = 1;
+    r->ri_hermes.adaptive_timestep_and_hill_switch_factor = 1;
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
@@ -137,6 +138,7 @@ void heartbeat(struct reb_simulation* r){
         reb_output_timing(r, 0);
         printf("%e",relE);
     }
+    
 }
 
 double calc_a(struct reb_simulation* r, int index){

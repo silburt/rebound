@@ -231,6 +231,8 @@ struct reb_simulation_integrator_hermes {
     double* a_f;
     int a_Nmax;
     
+    int adaptive_timestep_and_hill_switch_factor; ///< Flag set by user to automatically set HSF and dt when needed.
+    
     int timestep_too_large_warning;
     unsigned long long steps;
     unsigned long long steps_miniactive;
