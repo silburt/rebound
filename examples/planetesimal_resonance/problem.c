@@ -120,7 +120,7 @@ int main(int argc, char* argv[]){
 void heartbeat(struct reb_simulation* r){
     if (tout <r->t){
         //tout += 0.01;
-        tout += 10;
+        tout += 25;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -146,7 +146,7 @@ void heartbeat(struct reb_simulation* r){
         char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
         char out[200] = {0}; strcat(out, binary_output_name); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
-        binary_output_time += 1;
+        binary_output_time += 1e4;
     }
 }
 
