@@ -81,11 +81,13 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         r->ri_hermes.a_Nmax = _N_active;
     }
     
-    //reset a and e arrays
+    //reset arrays relating to autocalc HSF
     if (r->N>r->ri_hermes.N_sma){
         r->ri_hermes.N_sma = r->N;
         r->ri_hermes.sma = realloc(r->ri_hermes.sma,r->N*sizeof(double));
         r->ri_hermes.ecc = realloc(r->ri_hermes.ecc,r->N*sizeof(double));
+        r->ri_hermes.egy = realloc(r->ri_hermes.egy,r->N*sizeof(double));
+        r->ri_hermes.dis = realloc(r->ri_hermes.dis,r->N*sizeof(double));
     }
     
     //reset is_in_mini
@@ -252,7 +254,9 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
 }
 
 static void check_HSF(struct reb_simulation* r){
-    double mu = r->G*r->particles[0].m;
+    const double G = r->G;
+    const double mu = G*r->particles[0].m;
+    const double muinv = 1./mu;
     struct reb_particle com = reb_get_com(r);
     struct reb_particle* particles = r->particles;
     
@@ -268,23 +272,42 @@ static void check_HSF(struct reb_simulation* r){
         
         const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
         const double d = sqrt(dx*dx + dy*dy + dz*dz);   //distance
+        r->ri_hermes.dis[i] = d;
         const double dinv = 1./d;
         const double vr = (dx*dvx + dy*dvy + dz*dvz)*dinv;
-        const double ex = 1./mu*( (v2-mu*dinv)*dx - d*vr*dvx );
-        const double ey = 1./mu*( (v2-mu*dinv)*dy - d*vr*dvy );
-        const double ez = 1./mu*( (v2-mu*dinv)*dz - d*vr*dvz );
+        const double ex = muinv*( (v2-mu*dinv)*dx - d*vr*dvx );
+        const double ey = muinv*( (v2-mu*dinv)*dy - d*vr*dvy );
+        const double ez = muinv*( (v2-mu*dinv)*dz - d*vr*dvz );
         
-        r->ri_hermes.ecc[i] = sqrt( ex*ex + ey*ey + ez*ez );
-        r->ri_hermes.sma[i] = -mu/(v2 - 2.*mu*dinv);
+        r->ri_hermes.ecc[i] = sqrt( ex*ex + ey*ey + ez*ez );    //eccentricity
+        r->ri_hermes.sma[i] = -mu/(v2 - 2.*mu*dinv);            //semi-major axis
+        r->ri_hermes.egy[i] = 0.5*v2 - mu*dinv;                 //vis-viva eqn.
     }
     
-    //order particles by r_apsis
+    //check if massive bodies overlap with any other orbits
+    for(int i=1;i<r->N_active;i++){
+        double e_p = r->ri_hermes.ecc[i];
+        double a_p = r->ri_hermes.sma[i];
+        double rp_min = a_p*(1-e_p);
+        double rp_max = a_p*(1+e_p);
+        for(int j=i+1;j=r->N;j++){
+            double e = r->ri_hermes.ecc[j];
+            double a = r->ri_hermes.sma[j];
+            double r_min = a*(1-e);
+            double r_max = a*(1+e);
+            if((r_min<rp_min && r_max>rp_max)||(rp_min<r_min && rp_max>r_max)){
+                
+            }
+        }
+        
+    }
     
     //check if massive bodies overlap with any other orbits.
     
     //for overlapping orbits, calculate (dot(r_a) - dot(r_b))**2 + (r_adot(f_a) - r_bdot(f_b))**2
     //i.e. Eq. 2.31 and 2.32 in SSD
     
+    /*
     //everything below will change
     //get maximum possible relative velocity between two close bodies
     double v_max_rel = 0;       //max relative velocity between massive-massive and/or massive-passive
@@ -357,7 +380,7 @@ static void check_HSF(struct reb_simulation* r){
     //r->dt = 2.3213*pow(v_max_rel, 0.744186);
     //r->ri_hermes.hill_switch_factor = 4*r->dt*v_max_rel/rh;
     printf("\nAdaptive dt/HSF. New parameters are dt=%e, HSF=%e, rh=%e, v_max_rel=%e\n",r->dt,r->ri_hermes.hill_switch_factor,rh,v_max_rel);
-    
+    */
     
 }
 
