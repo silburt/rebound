@@ -46,7 +46,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
     //r->gravity_ignore_10 = 0; //Use if created binary with WHFAST but using non-WHFAST now.
-    r->dt = 0.01;
+    r->dt = 0.005;
     double tmax = 1e6;
     tout = r->t;
     
@@ -146,7 +146,12 @@ void heartbeat(struct reb_simulation* r){
         char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
         char out[200] = {0}; strcat(out, binary_output_name); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
-        binary_output_time += 1e4;
+        if(r->t >= 149999){
+            binary_output_time += 1e2;
+        } else {
+            binary_output_time += 1e4;
+        }
+
     }
 }
 

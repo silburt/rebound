@@ -48,6 +48,14 @@ int main(int argc, char* argv[]){
     system(syss);
     strcat(output_name,".txt");
     
+    system("rm -v output/xyz.txt");
+    FILE* f = fopen("output/xyz.txt", "a");
+    for(int i=0;i<r->N;i++){
+        struct reb_particle p = r->particles[i];
+        fprintf(f,"%d,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f,%.16f\n",i,p.m,p.r,p.x,p.y,p.z,p.vx,p.vy,p.vz);
+    }
+    fclose(f);
+    
     reb_integrate(r,INFINITY);
 
 }
@@ -64,7 +72,7 @@ void heartbeat(struct reb_simulation* const r){
         }
         
         FILE* f = fopen(output_name, "a");
-        fprintf(f,"%e,%e,%d,%d",r->t,relE,r->N,N_mini);
+        fprintf(f,"%e,%e,%d,%d,",r->t,relE,r->N,N_mini);
         calc_resonant_angles(r,f);
         fclose(f);
     }

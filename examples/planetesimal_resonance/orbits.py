@@ -14,7 +14,7 @@ fos = open(''+file_name, 'r')
 time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 
 ms=3
-fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10))
+fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10), sharex=True)
 plt.subplots_adjust(hspace = 0.35)
 
 #plot
@@ -33,8 +33,9 @@ axes[1].set_ylabel('Number of particles', fontsize=13)
 axes[1].set_xlabel('Time (Years)', fontsize=13)
 axes[2].set_ylabel('Semi-major axis (AU)', fontsize=13)
 axes[2].set_xlabel('Time (Years)', fontsize=13)
-axes[2].set_ylabel('Eccentricity', fontsize=13)
-axes[2].set_xlabel('Time (Years)', fontsize=13)
+axes[3].set_ylabel('Eccentricity', fontsize=13)
+axes[3].set_xlabel('Time (Years)', fontsize=13)
+axes[2].set_xlim([158000,159000])
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'.png')
