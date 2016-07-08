@@ -24,6 +24,7 @@ double calc_a(struct reb_simulation* r, int index);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 
 double E0;
+int N_prev;
 char output_name[100] = {0};
 time_t t_ini;
 double tout = 0;
@@ -86,6 +87,7 @@ int main(int argc, char* argv[]){
 
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
+    N_prev = r->N;
     
     //binary (temp)
     strcat(binary_output_name, output_name); strcat(binary_output_name, "_t=");
@@ -139,6 +141,13 @@ void heartbeat(struct reb_simulation* r){
         double relE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("%e",relE);
+    }
+    
+    if(r->N < N_prev){
+        N_prev = r->N;
+        double E = reb_tools_energy(r);
+        reb_move_to_com(r);
+        r->energy_offset += E - reb_tools_energy(r);
     }
     
     //output binary, temp
