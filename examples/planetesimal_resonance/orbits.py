@@ -35,7 +35,6 @@ axes[2].set_ylabel('Semi-major axis (AU)', fontsize=13)
 axes[2].set_xlabel('Time (Years)', fontsize=13)
 axes[3].set_ylabel('Eccentricity', fontsize=13)
 axes[3].set_xlabel('Time (Years)', fontsize=13)
-axes[2].set_xlim([158000,159000])
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'.png')

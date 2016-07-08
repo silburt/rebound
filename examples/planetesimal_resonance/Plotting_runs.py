@@ -13,7 +13,7 @@ N_runs = 10
 
 random.seed()
 runs = []
-name = 'output/June28'
+name = 'output/July7'
 for i in xrange(0,N_runs):
     seed = "{:.0f}".format(int(1000*random.random()))
     runs.append((name,seed))
