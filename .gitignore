@@ -35,9 +35,9 @@ doc/ipython
 doc/search.json
 problems/
 ipython_examples/HERMES_long_examples/output/*
-examples/planetesimals_dt_dE/dtvdE_files/*
-examples/planetesimals_dt_dE/output/*
-examples/planetesimals_dt_dE/saved_output/*
+examples/planetesimals_scaling_tests/dtvdE_files/*
+examples/planetesimals_scaling_tests/output/*
+examples/planetesimals_scaling_tests/saved_output/*
 examples/planetesimals_Kirsh/energy_avg/*
 examples/planetesimals_Kirsh/output/*
 examples/planetesimals_Kirsh/saved_output/*
