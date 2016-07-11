@@ -37,5 +37,5 @@ axes[3].set_ylabel('Eccentricity', fontsize=13)
 axes[3].set_xlabel('Time (Years)', fontsize=13)
 
 file_output_name = re.sub('\.txt$', '', file_name)
-plt.savefig(file_output_name+'.png')
+plt.savefig(file_output_name+'_orbit.png')
 plt.show()
