@@ -61,7 +61,7 @@ int main(int argc, char* argv[]){
     star.r		= 0.005;        // Radius of particle is in AU!
 	reb_add(r, star);
     
-    // Planet 1 - inner massive planet to scatter planetesimals out
+    // Planet 1 
     double a1=2, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
     struct reb_particle p1 = {0};
     p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);

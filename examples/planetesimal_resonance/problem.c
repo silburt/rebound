@@ -36,9 +36,10 @@ double binary_output_time;
 int main(int argc, char* argv[]){
     char binary[100] = {0}; strcat(binary, argv[1]); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
-    int N_planetesimals = 5000;
-    srand(atoi(argv[2]));
-    strcat(output_name,argv[1]); strcat(output_name,"planetesimals_sd"); strcat(output_name,argv[2]);
+    int N_planetesimals = atoi(argv[2]);
+    int seed = atoi(argv[3]);
+    srand(seed);
+    strcat(output_name,argv[1]); strcat(output_name,"planetesimals_Np"); strcat(output_name,argv[2]); strcat(output_name,"sd"); strcat(output_name,argv[3]);
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]){
     reb_configure_box(r,boxsize,2,2,1);
     
     // Planetesimal disk parameters (Planets already added)
-    double total_disk_mass = r->particles[1].m;
+    double total_disk_mass = r->particles[1].m/10.;
     double planetesimal_mass = total_disk_mass/N_planetesimals;
     printf("%e,%e\n",total_disk_mass,planetesimal_mass);
     double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
@@ -95,26 +96,38 @@ int main(int argc, char* argv[]){
     
     //naming
     char timeout[200] = {0};
-    strcat(timeout,output_name);
+    char info[200] = {0};
+    strcat(timeout,output_name); strcat(info,output_name);
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
     system(syss);
     strcat(output_name,".txt");
     time_t t_ini = time(NULL);
     struct tm *tmp = gmtime(&t_ini);
     
+    //info output
+    strcat(info,"_info.txt");
+    FILE* out1 = fopen(info,"w");
+    fprintf(out1, "Simulation Details:\n");
+    int coll_on = 0; if(r->collision_resolve == reb_collision_resolve_merge) coll_on =1;
+    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax,coll_on);
+    fprintf(out1, "\nPlanet(s):\n");
+    for(int i=1;i<r->N_active;i++){
+        struct reb_particle p = r->particles[i];
+        fprintf(out1,"Planet %d: m=%e, r=%e, a=%e\n",i,p.m,p.r,calc_a(r,i));
+    }
+    fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,powerlaw);
+    fclose(out1);
+    
     // Integrate!
     reb_integrate(r, tmax);
     
-    //final outputs
+    //time output
     time_t t_fini = time(NULL);
     struct tm *tmp2 = gmtime(&t_fini);
     double time = t_fini - t_ini;
     strcat(timeout,"_elapsedtime.txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fprintf(outt, "Simulation Details:\n");
-    fprintf(outt, "Setup Parmaeters: HSF=%.2f,RSF=%.1f,dt=%e,tmax=%f\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax);
-    fprintf(outt, "Planetesimals: N_pl=%d,M_pl_tot=%e,amin_pl=%f,amax_pl=%f,powerlaw=%.2f\n",N_planetesimals,total_disk_mass,amin,amax,powerlaw);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
 }
