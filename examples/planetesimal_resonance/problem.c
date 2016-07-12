@@ -171,7 +171,7 @@ void heartbeat(struct reb_simulation* r){
         //if(r->t >= 149999){
         //    binary_output_time += 1e2;
         //} else {
-        binary_output_time += 1e4;
+        binary_output_time += 1e5;
         //}
     }
 }
