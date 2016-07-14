@@ -42,4 +42,4 @@ axes[3].set_xlabel('e1*sin(phi2)', fontsize=13)
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'_rescheck.png')
-plt.show()
+#plt.show()

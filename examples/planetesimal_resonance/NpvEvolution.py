@@ -11,17 +11,19 @@ import sys
 #makes every simulation output at same time.
 #If equal to 1, it takes the largest possible values common to all runs
 #If equal to 2, the user supplies a time as the second argument to the program.
-same_output_time = 2
+same_output_time = 1
 
 #choice for what to plot
-choice = 'e2'
+choice = 'P'
 
+#Number of points to average the values over (i.e. the values oscilate)
+N_trailing_avg = 20
 #---------------------------------------------------------
 
 def get_vars(filename,choice,same_output_time,t_min):
     time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(f, delimiter=',', unpack=True)
     if choice == 'P':
-        var = np.sqrt((4*np.pi**2 * a2**3)/(4*np.pi**2 * a1**3))
+        var = np.sqrt((a2**3)/(a1**3))
         name = 'Period Ratio (P2/P1)'
     if choice == 'e1':
         var = e1
@@ -37,7 +39,7 @@ def get_vars(filename,choice,same_output_time,t_min):
         index = max(np.where(time<t_min)[0])
     else:
         index = 1
-    return time[index], var[index], N[0], name
+    return time[index], np.mean(var[index-N_trailing_avg:index]), N[0], name
 
 dir = sys.argv[1]
 files = glob.glob(dir+'*sd*.txt')
@@ -76,5 +78,6 @@ plt.colorbar(im, label='elapsed time (yr)')
 plt.xscale('log')
 plt.ylabel(name)
 plt.xlabel('Np')
+plt.savefig(dir+'NpvEvolution-'+choice+'.png')
 plt.show()
 
