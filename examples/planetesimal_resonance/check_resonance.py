@@ -30,7 +30,7 @@ axes[3].scatter(e1*np.cos(phi2),e1*np.sin(phi2),c=time, cmap=cm.rainbow,lw=0)
 plt.colorbar(im, label='elapsed time (yr)')
 
 #labelling
-axes[0].set_ylabel('Period Ratio (AU)', fontsize=13)
+axes[0].set_ylabel('Period Ratio', fontsize=13)
 axes[0].set_xlabel('Time (Years)', fontsize=13)
 axes[1].set_ylabel('Eccentricity', fontsize=13)
 axes[1].set_xlabel('Time (Years)', fontsize=13)

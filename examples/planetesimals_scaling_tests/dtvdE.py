@@ -26,18 +26,18 @@ def sort(x, y):
 def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
     print scale_factor
     rhHSR = rh*HSR
-    coeff = dt*dt*Me*mp/(12*rhHSR**2)
+    coeff = (dt*dt / 12)*(Me*mp*Ms/(rhHSR**2))
     #theory
     term1 = 1./(a*rhHSR)
-    term2 = Me/(rhHSR**2)
-    term3 = -rhHSR/(2*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
+    term2 = Me/(Ms*rhHSR**2)
+    term3 = 1./(2*a*a)
     theory = (term1 + term2 + term3)*coeff*scale_factor
     #plot
     if choice == 0:
         x = dt
     else:
         x = HSR
-    plt.plot(x, theory,'+-',label='R3B theory')
+    plt.plot(x, theory,label='R3B theory',linewidth=3)
 
 def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]

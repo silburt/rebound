@@ -22,6 +22,7 @@
 void heartbeat(struct reb_simulation* r);
 double calc_a(struct reb_simulation* r, int index);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
+void eia_snapshot(struct reb_simulation* r, char* time);
 
 double E0;
 int N_prev;
@@ -33,13 +34,13 @@ double tout = 0;
 char binary_output_name[100] = {0};
 double binary_output_time;
 
+//eia snapshot
+char eia_snapshot_output[100] = {0};
+
 int main(int argc, char* argv[]){
     char binary[100] = {0}; strcat(binary, argv[1]); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
-    int N_planetesimals = atoi(argv[2]);
-    int seed = atoi(argv[3]);
-    srand(seed);
-    strcat(output_name,argv[1]); strcat(output_name,"planetesimals_Np"); strcat(output_name,argv[2]); strcat(output_name,"sd"); strcat(output_name,argv[3]);
+    strcat(output_name,argv[1]); strcat(output_name,"_warm");
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -60,32 +61,9 @@ int main(int argc, char* argv[]){
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 5;
+    const double boxsize = 6;
     reb_configure_box(r,boxsize,2,2,1);
     
-    // Planetesimal disk parameters (Planets already added)
-    double total_disk_mass = r->particles[1].m/10.;
-    double planetesimal_mass = total_disk_mass/N_planetesimals;
-    printf("%e,%e\n",total_disk_mass,planetesimal_mass);
-    double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
-    double powerlaw = 0;
-    
-    // Generate Planetesimal Disk
-    struct reb_particle star = r->particles[0];
-    while(r->N<(N_planetesimals + r->N_active)){
-		struct reb_particle pt = {0};
-		double a    = reb_random_powerlaw(amin,amax,powerlaw);
-        double e    = reb_random_rayleigh(0.005);
-        double inc  = reb_random_rayleigh(0.005);
-        double Omega = reb_random_uniform(0,2.*M_PI);
-        double apsis = reb_random_uniform(0,2.*M_PI);
-        double phi 	= reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
-		pt.r 		= 0.00000934532;
-        pt.hash = r->N;
-		reb_add(r, pt);
-    }
-
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
     N_prev = r->N;
@@ -97,8 +75,9 @@ int main(int argc, char* argv[]){
     //naming
     char timeout[200] = {0};
     char info[200] = {0};
-    strcat(timeout,output_name); strcat(info,output_name);
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
+    strcat(timeout,output_name); strcat(info,output_name); //info and timing
+    strcat(eia_snapshot_output, output_name); strcat(eia_snapshot_output, "_eiasnapshot_t="); //eia snapshot
+    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*"); //rm existing file
     system(syss);
     strcat(output_name,".txt");
     time_t t_ini = time(NULL);
@@ -168,11 +147,8 @@ void heartbeat(struct reb_simulation* r){
         char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
         char out[200] = {0}; strcat(out, binary_output_name); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
-        //if(r->t >= 149999){
-        //    binary_output_time += 1e2;
-        //} else {
         binary_output_time += 1e5;
-        //}
+        eia_snapshot(r,out_time);
     }
 }
 
@@ -197,7 +173,7 @@ double calc_a(struct reb_simulation* r, int index){
 }
 
 void calc_resonant_angles(struct reb_simulation* r, FILE* f){
-    double e[3] = {0};
+    double e[3] = {0}; //Hardcoding, probably should change in the future.
     double a[3] = {0};
     double omega[3] = {0};
     double lambda[3] = {0};
@@ -249,4 +225,48 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     
     fprintf(f,"%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3);
     
+}
+
+void eia_snapshot(struct reb_simulation* r, char* time){
+    //name
+    char dist[200] = {0}; strcat(dist,eia_snapshot_output); strcat(dist,time); strcat(dist,".txt");
+    FILE* append = fopen(dist,"a");
+    
+    //output
+    struct reb_particle* const particles = r->particles;
+    struct reb_particle com = reb_get_com(r);
+    double t = r->t;
+    struct reb_particle p0 = particles[0];
+    for(int i=1;i<r->N;i++){
+        struct reb_particle p = particles[i];
+        const double mu = r->G*(com.m + p.m);
+        const double dvx = p.vx-com.vx;
+        const double dvy = p.vy-com.vy;
+        const double dvz = p.vz-com.vz;
+        const double dx = p.x-com.x;
+        const double dy = p.y-com.y;
+        const double dz = p.z-com.z;
+        const double hx = (dy*dvz - dz*dvy);
+        const double hy = (dz*dvx - dx*dvz);
+        const double hz = (dx*dvy - dy*dvx);
+        const double h = sqrt(hx*hx + hy*hy + hz*hz);
+        
+        const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
+        const double d = sqrt( dx*dx + dy*dy + dz*dz );    //distance
+        const double dinv = 1./d;
+        const double muinv = 1./mu;
+        const double vr = (dx*dvx + dy*dvy + dz*dvz)*dinv;
+        const double term1 = v2-mu*dinv;
+        const double term2 = d*vr;
+        const double ex = muinv*( term1*dx - term2*dvx );
+        const double ey = muinv*( term1*dy - term2*dvy );
+        const double ez = muinv*( term1*dz - term2*dvz );
+        const double e = sqrt(ex*ex + ey*ey + ez*ez);   // eccentricity
+        const double a = -mu/( v2 - 2.*mu*dinv );
+        const double inc = acos(hz/h);
+        const double rdist = sqrt((p.x-p0.x)*(p.x-p0.x)+(p.y-p0.y)*(p.y-p0.y)+(p.z-p0.z)*(p.z-p0.z));
+        fprintf(append,"%f,%u,%f,%f,%f,%f,%e\n",t,p.hash,a,e,inc,rdist,p.m);
+    }
+    
+    fclose(append);
 }

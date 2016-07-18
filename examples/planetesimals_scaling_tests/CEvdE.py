@@ -71,8 +71,8 @@ term2 = Me*Me*mp/(rhHSR**4)
 term3 = -M3/(2*rhHSR*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
 termp = 3*M3/((a*rhHSR**3))
 theory = (term1 + term2 + term3)*tau2*np.mean(scaling_factor)
-plt.plot(CE, 15*theory*np.sqrt(CE),'+-',label='$K * E^{HERMES}_{\mathrm{scheme}} * \sqrt{CE}$')
-plt.plot(CE, theory*CE,'<-',markeredgecolor='none',label='$E^{HERMES}_{\mathrm{scheme}} * CE$')
+plt.plot(CE, 15*theory*np.sqrt(CE),linewidth=3,label='$K * E^{HERMES}_{\mathrm{scheme}} * \sqrt{CE}$')
+plt.plot(CE, theory*CE,linewidth=3,markeredgecolor='none',label='$E^{HERMES}_{\mathrm{scheme}} * CE$')
 
 plt.yscale('log')
 plt.xscale('log')
