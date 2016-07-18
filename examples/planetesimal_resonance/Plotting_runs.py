@@ -13,7 +13,7 @@ N_runs = 25
 random.seed()
 runs = []
 N_planetesimals = np.round(np.logspace(2.3,5,N_runs))
-name = 'output/July11'
+name = 'output/July18'
 for i in xrange(0,N_runs):
     Np = "{:.0f}".format(N_planetesimals[i])
     seed = "{:.0f}".format(int(1000*random.random()))

@@ -66,8 +66,8 @@ int main(int argc, char* argv[]){
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 6;
-    reb_configure_box(r,boxsize,1.75,1.75,1.5);
+    const double boxsize = 10;
+    reb_configure_box(r,boxsize,1,1,1);
     
     //Migration parameters
     mig_time = 4000;
