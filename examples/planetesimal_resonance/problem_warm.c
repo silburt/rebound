@@ -20,38 +20,43 @@
 #include <time.h>
 
 void heartbeat(struct reb_simulation* r);
-double calc_a(struct reb_simulation* r, int index);
+void migration_forces(struct reb_simulation* r);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
+double calc_a(struct reb_simulation* r, int index);
+//void eia_snapshot(struct reb_simulation* r, char* name);
 void eia_snapshot(struct reb_simulation* r, char* time);
 
 double E0;
-int N_prev;
-char output_name[100] = {0};
+char output_name[200] = {0};
 time_t t_ini;
-double tout = 0;
-
-//binary save
-char binary_output_name[100] = {0};
-double binary_output_time;
+double* tau_a; 	/**< Migration timescale in years for all particles */
+double* tau_e; 	/**< Eccentricity damping timescale in years for all particles */
+double mig_time;
+int rescale_energy;
+int N_prev;     //keep track of ejected particles
 
 //eia snapshot
-char eia_snapshot_output[100] = {0};
+char eia_out[100] = {0};
+
+//binary save
+char binary_out[100] = {0};
+double binary_output_time;
 
 int main(int argc, char* argv[]){
-    char binary[100] = {0}; strcat(binary, argv[1]); strcat(binary,".bin");
-    struct reb_simulation* r = reb_create_simulation_from_binary(binary);
-    strcat(output_name,argv[1]); strcat(output_name,"_warm");
+    struct reb_simulation* r = reb_create_simulation();
+    
+    strcat(output_name,argv[1]); strcat(output_name,"warmstart_Np"); strcat(output_name,argv[2]); strcat(output_name,"_sd"); strcat(output_name,argv[3]);
+    int N_planetesimals = atoi(argv[2]);
+    int seed = atoi(argv[3]);
     
 	// Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HERMES;
+    r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
+    r->additional_forces = migration_forces;
+    r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
-    //r->gravity_ignore_10 = 0; //Use if created binary with WHFAST but using non-WHFAST now.
     r->dt = 0.005;
     double tmax = 1e6;
-    tout = r->t;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -62,58 +67,114 @@ int main(int argc, char* argv[]){
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 6;
-    reb_configure_box(r,boxsize,2,2,1);
+    reb_configure_box(r,boxsize,1.75,1.75,1.5);
     
+    //Migration parameters
+    mig_time = 4000;
+    double mig_rate = 2e4;
+    double K = 100.0;       //Lee & Peale (2002) K.
+    double e_ini = 0.01;
+    
+    srand(seed);
+    
+	// Star
+	struct reb_particle star = {0};
+	star.m 		= 1;
+    star.r		= 0.005;        // Radius of particle is in AU!
+    star.hash = 0;
+	reb_add(r, star);
+    
+    // Planet 1
+    {
+        double a=1, m=5e-4, inc=reb_random_normal(0.00001);
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
+        p.r = 0.000467;
+        p.hash = r->N;
+        reb_add(r, p);
+    }
+    
+    //Planet 2
+    {
+        double a=1.6, m=5e-4, inc=reb_random_normal(0.00001);
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
+        p.r = 0.000467;
+        p.hash = r->N;
+        reb_add(r, p);
+
+    }
+    r->N_active = r->N;
+    
+    tau_a = calloc(sizeof(double),r->N_active + N_planetesimals);
+    tau_e = calloc(sizeof(double),r->N_active + N_planetesimals);
+    tau_a[2] = 2.*M_PI*mig_rate;
+    tau_e[2] = 2.*M_PI*mig_rate/K;
+    
+    //Planetesimal disk parameters
+    double total_disk_mass = r->particles[1].m/10.;
+    double planetesimal_mass = total_disk_mass/N_planetesimals;
+    printf("%e,%e\n",total_disk_mass,planetesimal_mass);
+    double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
+    double powerlaw = 0;
+    
+    // Generate Planetesimal Disk
+    int i_pl = r->N_active;
+    while(r->N<(N_planetesimals + r->N_active)){
+        struct reb_particle pt = {0};
+        double a    = reb_random_powerlaw(amin,amax,powerlaw);
+        double e    = reb_random_rayleigh(0.005);
+        double inc  = reb_random_rayleigh(0.005);
+        double Omega = reb_random_uniform(0,2.*M_PI);
+        double apsis = reb_random_uniform(0,2.*M_PI);
+        double phi 	= reb_random_uniform(0,2.*M_PI);
+        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
+        pt.r 		= 0.00000934532;
+        pt.hash = r->N;
+        reb_add(r, pt);
+        
+        tau_e[i_pl] = 2.*M_PI*mig_rate/K * (planetesimal_mass/r->particles[2].m);
+        i_pl++;
+    }
+    
+    N_prev = r->N;
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
-    N_prev = r->N;
-    
-    //binary (temp)
-    strcat(binary_output_name, output_name); strcat(binary_output_name, "_t=");
-    binary_output_time = r->t;
+    rescale_energy = 0; //after migration is done, rescale energy
+    binary_output_time = 1e5;
     
     //naming
-    char timeout[200] = {0};
-    char info[200] = {0};
-    strcat(timeout,output_name); strcat(info,output_name); //info and timing
-    strcat(eia_snapshot_output, output_name); strcat(eia_snapshot_output, "_eiasnapshot_t="); //eia snapshot
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*"); //rm existing file
+    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
+    strcat(binary_out,output_name); strcat(binary_out,"_t=");
+    strcat(eia_out, output_name); strcat(eia_out, "_eiasnapshot_t=");
     system(syss);
     strcat(output_name,".txt");
-    time_t t_ini = time(NULL);
-    struct tm *tmp = gmtime(&t_ini);
     
-    //info output
-    strcat(info,"_info.txt");
-    FILE* out1 = fopen(info,"w");
-    fprintf(out1, "Simulation Details:\n");
-    int coll_on = 0; if(r->collision_resolve == reb_collision_resolve_merge) coll_on =1;
-    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax,coll_on);
-    fprintf(out1, "\nPlanet(s):\n");
-    for(int i=1;i<r->N_active;i++){
-        struct reb_particle p = r->particles[i];
-        fprintf(out1,"Planet %d: m=%e, r=%e, a=%e\n",i,p.m,p.r,calc_a(r,i));
+    //initial snapshot
+    {
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        eia_snapshot(r, out_time);
     }
-    fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,powerlaw);
-    fclose(out1);
     
     // Integrate!
     reb_integrate(r, tmax);
     
-    //time output
-    time_t t_fini = time(NULL);
-    struct tm *tmp2 = gmtime(&t_fini);
-    double time = t_fini - t_ini;
-    strcat(timeout,"_elapsedtime.txt");
-    FILE* outt = fopen(timeout,"w");
-    fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
-    fclose(outt);
-    printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
+    //post integration
+    {
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        eia_snapshot(r, out_time);
+        char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
+        reb_output_binary(r, out);
+        printf("\nSimulation complete. Saved to binary \n\n");
+    }
+    
+    free(tau_e); free(tau_a);
 }
 
+double tout = 0;
 void heartbeat(struct reb_simulation* r){
+    //output values to file
     if (tout <r->t){
-        //tout += 0.01;
         tout += 25;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
@@ -128,13 +189,16 @@ void heartbeat(struct reb_simulation* r){
         fclose(f);
     }
     
-    if (reb_output_check(r, 100.*r->dt)){
-        double E = reb_tools_energy(r);
-        double relE = fabs((E-E0)/E0);
-        reb_output_timing(r, 0);
-        printf("%e",relE);
+    //output binary and eia snapshot
+    if(binary_output_time < r->t){
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
+        reb_output_binary(r, out);
+        binary_output_time += 1e5;
+        eia_snapshot(r,out_time);
     }
     
+    //Center if ejected particle
     if(r->N < N_prev){
         N_prev = r->N;
         double E = reb_tools_energy(r);
@@ -142,34 +206,24 @@ void heartbeat(struct reb_simulation* r){
         r->energy_offset += E - reb_tools_energy(r);
     }
     
-    //output binary, temp
-    if(binary_output_time < r->t){
-        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
-        char out[200] = {0}; strcat(out, binary_output_name); strcat(out, out_time); strcat(out, ".bin");
-        reb_output_binary(r, out);
-        binary_output_time += 1e5;
-        eia_snapshot(r,out_time);
+    //output on screen
+    if (reb_output_check(r, 100.*r->dt)){
+        double E = reb_tools_energy(r);
+        double relE = fabs((E-E0)/E0);
+        reb_output_timing(r, 0);
+        printf("%e",relE);
     }
-}
-
-double calc_a(struct reb_simulation* r, int index){
-    struct reb_particle* const particles = r->particles;
-    struct reb_particle com = reb_get_com(r);
-    struct reb_particle p = particles[index];
-    const double mu = r->G*(com.m + p.m);
-    const double dvx = p.vx-com.vx;
-    const double dvy = p.vy-com.vy;
-    const double dvz = p.vz-com.vz;
-    const double dx = p.x-com.x;
-    const double dy = p.y-com.y;
-    const double dz = p.z-com.z;
     
-    const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
-    const double d = sqrt(dx*dx + dy*dy + dz*dz);    //distance
-    const double dinv = 1./d;
-    const double a = -mu/(v2 - 2.*mu*dinv);
-    
-    return a;
+    //rescale energy, also output post-migration eia snapshot
+    if(rescale_energy == 0 && r->t >= mig_time){
+        printf("\n **Migration is done, rescaling energy, outputting eia snapshot and binary**\n");
+        rescale_energy = 1;
+        E0 = reb_tools_energy(r);
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        eia_snapshot(r,out_time);
+        char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
+        reb_output_binary(r, out);
+    }
 }
 
 void calc_resonant_angles(struct reb_simulation* r, FILE* f){
@@ -227,9 +281,78 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     
 }
 
+double calc_a(struct reb_simulation* r, int index){
+    struct reb_particle* const particles = r->particles;
+    struct reb_particle com = reb_get_com(r);
+    struct reb_particle p = particles[index];
+    const double mu = r->G*(com.m + p.m);
+    const double dvx = p.vx-com.vx;
+    const double dvy = p.vy-com.vy;
+    const double dvz = p.vz-com.vz;
+    const double dx = p.x-com.x;
+    const double dy = p.y-com.y;
+    const double dz = p.z-com.z;
+    
+    const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
+    const double d = sqrt(dx*dx + dy*dy + dz*dz);    //distance
+    const double dinv = 1./d;
+    const double a = -mu/(v2 - 2.*mu*dinv);
+    
+    return a;
+}
+
+void migration_forces(struct reb_simulation* r){
+    if(r->t < mig_time){
+        const double G = r->G;
+        const int N = r->N;
+        struct reb_particle* const particles = r->particles;
+        struct reb_particle com = reb_get_com(r);
+        for(int i=1;i<N;i++){
+            if (tau_e[i]!=0||tau_a[i]!=0){
+                struct reb_particle* p = &(particles[i]);
+                const double dvx = p->vx-com.vx;
+                const double dvy = p->vy-com.vy;
+                const double dvz = p->vz-com.vz;
+                
+                if (tau_a[i]!=0){ 	// Migration
+                    p->ax -=  dvx/(2.*tau_a[i]);
+                    p->ay -=  dvy/(2.*tau_a[i]);
+                    p->az -=  dvz/(2.*tau_a[i]);
+                }
+                
+                if (tau_e[i]!=0){ 	// Eccentricity damping
+                    const double mu = G*(com.m + p->m);
+                    const double dx = p->x-com.x;
+                    const double dy = p->y-com.y;
+                    const double dz = p->z-com.z;
+                    
+                    const double hx = dy*dvz - dz*dvy;
+                    const double hy = dz*dvx - dx*dvz;
+                    const double hz = dx*dvy - dy*dvx;
+                    const double h = sqrt ( hx*hx + hy*hy + hz*hz );
+                    const double v = sqrt ( dvx*dvx + dvy*dvy + dvz*dvz );
+                    const double r = sqrt ( dx*dx + dy*dy + dz*dz );
+                    const double vr = (dx*dvx + dy*dvy + dz*dvz)/r;
+                    const double ex = 1./mu*( (v*v-mu/r)*dx - r*vr*dvx );
+                    const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
+                    const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
+                    const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
+                    const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
+                    const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
+                    const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
+                    p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
+                    p->ay += -dvy*prefac1 + (hz*dx-hx*dz)*prefac2;
+                    p->az += -dvz*prefac1 + (hx*dy-hy*dx)*prefac2;
+                }
+            }
+            com = reb_get_com_of_pair(com,particles[i]);
+        }
+    }
+}
+
 void eia_snapshot(struct reb_simulation* r, char* time){
     //name
-    char dist[200] = {0}; strcat(dist,eia_snapshot_output); strcat(dist,time); strcat(dist,".txt");
+    char dist[200] = {0}; strcat(dist,eia_out); strcat(dist,time); strcat(dist,".txt");
     FILE* append = fopen(dist,"a");
     
     //output
