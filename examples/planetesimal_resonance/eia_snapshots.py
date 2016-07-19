@@ -12,7 +12,7 @@ def natural_key(string_):
 ext = '_eiasnapshot_t='
 
 dir = sys.argv[1]
-snapshots = glob.glob(dir+'*'+ext+'*.txt')
+snapshots = glob.glob(dir+ext+'*.txt')
 snapshots = sorted(snapshots, key = natural_key)
 Nsnapshots = len(snapshots)
 

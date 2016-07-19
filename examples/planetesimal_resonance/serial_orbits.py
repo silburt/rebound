@@ -18,7 +18,7 @@ i=0
 while i < N:            #just want the main .txt files
     f = files[i]
     string = f.split("_")
-    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt":
+    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt" or string[-2]=="eiasnapshot":
         files.remove(files[i])
         N -= 1
     else:
