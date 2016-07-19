@@ -52,10 +52,12 @@ int main(int argc, char* argv[]){
 	// Simulation Setup
     r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
+    r->ri_hermes.hill_switch_factor = 3;
+    r->ri_hermes.radius_switch_factor = 20.;
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
-    r->dt = 0.005;
+    r->dt = 0.001;
     double tmax = 1e6;
     
     // Collisions
