@@ -23,7 +23,6 @@ void heartbeat(struct reb_simulation* r);
 void migration_forces(struct reb_simulation* r);
 void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 double calc_a(struct reb_simulation* r, int index);
-//void eia_snapshot(struct reb_simulation* r, char* name);
 void eia_snapshot(struct reb_simulation* r, char* time);
 
 double E0;
@@ -37,27 +36,36 @@ int N_prev;     //keep track of ejected particles
 
 //eia snapshot
 char eia_out[100] = {0};
+double output_time;
 
 //binary save
 char binary_out[100] = {0};
-double binary_output_time;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
+    //args
     strcat(output_name,argv[1]); strcat(output_name,"warmstart_Np"); strcat(output_name,argv[2]); strcat(output_name,"_sd"); strcat(output_name,argv[3]);
     int N_planetesimals = atoi(argv[2]);
     int seed = atoi(argv[3]);
     
-	// Simulation Setup
+    //Migration parameters
+    mig_time = 4000;
+    double mig_rate = 2e4;
+    double K = 100.0;       //Lee & Peale (2002) K.
+    double e_ini = 0.01;
+    
+	// Standard Simulation Setup
     r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
-    r->dt = 0.001;
+    
+    //Important parameters
+    r->ri_hermes.hill_switch_factor = 3;
+    r->ri_hermes.radius_switch_factor = 20.;
+    r->dt = 0.005;
     double tmax = 1e6;
     
     // Collisions
@@ -70,12 +78,6 @@ int main(int argc, char* argv[]){
     r->boundary	= REB_BOUNDARY_OPEN;
     const double boxsize = 10;
     reb_configure_box(r,boxsize,1,1,1);
-    
-    //Migration parameters
-    mig_time = 4000;
-    double mig_rate = 2e4;
-    double K = 100.0;       //Lee & Peale (2002) K.
-    double e_ini = 0.01;
     
     srand(seed);
     
@@ -143,14 +145,31 @@ int main(int argc, char* argv[]){
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
     rescale_energy = 0; //after migration is done, rescale energy
-    binary_output_time = 1e5;
+    output_time = 1e5;
     
     //naming
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
+    char info[200] = {0}; strcat(info,output_name);
     strcat(binary_out,output_name); strcat(binary_out,"_t=");
     strcat(eia_out, output_name); strcat(eia_out, "_eiasnapshot_t=");
     system(syss);
     strcat(output_name,".txt");
+    
+    //info output
+    strcat(info,"_info.txt");
+    FILE* out1 = fopen(info,"w");
+    fprintf(out1, "Simulation Details (Warm start):\n");
+    int coll_on = 0; if(r->collision_resolve == reb_collision_resolve_merge) coll_on =1;
+    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax,coll_on);
+    fprintf(out1, "\nPlanet(s):\n");
+    for(int i=1;i<r->N_active;i++){
+        struct reb_particle p = r->particles[i];
+        fprintf(out1,"Planet %d: m=%e, r=%e, a=%e\n",i,p.m,p.r,calc_a(r,i));
+    }
+    fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,powerlaw);
+    int tau_e_pl = 0; if(tau_e[r->N_active]!=0) tau_e_pl=1;
+    fprintf(out1, "\nMigration parameters:\nMigration Time=%f, Migration Rate=%f, K=%f, planetesimal_eccentricity_damping_on=%d",mig_time, mig_rate, K, tau_e_pl);
+    fclose(out1);
     
     //initial snapshot
     {
@@ -192,11 +211,11 @@ void heartbeat(struct reb_simulation* r){
     }
     
     //output binary and eia snapshot
-    if(binary_output_time < r->t){
+    if(output_time < r->t){
         char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
-        char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
-        reb_output_binary(r, out);
-        binary_output_time += 1e5;
+        //char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
+        //reb_output_binary(r, out);
+        output_time += 1e5;
         eia_snapshot(r,out_time);
     }
     
