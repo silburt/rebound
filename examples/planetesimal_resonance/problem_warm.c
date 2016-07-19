@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
     double powerlaw = 0;
     
     // Generate Planetesimal Disk
-    int i_pl = r->N_active;
+    //int i_pl = r->N_active;
     while(r->N<(N_planetesimals + r->N_active)){
         struct reb_particle pt = {0};
         double a    = reb_random_powerlaw(amin,amax,powerlaw);
@@ -137,8 +137,9 @@ int main(int argc, char* argv[]){
         pt.hash = r->N;
         reb_add(r, pt);
         
-        tau_e[i_pl] = 2.*M_PI*mig_rate/K * (planetesimal_mass/r->particles[2].m);
-        i_pl++;
+        //For some reason adding this makes HERMES run exceedingly slow during the migration phase.
+        //tau_e[i_pl] = 2.*M_PI*mig_rate/K * (planetesimal_mass/r->particles[2].m);
+        //i_pl++;
     }
     
     N_prev = r->N;
