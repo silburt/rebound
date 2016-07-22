@@ -8,12 +8,12 @@ import random
 import numpy as np
 
 #Specify what runs you want *****************************
-N_runs = 25
+N_runs = 10
 
 random.seed()
 runs = []
-N_planetesimals = np.round(np.logspace(2.3,5,N_runs))
-name = 'output/July18'
+N_planetesimals = np.round(np.logspace(2.3,4.5,N_runs))
+name = 'output/July20'
 for i in xrange(0,N_runs):
     Np = "{:.0f}".format(N_planetesimals[i])
     seed = "{:.0f}".format(int(1000*random.random()))

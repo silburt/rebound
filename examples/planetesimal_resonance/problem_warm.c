@@ -120,7 +120,7 @@ int main(int argc, char* argv[]){
     double planetesimal_mass = total_disk_mass/N_planetesimals;
     printf("%e,%e\n",total_disk_mass,planetesimal_mass);
     double amin = calc_a(r, 1) - 0.5, amax = calc_a(r, 2) + 0.5;
-    double powerlaw = 0;
+    double powerlaw = 1;
     
     // Generate Planetesimal Disk
     //int i_pl = r->N_active;
