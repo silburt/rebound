@@ -14,7 +14,7 @@ import sys
 same_output_time = 1
 
 #choice for what to plot
-choice = 'P'
+choice = 'N'
 
 #Number of points to average the values over (i.e. the values oscilate)
 N_trailing_avg = 20
@@ -22,24 +22,31 @@ N_trailing_avg = 20
 
 def get_vars(filename,choice,same_output_time,t_min):
     time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(f, delimiter=',', unpack=True)
-    if choice == 'P':
-        var = np.sqrt((a2**3)/(a1**3))
-        name = 'Period Ratio (P2/P1)'
-    if choice == 'e1':
-        var = e1
-        name = 'e1'
-    if choice == 'e2':
-        var = e2
-        name = 'e2'
-    if choice == 'N':
-        var = N/N[0]
-        name = 'N_i / N_tot'
     index = 0
     if same_output_time >= 1:
         index = max(np.where(time<t_min)[0])
     else:
         index = 1
-    return time[index], np.mean(var[index-N_trailing_avg:index]), N[0], name
+
+    if choice == 'P':
+        P = np.sqrt((a2**3)/(a1**3))
+        var = np.mean(P[index-N_trailing_avg:index])
+        var2 = 0
+        name = 'Period Ratio (P2/P1)'
+    if choice == 'N':
+        Nratio = N/N[0]
+        var = np.mean(Nratio[index-N_trailing_avg:index])
+        var2 = 0
+        name = 'N_i / N_tot'
+    if choice == 'e':
+        var = np.mean(e1[index-N_trailing_avg:index])
+        var2 = np.mean(e2[index-N_trailing_avg:index])
+        name = 'e'
+    if choice == 'a':
+        var = np.mean(a1[index-N_trailing_avg:index])
+        var2 = np.mean(a2[index-N_trailing_avg:index])
+        name = 'a'
+    return time[index], var, var2, N[0], name
 
 dir = sys.argv[1]
 files = glob.glob(dir+'*sd*.txt')
@@ -48,7 +55,7 @@ i=0
 while i < N:    #just want the main .txt files
     f = files[i]
     string = f.split("_")
-    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt":
+    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt" or string[-2]=="eiasnapshot":
         files.remove(files[i])
         N -= 1
     else:
@@ -65,15 +72,20 @@ elif same_output_time == 2:
     t_min = float(sys.argv[2])
 
 var = []
+var2 = []
 Np = []
 t = []
 for f in files:
-    time, variable, N, name = get_vars(f,choice,same_output_time,t_min)
+    time, variable, variable2, N, name = get_vars(f,choice,same_output_time,t_min)
     var.append(variable)
+    var2.append(variable2)
     t.append(time)
     Np.append(N)
 
-im = plt.scatter(Np, var, c=t, cmap=cm.rainbow,lw=0)
+
+im=plt.scatter(Np, var, c=t, cmap=cm.rainbow,lw=0)
+if sum(var2) > 0:
+    plt.scatter(Np, var2, marker='+', color='black')
 plt.colorbar(im, label='elapsed time (yr)')
 plt.xscale('log')
 plt.ylabel(name)
