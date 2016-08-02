@@ -227,6 +227,13 @@ struct reb_simulation_integrator_hermes {
     int* is_in_mini;
     int is_in_mini_Nmax;
     
+    //for autochoosing HSF
+    double* sma;                            ///semi-major axis of each particle
+    double* ecc;                            ///eccentricity of each particle
+    int N_sma;
+    int adaptive_hill_switch_factor;        ///< Flag set by user to automatically set HSF and dt when needed.
+    double hill_switch_factor_initial;      ///< Initial HSF value set by user (relevant only for auto-HSF routine)
+    
     double* a_i;
     double* a_f;
     int a_Nmax;

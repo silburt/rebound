@@ -29,16 +29,17 @@ int main(int argc, char* argv[]){
     double m_earth = 0.000003003;
     //double m_neptune = 0.00005149;
     
-    double powerlaw = atof(argv[1]);
-    int seed = atoi(argv[2]);
+    double powerlaw = 0;
+    int seed = 10;
     srand(seed);
-    strcat(output_name,argv[3]);
-    argv4 = argv[3];
+    strcat(output_name,"output/test");
+    argv4 = "output/test";
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
-    r->ri_hermes.hill_switch_factor = 3;         //Hill radii
-    r->ri_hermes.radius_switch_factor = 20.;          //X*radius
+    r->ri_hermes.hill_switch_factor = 1;         //Hill radii
+    r->ri_hermes.adaptive_hill_switch_factor = 1;
+    r->ri_hermes.radius_switch_factor = 20.;     //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     double tmax = 1e5 * 6.283;
@@ -49,8 +50,8 @@ int main(int argc, char* argv[]){
     r->collision_resolve_keep_sorted = 1;
     
     r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 11;
-    reb_configure_box(r,boxsize,3,3,2);
+    const double boxsize = 25;
+    reb_configure_box(r,boxsize,2,2,1);
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -78,22 +79,22 @@ int main(int argc, char* argv[]){
     reb_add(r, p2);
 
     r->N_active = r->N;
-    r->dt = pow(a2,1.5)/30;
+    r->dt = pow(a2,1.5)/10;
     
     //planetesimals-what's a reasonable ini? Perfectly cold disk seems unlikely...
     //double planetesimal_mass = m1/600;     //each planetesimal = 1/600th of planet mass
     //int N_planetesimals = 230.*m_earth/planetesimal_mass;
-    double total_disk_mass = m1*10;
-    int N_planetesimals = 20000;
+    double total_disk_mass = m1;
+    int N_planetesimals = 100;
     double planetesimal_mass = total_disk_mass / N_planetesimals;
     //double amin = a1 - 2, amax = a1 + 2;          //planet in center of disk
     //double amin = a1 - 0.5, amax = a1 + 2.5;      //planet in asymmetric disk
-    double amin = a1, amax = a1 + 3;                //planet at edge of disk
+    double amin = a1-0.25, amax = a1 + 0.25;                //planet at edge of disk
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
 		double a	= reb_random_powerlaw(amin,amax,powerlaw);
         //double a = draw_ainv_powerlaw(amin,amax);
-        double e = reb_random_rayleigh(0.005);   //rayleigh dist
+        double e = reb_random_rayleigh(0.2);   //rayleigh dist
         double inc = reb_random_rayleigh(0.005);
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
@@ -151,7 +152,7 @@ void heartbeat(struct reb_simulation* r){
         if(r->t > tlog_output)tlog_output = r->t*log_constant; else tlin_output = r->t+lin_constant;
         
         double E = reb_tools_energy(r);
-        double dE = (E-E0)/E0;
+        double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
         double a1 = calc_a(r,1);
@@ -181,7 +182,7 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f,%e,%e,%e,%f,%f,%f\n",r->t,dE,a1,r->N,N_mini,time,dLA,dLL,c_dcom(r),rdist1,rdist2,a2);
+        fprintf(append, "%e,%e,%e,%f,%d\n",r->t,dE,time,r->ri_hermes.hill_switch_factor,r->N);
         fclose(append);
         
         reb_output_timing(r, 0);
