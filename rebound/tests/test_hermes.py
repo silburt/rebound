@@ -74,6 +74,7 @@ class TestHermes(unittest.TestCase):
         #sim.gravity = "basic"
         sim.ri_hermes.hill_switch_factor = 3.
         sim.ri_hermes.radius_switch_factor = 20.
+        sim.ri_hermes.adaptive_hill_switch_factor = 0
         sim.dt = 0.0001
         sim.testparticle_type = 1
         sim.track_energy_offset = 1;

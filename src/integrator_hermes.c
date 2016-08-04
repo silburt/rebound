@@ -41,13 +41,13 @@
 
 static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* r);
 static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* mini);
-static void reb_integrator_hermes_calc_forces_on_planets(const struct reb_simulation* r, double* a);
-//static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r);
+static void calc_forces_on_planets(const struct reb_simulation* r, double* a);
+static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r);
 static void reb_integrator_hermes_get_ae(struct reb_simulation* r, struct reb_particle com, int index, double* a, double* e);
 
 void reb_integrator_hermes_part1(struct reb_simulation* r){
     r->gravity_ignore_10 = 0;
-    const int _N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var; 
+    const int _N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var;
     struct reb_simulation* mini = r->ri_hermes.mini;
     if (mini == NULL){
         mini = reb_create_simulation();
@@ -101,8 +101,8 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         r->ri_hermes.global_index_from_mini_index_N++;
     }
     r->ri_hermes.mini->N_active = _N_active;
-    
-    //if(r->ri_hermes.adaptive_hill_switch_factor) reb_integrator_hermes_autocalc_HSF(r);
+
+    if(r->ri_hermes.adaptive_hill_switch_factor) reb_integrator_hermes_autocalc_HSF(r);
     
     reb_integrator_hermes_check_for_encounter(r);
         
@@ -110,7 +110,7 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         reb_integrator_ias15_clear(r->ri_hermes.mini);
     }
     
-    reb_integrator_hermes_calc_forces_on_planets(r, r->ri_hermes.a_i);
+    calc_forces_on_planets(r, r->ri_hermes.a_i);
     
     if(r->ri_hermes.mini_active && r->track_energy_offset){
         r->ri_hermes.energy_before_timestep = reb_tools_energy(r);
@@ -123,7 +123,7 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
 void reb_integrator_hermes_part2(struct reb_simulation* r){
     reb_integrator_whfast_part2(r);
     
-    reb_integrator_hermes_calc_forces_on_planets(r, r->ri_hermes.a_f);
+    calc_forces_on_planets(r, r->ri_hermes.a_f);
     
     struct reb_simulation* mini = r->ri_hermes.mini;
     r->ri_hermes.steps++;
@@ -216,16 +216,15 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
             const double dz = pi.z - pj.z;
             const double rij2 = dx*dx + dy*dy + dz*dz;
 
-            // Monitor hill radius/relative velocity of particles entering mini - only want to monitor particles at HSF boundary, not already in mini.
-            const double dvx = pi.vx - pj.vx;
-            const double dvy = pi.vy - pj.vy;
-            const double dvz = pi.vz - pj.vz;
-            const double vij2 = dvx*dvx + dvy*dvy + dvz*dvz;
-            const double dt_enc2 = hill_switch_factor2*rh_sum2/vij2;
-            min_dt_enc2 = MIN(min_dt_enc2,dt_enc2);
-            
             if(rij2 < hill_switch_factor2*rh_sum2 || rij2 < radius_check2){
                 global->ri_hermes.mini_active = 1;
+                // Monitor hill radius/relative velocity
+                const double dvx = pi.vx - pj.vx;
+                const double dvy = pi.vy - pj.vy;
+                const double dvz = pi.vz - pj.vz;
+                const double vij2 = dvx*dvx + dvy*dvy + dvz*dvz;
+                const double dt_enc2 = hill_switch_factor2*rh_sum2/vij2;
+                min_dt_enc2 = MIN(min_dt_enc2,dt_enc2);
                 if (j>=_N_active && global->ri_hermes.is_in_mini[j]==0){//make sure not already added
                     // Add particle to mini simulation
                     reb_add(mini,pj);
@@ -236,18 +235,16 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
                     }
                     global->ri_hermes.global_index_from_mini_index[global->ri_hermes.global_index_from_mini_index_N] = j;
                     global->ri_hermes.global_index_from_mini_index_N++;
-
                 }
             }
         }
     }
-//    if (global->ri_hermes.adaptive_hill_switch_factor==0 && global->ri_hermes.timestep_too_large_warning==0 && min_dt_enc2 < 16*global->dt*global->dt){
-//        global->ri_hermes.timestep_too_large_warning = 1;
-//        reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
-//    }
+    if (global->ri_hermes.adaptive_hill_switch_factor==0 && global->ri_hermes.timestep_too_large_warning==0 && min_dt_enc2 < 16.*global->dt*global->dt){
+        global->ri_hermes.timestep_too_large_warning = 1;
+        reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
+    }
 }
 
-/*
 //get min encounter time between overlapping orbits
 static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
     struct reb_particle com = reb_get_com(r);
@@ -337,9 +334,8 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
         }
     }
 }
-*/
 
-static void reb_integrator_hermes_calc_forces_on_planets(const struct reb_simulation* r, double* a){
+static void calc_forces_on_planets(const struct reb_simulation* r, double* a){
     int* is_in_mini = r->ri_hermes.is_in_mini;
     double G = r->G;
     const int _N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var;
