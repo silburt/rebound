@@ -42,7 +42,7 @@
 static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* r);
 static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* mini);
 static void reb_integrator_hermes_calc_forces_on_planets(const struct reb_simulation* r, double* a);
-static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r);
+//static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r);
 static void reb_integrator_hermes_get_ae(struct reb_simulation* r, struct reb_particle com, int index, double* a, double* e);
 
 void reb_integrator_hermes_part1(struct reb_simulation* r){
@@ -102,7 +102,7 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
     }
     r->ri_hermes.mini->N_active = _N_active;
     
-    if(r->ri_hermes.adaptive_hill_switch_factor) reb_integrator_hermes_autocalc_HSF(r);
+    //if(r->ri_hermes.adaptive_hill_switch_factor) reb_integrator_hermes_autocalc_HSF(r);
     
     reb_integrator_hermes_check_for_encounter(r);
         
@@ -241,12 +241,13 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
             }
         }
     }
-    if (global->ri_hermes.adaptive_hill_switch_factor==0 && global->ri_hermes.timestep_too_large_warning==0 && min_dt_enc2 < 16*global->dt*global->dt){
-        global->ri_hermes.timestep_too_large_warning = 1;
-        reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
-    }
+//    if (global->ri_hermes.adaptive_hill_switch_factor==0 && global->ri_hermes.timestep_too_large_warning==0 && min_dt_enc2 < 16*global->dt*global->dt){
+//        global->ri_hermes.timestep_too_large_warning = 1;
+//        reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
+//    }
 }
 
+/*
 //get min encounter time between overlapping orbits
 static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
     struct reb_particle com = reb_get_com(r);
@@ -336,7 +337,7 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
         }
     }
 }
-
+*/
 
 static void reb_integrator_hermes_calc_forces_on_planets(const struct reb_simulation* r, double* a){
     int* is_in_mini = r->ri_hermes.is_in_mini;

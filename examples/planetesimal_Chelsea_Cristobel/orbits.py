@@ -3,26 +3,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 
-plot = int(sys.argv[1])
+plot = 0
 
 if plot == 0:
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10,10), sharex=True)
+    fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10), sharex=True)
     file_name = "output/test.txt"
     fos = open(file_name, 'r')
-    time, dE, N_mini, N, ET, HSF = np.loadtxt(fos, delimiter=',', unpack=True)
+    time, dE, N_mini, N, ET, HSF,a1,a2,a3,a4 = np.loadtxt(fos, delimiter=',', unpack=True)
     
     axes[0].plot(time,dE, '.')
     axes[0].plot(time,0.5e-10*time, color='red', label='t')
     axes[0].plot(time,2e-9*time**0.5, color='black', label='t^0.5')
-    axes[0].set_xlim([0.1,max(time)])
+    axes[0].set_xlim([100,max(time)])
     axes[0].set_yscale('log')
+    axes[0].set_xscale('log')
     axes[1].plot(time,HSF, '.')
     axes[1].set_ylabel('HSF')
     axes[2].plot(time,N,'.',label='N')
-    axes[2].plot(time,N_mini,'.',label='N_mini')
+    axes[2].plot(time,N_mini,'k.',label='N_mini')
+    axes[2].set_ylim([0,1.2*max(N)])
+    axes[2].set_ylabel('Number of particles')
     axes[2].legend(loc='upper left')
-    axes[0].set_xscale('log')
-
+    axes[3].plot(time,a1,'k.')
+    axes[3].plot(time,a2,'k.')
+    axes[3].plot(time[np.where(a3>0)],a3[np.where(a3>0)],'k.')
+    axes[3].plot(time[np.where(a4>0)],a4[np.where(a4>0)],'k.')
+    axes[3].set_ylabel('Semimajor axis of planets')
+    axes[3].set_xlabel('time (years)')
 else:
     fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10), sharex=True)
     file_name = "output/test_HSF.txt"
