@@ -37,7 +37,7 @@
 #include "integrator_ias15.h"
 #include "integrator_whfast.h"
 #define MIN(a, b) ((a) > (b) ? (b) : (a))    ///< Returns the minimum of a and b
-#define MAX(a, b) ((a) > (b) ? (a) : (b))    ///< Returns the maximum of a and b
+#define MAX(a, b) ((a) > (b) ? (a) : (b))    ///< Returns the maximum of a and b 
 
 static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* r);
 static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* mini);
