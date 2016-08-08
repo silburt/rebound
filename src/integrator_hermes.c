@@ -46,7 +46,7 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r);
 static void reb_integrator_hermes_get_ae(struct reb_simulation* r, struct reb_particle com, int index, double* a, double* e);
 
 void reb_integrator_hermes_part1(struct reb_simulation* r){
-    r->gravity_ignore_10 = 0;
+    r->gravity_ignore_terms = 0;
     const int _N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var;
     struct reb_simulation* mini = r->ri_hermes.mini;
     if (mini == NULL){
