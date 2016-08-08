@@ -11,13 +11,9 @@
 void heartbeat(struct reb_simulation* r);
 double calc_a(struct reb_simulation* r, int index);
 double draw_ainv_powerlaw(double min, double max);
-void c_momentum(struct reb_simulation* r, double* dL_ang, double* dL_lin, double Lang0, double Llin0);
-double c_dcom(struct reb_simulation* r);
-void eia_snapshot(struct reb_simulation* r, int output_number);
 
-double E0, LA0, LL0, eia_snapshot_dt;
-struct reb_particle comr0;
-int N_prev, eia_snapshot_inc, eia_active;
+double E0;
+int N_prev;
 char output_name[100] = {0};
 char removed[200] = {0};
 char* argv4;
@@ -37,7 +33,8 @@ int main(int argc, char* argv[]){
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
-    r->ri_hermes.hill_switch_factor = 1;         //Hill radii
+    r->ri_hermes.hill_switch_factor = 6;         //Hill radii
+    r->ri_hermes.adaptive_hill_switch_factor = 0;
     r->ri_hermes.radius_switch_factor = 20.;     //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
@@ -78,7 +75,7 @@ int main(int argc, char* argv[]){
     reb_add(r, p2);
 
     r->N_active = r->N;
-    r->dt = pow(a2,1.5)/10;
+    r->dt = pow(a2,1.5)/50;
     
     //planetesimals-what's a reasonable ini? Perfectly cold disk seems unlikely...
     //double planetesimal_mass = m1/600;     //each planetesimal = 1/600th of planet mass
@@ -110,17 +107,9 @@ int main(int argc, char* argv[]){
     lin_constant = tmax/n_output;
     tlin_output = r->dt;
 
-    //reb_move_to_com(r);
-    comr0 = reb_get_com(r);
-    double junk=0, junk2=0;
-    c_momentum(r, &LA0, &LL0, junk, junk2);
+    reb_move_to_com(r);
     E0 = reb_tools_energy(r);
     N_prev = r->N;
-    
-    //eia
-    eia_active = 1;
-    eia_snapshot_inc = 0;
-    eia_snapshot_dt = 5e3*6.283;
     
     //naming stuff
     char timeout[200] = {0};
@@ -147,6 +136,14 @@ int main(int argc, char* argv[]){
 }
 
 void heartbeat(struct reb_simulation* r){
+    //Center if ejected particle
+    if(r->N < N_prev){
+        N_prev = r->N;
+        double E = reb_tools_energy(r);
+        reb_move_to_com(r);
+        r->energy_offset += E - reb_tools_energy(r);
+    }
+    
     if(r->t > tlog_output || r->t > tlin_output){//log output or linear output!!
         if(r->t > tlog_output)tlog_output = r->t*log_constant; else tlin_output = r->t+lin_constant;
         
@@ -157,21 +154,6 @@ void heartbeat(struct reb_simulation* r){
         double a1 = calc_a(r,1);
         double a2 = 0;
         if(r->N_active > 2) a2 = calc_a(r,2);
-        
-        //calculate actual distance of planet from star, not semi-major axis
-        struct reb_particle* global = r->particles;
-        double dx = global[0].x - global[1].x;
-        double dy = global[0].y - global[1].y;
-        double dz = global[0].z - global[1].z;
-        double rdist1 = sqrt(dx*dx + dy*dy + dz*dz);
-        double dx2 = global[0].x - global[2].x;
-        double dy2 = global[0].y - global[2].y;
-        double dz2 = global[0].z - global[2].z;
-        double rdist2 = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
-        
-        int calc_mom = 1;
-        double dLA = 0, dLL = 0; //angular momentum, linear momentum
-        if(calc_mom) c_momentum(r, &dLA, &dLL, LA0, LL0);
         
         int N_mini = 0;
         if(r->integrator == REB_INTEGRATOR_HERMES) N_mini = r->ri_hermes.mini->N - r->ri_hermes.mini->N_active;
@@ -187,48 +169,6 @@ void heartbeat(struct reb_simulation* r){
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
     }
-    
-    if(r->t > eia_snapshot_dt*eia_snapshot_inc && eia_active == 1){
-        eia_snapshot(r,eia_snapshot_inc);
-        if(eia_snapshot_inc == 0) printf("\n outputting eia_snapshots every %f years\n",eia_snapshot_dt);
-        eia_snapshot_inc++;
-    }
-    
-    //record collisions in mini
-    if(r->N < N_prev){
-        FILE* append = fopen(removed,"a");
-        fprintf(append,"Collision,%.5f\n",r->t);
-        fclose(append);
-        
-        N_prev = r->N;
-    }
-    
-    /*
-    //ejections
-    {
-        struct reb_particle* global = r->particles;
-        const double ED2 = 100;
-        struct reb_particle p0 = global[0];
-        for(int i=1;i<r->N;i++){
-            const double dx = global[i].x - p0.x;
-            const double dy = global[i].y - p0.y;
-            const double dz = global[i].z - p0.z;
-            if(dx*dx+dy*dy+dz*dz > ED2){
-                const double Ei = reb_tools_energy(r);
-                reb_remove(r,i,1);
-                reb_move_to_com(r);
-                const double Ef = reb_tools_energy(r);
-                r->energy_offset += Ei - Ef;
-                
-                //char removed[200] = {0}; strcat(removed,argv4); strcat(removed,"_removed"); strcat(removed,".txt");
-                FILE* append = fopen(removed,"a");
-                fprintf(append,"Ejection,%.5f\n",r->t);
-                fclose(append);
-                
-                N_prev = r->N;
-            }
-        }
-    }*/
 }
 
 double calc_a(struct reb_simulation* r, int index){
@@ -257,83 +197,4 @@ double draw_ainv_powerlaw(double min, double max){
     return exp(y*log(max/min) + log(min));
 }
 
-double c_dcom(struct reb_simulation* r){
-    struct reb_particle com = reb_get_com(r);
-    double dx = comr0.x - com.x;
-    double dy = comr0.y - com.y;
-    double dz = comr0.z - com.z;
-    return sqrt(dx*dx + dy*dy + dz*dz);
-}
 
-void c_momentum(struct reb_simulation* r, double* dL_ang, double* dL_lin, double Lang0, double Llin0){
-    struct reb_particle com = reb_get_com(r);
-    double Lang = 0, Llin = 0;
-    for(int i=0;i<r->N;i++){
-        struct reb_particle p = r->particles[i];
-        double dx = p.x - com.x;
-        double dy = p.y - com.y;
-        double dz = p.z - com.z;
-        double dvx = p.vx - com.vx;
-        double dvy = p.vy - com.vy;
-        double dvz = p.vz - com.vz;
-        double hx = (dy*dvz - dz*dvy);
-        double hy = (dz*dvx - dx*dvz);
-        double hz = (dx*dvy - dy*dvx);
-        Lang += p.m*sqrt(hx*hx + hy*hy + hz*hz);
-        Llin += p.m*sqrt(dvx*dvx + dvy*dvy + dvz*dvz);
-    }
-    
-    if(r->t > 0){
-        *dL_ang = (Lang - Lang0)/Lang0;
-        *dL_lin = (Llin - Llin0)/Llin0;
-    } else {
-        *dL_ang = Lang; //iteration 0, calculating Lang0, Llin0
-        *dL_lin = Llin;
-    }
-}
-
-void eia_snapshot(struct reb_simulation* r, int output_number){
-    struct reb_particle* const particles = r->particles;
-    struct reb_particle com = reb_get_com(r);
-    
-    //name
-    char outstr[15];
-    sprintf(outstr, "%d", output_number);
-    char dist[200] = {0}; strcat(dist,argv4); strcat(dist,"_ei"); strcat(dist,outstr); strcat(dist,".txt");
-    FILE* append = fopen(dist,"a");
-    
-    double t = r->t;
-    struct reb_particle p0 = particles[0];
-    for(int i=1;i<r->N;i++){
-        struct reb_particle p = particles[i]; //output planet only.
-        const double mu = r->G*(com.m + p.m);
-        const double dvx = p.vx-com.vx;
-        const double dvy = p.vy-com.vy;
-        const double dvz = p.vz-com.vz;
-        const double dx = p.x-com.x;
-        const double dy = p.y-com.y;
-        const double dz = p.z-com.z;
-        const double hx = (dy*dvz - dz*dvy);
-        const double hy = (dz*dvx - dx*dvz);
-        const double hz = (dx*dvy - dy*dvx);
-        const double h = sqrt(hx*hx + hy*hy + hz*hz);
-        
-        const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
-        const double d = sqrt( dx*dx + dy*dy + dz*dz );    //distance
-        const double dinv = 1./d;
-        const double muinv = 1./mu;
-        const double vr = (dx*dvx + dy*dvy + dz*dvz)*dinv;
-        const double term1 = v2-mu*dinv;
-        const double term2 = d*vr;
-        const double ex = muinv*( term1*dx - term2*dvx );
-        const double ey = muinv*( term1*dy - term2*dvy );
-        const double ez = muinv*( term1*dz - term2*dvz );
-        const double e = sqrt(ex*ex + ey*ey + ez*ez);   // eccentricity
-        const double a = -mu/( v2 - 2.*mu*dinv );
-        const double inc = acos(hz/h);
-        const double rdist = sqrt((p.x-p0.x)*(p.x-p0.x)+(p.y-p0.y)*(p.y-p0.y)+(p.z-p0.z)*(p.z-p0.z));
-        fprintf(append,"%f,%u,%f,%f,%f,%f,%e\n",t,p.hash,a,e,inc,rdist,p.m);
-    }
-    
-    fclose(append);
-}
