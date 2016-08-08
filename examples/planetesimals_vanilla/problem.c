@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
     lin_constant = tmax/n_output;
     tlin_output = r->dt;
 
-    reb_move_to_com(r);
+    //reb_move_to_com(r);
     comr0 = reb_get_com(r);
     double junk=0, junk2=0;
     c_momentum(r, &LA0, &LL0, junk, junk2);
