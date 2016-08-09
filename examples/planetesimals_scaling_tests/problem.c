@@ -33,19 +33,20 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    int seed = atoi(argv[3]);
-    strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
+    int seed = 10;
+    strcat(output_name,argv[2]); strcat(output_name,".txt"); argv4=argv[2];
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.radius_switch_factor = 20.;         //X*radius
+    r->ri_hermes.adaptive_hill_switch_factor = 0; 
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->usleep = 1000;
     
     double afac = 1;
     double mfac = 1;
-    double mpfac = atof(argv[2]);
+    double mpfac = 1;
     
     //which test?
     int test_dt = 0;
@@ -100,7 +101,7 @@ int main(int argc, char* argv[]){
     double planetesimal_mass = 1e-8*mpfac;
     {//planetesimal
         double rr = 0.001;
-        double theta = atof(argv[5])*PI;
+        double theta = atof(argv[3])*PI;
         double f = rr*sin(theta);
         double dx = rr*sin(theta - PI/2.);
         double vy = 1.1*pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
@@ -141,13 +142,13 @@ int main(int argc, char* argv[]){
     
     //energy
     E0 = reb_tools_energy(r);
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv[4]); strcat(syss,"*");
+    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv[2]); strcat(syss,"*");
     system(syss);
     
     t_ini = time(NULL);
     struct tm *tmp = gmtime(&t_ini);
     N_prev = r->N;
-    argv4= argv[4];
+    argv4= argv[2];
     
     //malloc stuff for keeping track of particles entering/leaving mini
     in_mini = calloc(sizeof(double),r->N);
@@ -160,7 +161,7 @@ int main(int argc, char* argv[]){
     struct tm *tmp2 = gmtime(&t_fini);
     double time = t_fini - t_ini;
     char timeout[200] = {0};
-    strcat(timeout,argv[4]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
+    strcat(timeout,argv[2]); strcat(timeout,"_elapsedtime"); strcat(timeout,".txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     fprintf(outt,"System Parameters: dt=%f,tmax=%f,HSR=%f,N_active=%d. \n",r->dt,tmax,r->ri_hermes.hill_switch_factor,r->N_active);
