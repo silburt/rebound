@@ -9,7 +9,7 @@ import random
 #Specify what runs you want *****************************
 
 #legend:[number of runs, tmax,  N_planetesiamls]
-params = [6,1e5,500]
+params = [2,5e7,100]
 
 #*****************************
 random.seed()

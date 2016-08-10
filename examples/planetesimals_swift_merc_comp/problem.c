@@ -40,7 +40,7 @@ int main(int argc, char* argv[]){
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
-    int mercury_swifter_comp = 1;   //if set to 1, need argv[5] and argv[6]
+    int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -48,6 +48,7 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;        //Hill radii
+    r->ri_hermes.adaptive_hill_switch_factor = 0;
     r->dt = 0.01;
     
     r->collision = REB_COLLISION_DIRECT;
