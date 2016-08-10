@@ -6,6 +6,10 @@ import numpy as np
 import sys
 import os
 import re
+from scipy.optimize import curve_fit
+
+def func(x,a,b):
+    return a*x**b
 
 def get_times(files, ext):
     ET = []
@@ -35,8 +39,12 @@ dirP = str(sys.argv[1])
 #Elapsed time - HERMES
 files = glob.glob(dirP+'*_elapsedtime.txt')
 Np_H, times_H = get_times(files,'')
-plt.plot(Np_H, times_H, 'o', markeredgecolor='none', color='darkgreen', label='HERMES')
+x,y = zip(*[(x,y) for (x,y) in sorted(zip(Np_H,times_H))])
+popt, pcov = curve_fit(func, x, y)
+plt.plot(x, y, 'o', markeredgecolor='none', color='darkgreen', label='Numerical Simulation')
+plt.plot(x, func(x,popt[0],popt[1]), label='Best Fit: t$_{elapsed}$='+str('%.1e'%popt[0])+'$\cdot N_{pl}$$^{'+str(round(popt[1],2))+'}$')
 
+'''
 #Elapsed time - Swifter
 dir = '../../../swifter/example/input_files/'
 files = [x[0] for x in os.walk(dir)][1:]
@@ -48,8 +56,12 @@ dir = '../../../mercury6/input_files/'
 files = [x[0] for x in os.walk(dir)][1:]
 Np_M, times_M = get_times(files,'/ET.txt')
 plt.plot(Np_M, times_M, 'o', markeredgecolor='none', color='darkred', label='MERCURY')
+'''
 
+plt.legend(loc='upper left', numpoints=1)
 plt.xscale('log')
-plt.xlabel('Number of Planetesimals',fontsize=13)
+plt.yscale('log')
+plt.xlabel('Initial Number of Planetesimals',fontsize=13)
 plt.ylabel('Elapsed Time (hours)',fontsize=13)
+plt.savefig(dirP+'ETvNp.pdf')
 plt.show()
