@@ -17,13 +17,13 @@ time = data[:,0]/6.28316
 
 ms=3
 if diagnostics == 1:
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
+    fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10))
     axes[0].plot(time,data[:,2], 'o', ms=ms, markeredgecolor='none')
     axes[0].set_ylabel('semi-major axis of Planet (AU, linear scale)')
     axes[1].plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
     axes[1].set_xscale('log')
     axes[1].set_yscale('log')
-    axes[1].set_xlim([125,max(data[:,0])])
+    #axes[1].set_xlim([125,max(data[:,0])])
     axes[1].set_ylabel('Energy (log scale)')
     axes[2].plot(time,data[:,3]-3, 'o', ms=ms, markeredgecolor='none')
     #axes[2].set_ylim([0,max(data[:,3]) + 10])
@@ -31,13 +31,15 @@ if diagnostics == 1:
     axes[2].set_ylabel('N particles in global (log scale)')
     axes[2].set_xlabel('simulation time (yrs)')
     axes[2].set_xscale('log')
-    axes[2].set_ylim([59500,60100])
+    #axes[2].set_ylim([59500,60100])
     #axes[2].plot(data[:,0],data[:,5], 'o', ms=ms, markeredgecolor='none')
     #axes[2].set_xscale('log')
     #axes[2].set_yscale('log')
     #axes[2].set_ylabel('real life elapsed time (seconds)')
     #axes[2].set_xlabel('simulation time (yrs)')
     #axes[2].set_xlim([1,max(data[:,0])])
+    axes[3].plot(time, data[:,6], '.')
+    axes[3].set_ylabel('HSF')
 else:
     plt.plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
     plt.plot(time,3e-10*data[:,0]**(0.5),color='black',label='t^1/2 growth')

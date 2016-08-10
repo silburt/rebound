@@ -18,19 +18,18 @@ time_t t_ini;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     double m_earth = 0.000003003;
-    int seed = atoi(argv[3]);
+    int seed = atoi(argv[1]);
     srand(seed);
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
-    r->ri_hermes.hill_switch_factor = atof(argv[1]);  //Hill radii
+    //r->ri_hermes.hill_switch_factor = 1;  //Hill radii
     r->ri_hermes.radius_switch_factor = 15.;          //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
-    r->dt = atof(argv[2]);
     //r->dt = 12.56;  //planet's period = 125 years
-    //r->dt = 1;
-    double tmax = 1e5 * 6.283;
+    r->dt = 2 * 6.283;
+    double tmax = 7e4 * 6.283;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -47,8 +46,8 @@ int main(int argc, char* argv[]){
     double a1=25, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
     struct reb_particle p1 = {0};
     p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    p1.r = atof(argv[4]);
-    //p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
+    //p1.r = atof(argv[4]);
+    p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
     //p1.r = 5e-4;
     reb_add(r, p1);
     
@@ -57,8 +56,8 @@ int main(int argc, char* argv[]){
     
     //planetesimals
     double planetesimal_mass = m1/600.;     //each planetesimal = 1/600th of planet mass
-    //int N_planetesimals = 230.*m_earth/planetesimal_mass;
-    int N_planetesimals = 5000;
+    int N_planetesimals = 230.*m_earth/planetesimal_mass;
+    //int N_planetesimals = 5000;
     double amin = a1 - 10.5, amax = a1 + 10.5;   //10.5AU on each side of the planet
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
@@ -72,8 +71,6 @@ int main(int argc, char* argv[]){
         pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
 		reb_add(r, pt);
-        printf("%.16f\n",planetesimal_mass);
-        exit(0);
     }
     
     int n_output = 25000;
@@ -89,9 +86,9 @@ int main(int argc, char* argv[]){
     sprintf(seedstr, "%d", seed);
     char dtstr[15];
     sprintf(dtstr, "%.2f", r->dt);
-    char HSRstr[15];
-    sprintf(HSRstr, "%.2f", r->ri_hermes.hill_switch_factor);
-    strcat(output_name,"output/Kirsh_dt"); strcat(output_name,dtstr); strcat(output_name,"_HSR"); strcat(output_name,HSRstr); strcat(output_name,"_sd"); strcat(output_name,seedstr);
+    //char HSRstr[15];
+    //sprintf(HSRstr, "%.2f", r->ri_hermes.hill_switch_factor);
+    strcat(output_name,"output/Kirsh-autoHSF-helio_dt"); strcat(output_name,dtstr); strcat(output_name,"_sd"); strcat(output_name,seedstr);
     char timeout[200] = {0};
     strcat(timeout,output_name);
     strcat(output_name,".txt");
@@ -127,7 +124,7 @@ void heartbeat(struct reb_simulation* r){
         double time = t_curr - t_ini;
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f\n",r->t,dE,a1,r->N,r->ri_hermes.mini->N,time);
+        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f,%f\n",r->t,dE,a1,r->N,r->ri_hermes.mini->N,time,r->ri_hermes.hill_switch_factor);
         fclose(append);
         
         reb_output_timing(r, 0);
