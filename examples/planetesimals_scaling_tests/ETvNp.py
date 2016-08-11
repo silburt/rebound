@@ -11,6 +11,9 @@ import re
 ms = 0.25
 alpha = 0.4
 
+def func(x,a,b):
+    return a*x**b
+
 #Elapsed time
 dirP = str(sys.argv[1])
 files = glob.glob(dirP+'*_elapsedtime.txt')
@@ -21,6 +24,9 @@ for f in files:
     lines = ff.readlines()
     elapsed.append(float(lines[1].split()[-2])/3600.)
     Np.append(float(re.split("_|/",f)[-4].split("Np")[1]))
+
+#x,y = zip(*[(x,y) for (x,y) in sorted(zip(Np_H,times_H))])
+#popt, pcov = curve_fit(func, x, y)
 
 plt.plot(Np, elapsed, 'o', label='HSF=3, dt=0.05')
 plt.plot(Np, 3e-4*np.asarray(Np)**0.8, label='3e-4*Np^0.8')
