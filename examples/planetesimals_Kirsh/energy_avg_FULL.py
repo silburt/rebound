@@ -41,7 +41,7 @@ b_c = 0
 r_c = 0
 if time_sort == 1:
     colors = []
-time_array = ['dt4.00','dt8.00','dt12.76']
+time_array = ['dt12.57']
 names=[]
 for f in files:
     try:
