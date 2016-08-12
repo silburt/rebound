@@ -14,7 +14,7 @@ import sys
 same_output_time = 1
 
 #choice for what to plot
-choice = 'N'
+choice = 'P'
 
 #Number of points to average the values over (i.e. the values oscilate)
 N_trailing_avg = 20

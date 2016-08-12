@@ -1,14 +1,15 @@
 /**
  * Planetesimal Disk Migration
  *
- * This example integrates a star, 2 planet, N planetesimal disk system, with the
+ * This example integrates a star, 2 planet, N-planetesimal disk system, with the
  * outer planet at the inner edge of the planetesimal disk. If the system is
  * integrated for at least 10^5 years outward migration by the outer planet in
- * the planetesimal disk will be observed. By default, the semi-major axis of both
- * planets along with the fractional energy error are printed to energy.txt.
+ * the planetesimal can be observed.
  *
- * The ideal integrator choice for this problem is HERMES due to the large number
- * of close encounters.
+ * The ideal integrator choice for this problem is HERMES due to the large
+ * number of close encounters. By default the adaptive HSF routine is on, and
+ * we merge bodies inelastically. See Silburt et al. (2016) for further details
+ * about HERMES.
  */
 
 #include <stdio.h>
@@ -20,6 +21,7 @@
 
 void heartbeat(struct reb_simulation* r);
 double calc_a(struct reb_simulation* r, int index);
+
 double E0;
 
 int main(int argc, char* argv[]){
@@ -28,8 +30,6 @@ int main(int argc, char* argv[]){
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
     
     // Collisions
@@ -44,7 +44,11 @@ int main(int argc, char* argv[]){
     reb_configure_box(r,boxsize,2,2,1);
     
     srand(12);
-    double m_earth = 0.000003003;
+    double m_earth = 3.003e-6;
+    double m_neptune = 5.1e-4;
+    double a_scat_planet = 1;
+    double a_mig_planet = 2;
+    r->dt = pow(a_scat_planet,1.5)/30;
     
 	// Star
 	struct reb_particle star = {0};
@@ -53,31 +57,31 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
     
     // Planet 1 - inner massive planet to scatter planetesimals out
-    //double a1=2, m1=5e-4, e1=0, inc1=reb_random_normal(0.00001);
-    double a1=2, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
-    struct reb_particle p1 = {0};
-    p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    //p1.r = 0.000467;
-    p1.r = 0.0000788215;
-    reb_add(r, p1);
+    {
+        double a=a_scat_planet, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p.r = 0.000467;
+        reb_add(r, p);
+    }
     
     // Planet 2 - outer smaller planet to migrate in the disk
-//    double a2=4, m2=2.3*m_earth, e2=0, inc2=reb_random_normal(0.00001);
-//    struct reb_particle p2 = {0};
-//    p2 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
-//    p2.r = 0.0000788215;
-//    reb_add(r, p2);
+    {
+        double a=a_mig_planet, m=2.3*m_earth, e=0, inc=reb_random_normal(0.00001);
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p.r = 0.0000788215;
+        reb_add(r, p);
+    }
     
     r->N_active = r->N;
-    r->dt = pow(a1,1.5)/30;
     
     // Planetesimal disk parameters
-    double total_disk_mass = m1*10.;
+    double total_disk_mass = 2.3*10*m_earth;
     int N_planetesimals = 2500;
     double planetesimal_mass = total_disk_mass/N_planetesimals;
-    //double amin = a2, amax = a2 + 2;                //planet at edge of disk
-    double amin = a1 - 1, amax = a1;
-    double powerlaw = 0;
+    double amin = a_mig_planet-0.02, amax = a_mig_planet + 1;   //planet at inner edge of disk
+    double powerlaw = 1;
     
     // Generate Planetesimal Disk
     while(r->N<N_planetesimals + r->N_active){
@@ -112,7 +116,7 @@ void heartbeat(struct reb_simulation* r){
         if (r->ri_hermes.mini_active){
             N_mini = r->ri_hermes.mini->N;
         }
-        fprintf(f,"%e,%e,%f,%f,%d,%d\n",r->t,relE,calc_a(r,1),calc_a(r,2),r->N,N_mini);
+        fprintf(f,"%e,%e,%f,%f,%d,%d,%f\n",r->t,relE,calc_a(r,1),calc_a(r,2),r->N,N_mini,r->ri_hermes.current_hill_switch_factor);
         fclose(f);
     }
     

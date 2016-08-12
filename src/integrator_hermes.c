@@ -257,7 +257,6 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
     struct reb_particle com = reb_get_com(r);
     const double mu = r->G*r->particles[0].m;
     struct reb_particle* particles = r->particles;
-    
     double min_dt_enc2 = INFINITY;
     double m0 = particles[0].m;
     for(int i=1;i<r->N_active;i++){                                         //run over massive bodies
