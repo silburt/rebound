@@ -28,7 +28,7 @@ time_t t_ini;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    double tmax = 1e4*6.283;
+    double tmax = 1e3*6.283;
     int N_planetesimals = atoi(argv[1]);
     srand(atoi(argv[2]));
     strcat(output_name,argv[3]);
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.hill_switch_factor = 4;
     r->ri_hermes.radius_switch_factor = 20.;
     r->testparticle_type = 1;
-    r->dt = 6.283/100.;  //in G=1 units, 6.283 yrs elapse for a complete orbit at 1AU
+    r->dt = 6.283/50.;  //in G=1 units, 6.283 yrs elapse for a complete orbit at 1AU
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;

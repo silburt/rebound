@@ -44,14 +44,17 @@ axes[0].set_yscale('log')
 axes[0].set_xlabel('Number of Planetesimals',fontsize=13)
 axes[0].set_ylabel('Elapsed Time (hours)',fontsize=13)
 axes[0].legend(loc='upper left',numpoints=1)
+axes[0].plot(Np,0.4e-3*Np)
 
-for f in files[40:]:
+N_plot = np.array([13,30,82,145,255,449,1048,3237,6551,8685]) + 2
+for f in files:
     time, dE, a, N, N_mini, mini_on, ET = np.loadtxt(f.split("_elapsedtime.txt")[0]+".txt", delimiter=',', unpack=True)
-    axes[1].plot(time,N_mini,'.', label='N='+str(N[0]))
+    if N[0] in N_plot:
+        axes[1].plot(time,N_mini/N[0],'.', label='N='+str(N[0]))
 axes[1].set_xscale('log')
 axes[1].set_yscale('log')
 axes[1].set_xlabel('time (years)')
-axes[1].set_ylabel('N in mini simulation')
+axes[1].set_ylabel('$N_{mini}/N$')
 axes[1].legend(loc='upper left',numpoints=1)
 
 plt.savefig(dirP+'ETvNp.png')

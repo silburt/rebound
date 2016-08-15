@@ -11,7 +11,7 @@ import numpy as np
 #*****************************
 random.seed()
 runs = []
-Np = np.logspace(1,4,50,dtype=int)
+Np = np.logspace(1,5,50,dtype=int)
 for i in xrange(0,len(Np)):
     seed = "{:.0f}".format(int(1000*random.random()))
     name = 'output/ETvNp_Np'+str(Np[i])+'_HSR4_dt0.063'
