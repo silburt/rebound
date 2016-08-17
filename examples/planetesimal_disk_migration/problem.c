@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
     double m_earth = 3.003e-6;
     double m_neptune = 5.1e-4;
     double a_scat_planet = 1;
-    double a_mig_planet = 2;
+    double a_mig_planet = 1.67;
     r->dt = pow(a_scat_planet,1.5)/30;
     
 	// Star
