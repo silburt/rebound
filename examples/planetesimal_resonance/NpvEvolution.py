@@ -14,10 +14,13 @@ import sys
 same_output_time = 1
 
 #choice for what to plot
-choice = 'P'
+choice = sys.argv[3]
+
+#Npl_cutoff - ignore all files with initial Np > N_cutoff
+Npl_cutoff = int(sys.argv[2])
 
 #Number of points to average the values over (i.e. the values oscilate)
-N_trailing_avg = 20
+N_trailing_avg = 30
 #---------------------------------------------------------
 
 def get_vars(filename,choice,same_output_time,t_min):
@@ -55,7 +58,11 @@ i=0
 while i < N:    #just want the main .txt files
     f = files[i]
     string = f.split("_")
-    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt" or string[-2]=="eiasnapshot":
+    try:
+        Npl = float(string[-2].split("Np")[1])
+    except:
+        Npl = 10e10
+    if string[-1]=="info.txt" or string[-1]=="elapsedtime.txt" or string[-2]=="eiasnapshot" or Npl>Npl_cutoff:
         files.remove(files[i])
         N -= 1
     else:
@@ -83,13 +90,14 @@ for f in files:
     Np.append(N)
 
 
-im=plt.scatter(Np, var, c=t, cmap=cm.rainbow,lw=0)
+im=plt.scatter(Np, var, c=t, cmap=cm.rainbow,lw=0,label='inner')
 if sum(var2) > 0:
-    plt.scatter(Np, var2, marker='+', color='black')
+    plt.scatter(Np, var2, marker='+', color='black', label='outer')
 plt.colorbar(im, label='elapsed time (yr)')
+plt.legend(loc='lower left')
 plt.xscale('log')
 plt.ylabel(name)
 plt.xlabel('Np')
-plt.savefig(dir+'NpvEvolution-'+choice+'.png')
-plt.show()
+plt.savefig(dir+'NpvEvolution-'+choice+'_Np%d'%Npl_cutoff+'.png')
+#plt.show()
 

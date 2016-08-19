@@ -21,7 +21,7 @@ def get_cmap(N):
         return scalar_map.to_rgba(index)
     return map_index_to_rgb_color
 
-plot_choice = 2      #1 = plot energy, 2 = plot semi-major axis
+plot_choice = 1     #1 = plot energy, 2 = plot semi-major axis
 time_sort = 0        #sort runs according to time?
 
 ms = 0.4
@@ -31,7 +31,7 @@ outputn = ['time (years)','dE','a']
 
 N_files = 0
 dirP = str(sys.argv[1])
-files = glob.glob(dirP+'*.txt')
+files = glob.glob(dirP+'*elapsedtime.txt')
 files = sorted(files, key = natural_key)
 data = []
 n_it = 10e10
@@ -45,7 +45,7 @@ time_array = ['dt12.57']
 names=[]
 for f in files:
     try:
-        ff = open(f, 'r')
+        ff = open(f.split('_elapsedtime.txt')[0]+'.txt', 'r')
         lines = ff.readlines()
         length = len(lines)
         if length < n_it:   #need to find array with shortest length
