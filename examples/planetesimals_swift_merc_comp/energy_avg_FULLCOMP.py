@@ -125,7 +125,7 @@ if swifter == 1:
     j=0
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='dodgerblue', alpha=alpha)
-    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkblue', label='SyMBA avg.')
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkblue', label='SyMBA Avg.')
 
 #Elapsed time
 times_S = get_times(files,'/elapsed_time.txt')
@@ -160,7 +160,7 @@ if mercury == 1:
 
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='salmon', alpha=alpha)
-    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY avg.')
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
 
 #Elapsed time
 times_M = get_times(files,'/elapsed_time.txt')
@@ -168,8 +168,8 @@ times_M = get_times(files,'/elapsed_time.txt')
 ##############################################
 #Final plotting stuff
 axes[0].legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=3)
-axes[0].set_ylabel('relative energy error', fontsize=13)
-axes[0].set_xlabel('time (years)', fontsize=13)
+axes[0].set_ylabel('Fractional Energy Error', fontsize=13)
+axes[0].set_xlabel('Time (Years)', fontsize=13)
 axes[0].set_yscale('log')
 axes[0].set_ylim([1e-12, 1e-3])
 axes[0].set_xscale('log')
@@ -179,7 +179,7 @@ ms=10
 axes[1].plot(times_H, np.ones(len(times_H)), 'o', markeredgecolor='none', ms=ms, color='lightgreen')
 axes[1].plot(times_S, np.ones(len(times_S))*2, 'o', markeredgecolor='none', ms=ms, color='dodgerblue')
 axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', ms=ms,color='salmon')
-axes[1].set_xlabel('elapsed simulation time (hours)',fontsize=13)
+axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=13)
 axes[1].set_yticks(range(1,4))
 axes[1].set_yticklabels(['HERMES','SyMBA','MERCURY'])
 axes[1].set_ylim([0.5,3.5])
