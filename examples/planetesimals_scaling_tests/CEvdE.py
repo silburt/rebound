@@ -8,7 +8,11 @@ import matplotlib.colors as colors
 import sys
 import os
 import re
+from scipy.optimize import curve_fit
 twopi = 6.283185307
+
+def natural_key(string_):
+    return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
 dirP = sys.argv[1]
 Navg = 3                       #number of points at end of .txt file to average energy over
@@ -23,6 +27,7 @@ HSR = 6
 dt = 0.015/twopi
 
 files = glob.glob(dirP+'*_elapsedtime.txt')
+files = sorted(files, key = natural_key)
 lenf = len(files)
 ET = np.zeros(lenf)
 dE = np.zeros(lenf)
@@ -56,7 +61,7 @@ for j,f in enumerate(files):
     except:
         print 'file: '+f+' will not be included in dataset'
 
-yname = 'Fractional Energy Error'
+yname = 'relative energy error'
 plt.plot(CE, dE, '.')
 
 #plt.plot(CE, 0.5e-9*np.sqrt(CE),'+-',label='$E^{HERMES}_{scheme,tot} \propto \sqrt{CE}$')
@@ -71,13 +76,21 @@ term2 = Me*Me*mp/(rhHSR**4)
 term3 = -M3/(2*rhHSR*((a*a - rhHSR**2)**1.5))    #minor term, neg^x returns invalue value
 termp = 3*M3/((a*rhHSR**3))
 theory = (term1 + term2 + term3)*tau2*np.mean(scaling_factor)
-plt.plot(CE, 15*theory*np.sqrt(CE),linewidth=3,label='$K * E^{HERMES}_{\mathrm{scheme}} * \sqrt{N_{CE}}$')
+
+#fit theory to data
+def line(x,m,b):
+    return m*x + b
+popt, pcov = curve_fit(line, np.log10(CE), np.log10(dE))
+m = 10**(popt[1])
+K = "%.1f"%(m/theory)
+plt.plot(CE,m*CE**popt[0], linewidth=3, label=K+'$\cdot E^{HERMES}_{\mathrm{scheme}} \cdot N_{CE}^{%.2f}$'%popt[0])
 plt.plot(CE, theory*CE,linewidth=3,markeredgecolor='none',label='$E^{HERMES}_{\mathrm{scheme}} * N_{CE}$')
 
+#plot
 plt.yscale('log')
 plt.xscale('log')
 plt.ylabel(yname, fontsize = 13)
-plt.xlabel('Number of Close Encounters', fontsize = 13)
+plt.xlabel('$N_{CE}$', fontsize = 13)
 plt.xlim([5,1e4])
 plt.legend(loc='upper left',prop={'size':13}, numpoints=1, markerscale=2)
 #plt.title('HSR='+str(HSR)+', dt='+str(round(dt*twopi,4))+', a$_p$='+str(a)+', N$_{pl}$=200')
