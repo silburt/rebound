@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
-    r->ri_hermes.radius_switch_factor = 20.;         //X*radius
+    r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 6;        //Hill radii

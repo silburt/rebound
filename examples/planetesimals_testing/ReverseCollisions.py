@@ -51,7 +51,7 @@ if do_reverse == 1:
     sim.testparticle_type = 1
     sim.dt = 0.0001
     sim.ri_hermes.switch_radius = 6
-    sim.ri_hermes.radius_switch_factor = 20
+    sim.ri_hermes.solar_switch_factor = 20
     sim.N_active = 2
     E0 = sim.calculate_energy()
     dE = np.zeros(0)

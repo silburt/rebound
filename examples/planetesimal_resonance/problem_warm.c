@@ -64,7 +64,7 @@ int main(int argc, char* argv[]){
     
     //Important parameters
     r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
+    r->ri_hermes.solar_switch_factor = 20.;
     r->dt = 0.005;
     double tmax = 1e6;
     
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
     FILE* out1 = fopen(info,"w");
     fprintf(out1, "Simulation Details (Warm start):\n");
     int coll_on = 0; if(r->collision_resolve == reb_collision_resolve_merge) coll_on =1;
-    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.radius_switch_factor,r->dt,tmax,coll_on);
+    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.solar_switch_factor,r->dt,tmax,coll_on);
     fprintf(out1, "\nPlanet(s):\n");
     for(int i=1;i<r->N_active;i++){
         struct reb_particle p = r->particles[i];

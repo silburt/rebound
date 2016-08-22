@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
+    r->ri_hermes.solar_switch_factor = 20.;
     r->testparticle_type = 1;
     r->dt = 0.01;
     

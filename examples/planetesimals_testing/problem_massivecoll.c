@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.hill_switch_factor = 5;  //units of Hill radii
-    r->ri_hermes.radius_switch_factor = 15.;   //X*radius
+    r->ri_hermes.solar_switch_factor = 15.;   //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     r->usleep = 1000;

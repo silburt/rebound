@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
     r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;
-    r->ri_hermes.radius_switch_factor = 20.;
+    r->ri_hermes.solar_switch_factor = 20.;
     r->testparticle_type = 1;
     //r->gravity_ignore_10 = 0; //Use if created binary with WHFAST but using non-WHFAST now.
     r->dt = 0.005;

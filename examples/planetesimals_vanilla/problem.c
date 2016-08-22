@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.hill_switch_factor = 6;         //Hill radii
     r->ri_hermes.adaptive_hill_switch_factor = 0;
-    r->ri_hermes.radius_switch_factor = 20.;     //X*radius
+    r->ri_hermes.solar_switch_factor = 20.;     //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
     double tmax = 1e5 * 6.283;
