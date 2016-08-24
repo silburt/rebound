@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     //Important parameters
     r->ri_hermes.hill_switch_factor = 3;
     r->ri_hermes.solar_switch_factor = 20.;
-    r->dt = 0.005;
+    r->dt = 0.01;
     double tmax = 1e6;
     
     // Collisions
@@ -211,7 +211,7 @@ void heartbeat(struct reb_simulation* r){
         }
         
         FILE* f = fopen(output_name, "a");
-        fprintf(f,"%e,%e,%d,%d,",r->t,relE,r->N,N_mini);
+        fprintf(f,"%e,%e,%d,%d,%e,",r->t,relE,r->N,N_mini,r->ri_hermes.current_hill_switch_factor);
         calc_resonant_angles(r,f);
         fclose(f);
     }
@@ -254,6 +254,7 @@ void heartbeat(struct reb_simulation* r){
 }
 
 void calc_resonant_angles(struct reb_simulation* r, FILE* f){
+    double m[3] = {0};
     double e[3] = {0}; //Hardcoding, probably should change in the future.
     double a[3] = {0};
     double omega[3] = {0};
@@ -275,6 +276,7 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
         const double ex = 1./mu*( (v*v-mu/d)*dx - d*vr*dvx );
         const double ey = 1./mu*( (v*v-mu/d)*dy - d*vr*dvy );
         const double ez = 1./mu*( (v*v-mu/d)*dz - d*vr*dvz );
+        m[i] = p.m;
         e[i] = sqrt( ex*ex + ey*ey + ez*ez );   // eccentricity
         a[i] = -mu/(v*v - 2.*mu/d);
         const double rdote = dx*ex + dy*ey + dz*ez;
@@ -304,7 +306,7 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     while(phi3 >= 2*M_PI) phi3 -= 2*M_PI;
     while(phi3 < 0.) phi3 += 2*M_PI;
     
-    fprintf(f,"%f,%f,%f,%f,%f,%f,%f\n",a[1],e[1],a[2],e[2],phi,phi2,phi3);
+    fprintf(f,"%e,%e,%f,%f,%f,%f,%f,%f,%f\n",m[1],m[2],a[1],e[1],a[2],e[2],phi,phi2,phi3);
     
 }
 
