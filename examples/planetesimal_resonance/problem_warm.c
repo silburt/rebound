@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
     int seed = atoi(argv[3]);
     
     //Migration parameters
-    mig_time = 4000;
+    mig_time = 5000;
     double mig_rate = 2e4;
     double K = 100.0;       //Lee & Peale (2002) K.
     double e_ini = 0.01;
@@ -88,22 +88,27 @@ int main(int argc, char* argv[]){
     star.hash = 0;
 	reb_add(r, star);
     
+    //mass/radius
+    double m_orig = 5e-4, r_orig = 0.000467;
+    double m_neptune = 5e-5, r_neptune = 0.000164;
+    double m_earth = 3e-6, r_earth = 0.000043;
+    
     // Planet 1
     {
-        double a=1, m=5e-4, inc=reb_random_normal(0.00001);
+        double a=1, m=m_neptune, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
-        p.r = 0.000467;
+        p.r = r_neptune;
         p.hash = r->N;
         reb_add(r, p);
     }
     
     //Planet 2
     {
-        double a=1.6, m=5e-4, inc=reb_random_normal(0.00001);
+        double a=1.6, m=m_neptune, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e_ini, inc, 0, 0, 0);
-        p.r = 0.000467;
+        p.r = r_neptune;
         p.hash = r->N;
         reb_add(r, p);
 
