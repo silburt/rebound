@@ -32,7 +32,7 @@ double output_time;
 int main(int argc, char* argv[]){
     char binary[200] = {0}; strcat(binary, argv[1]); strcat(binary,".bin");
     struct reb_simulation* r = reb_create_simulation_from_binary(binary);
-    strcat(output_name,argv[1]); strcat(output_name,"restart");
+    strcat(output_name,argv[1]); strcat(output_name,"_restart");
     
 	// Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
     N_prev = r->N;
-    output_time = 1e5;
+    output_time = r->t + 1e5;
     
     //naming
     char binary_out[300]={0}; strcat(binary_out,output_name); strcat(binary_out,"_t=");
