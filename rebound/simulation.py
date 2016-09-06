@@ -1012,7 +1012,7 @@ class Simulation(Structure):
         It expects correctly sized numpy arrays as arguments. The argument
         name indicates what kind of particle data is written to the array. 
         
-        Possible argument names are "hash", "m", "r", "xyz", "vxyyvyvz".
+        Possible argument names are "hash", "m", "r", "xyz", "vxvyvz".
         The datatype for the "hash" array needs to be uint32. The other arrays
         expect a datatype of float64. The lengths of "hash", "m", "r" arrays
         need to be at least sim.N. The lengths of xyz and vxvyvz need
@@ -1286,6 +1286,8 @@ class Variation(Structure):
             By default variational particles are created in the Heliocentric frame. 
             Set this parameter to use any other particles as a primary (e.g. the center of mass).
         """
+        if self.order==2 and variation2 is None:
+            variation2 = variation
         if self._sim is not None:
             sim = self._sim.contents
             particles = sim.particles
