@@ -1,14 +1,10 @@
 /**
- * Planetesimal Disk Migration
+ * Planets in resonance embedded in a Planetesimal Disk
  *
- * This example integrates a star, 2 planet, N planetesimal disk system, with the
- * outer planet at the inner edge of the planetesimal disk. If the system is
- * integrated for at least 10^5 years outward migration by the outer planet in
- * the planetesimal disk will be observed. By default, the semi-major axis of both
- * planets along with the fractional energy error are printed to energy.txt.
+ * In this example planets are placed in a planetesimal disk and migrated into resonance, hence 
+ * a "warm start", as opposed to a cold start in which the planets are first migrated into
+ * resonance and then the planetesimal disk is placed. 
  *
- * The ideal integrator choice for this problem is HERMES due to the large number
- * of close encounters.
  */
 
 #include <stdio.h>
@@ -50,8 +46,8 @@ int main(int argc, char* argv[]){
     int seed = atoi(argv[3]);
     
     //Migration parameters
-    mig_time = 5000;
-    double mig_rate = 2e4;
+    mig_time = 6000;
+    double mig_rate = 5e4;  //mini Jupiters = 2e4, Neptunes = 5e4
     double K = 100.0;       //Lee & Peale (2002) K.
     double e_ini = 0.01;
     
@@ -89,9 +85,9 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
     
     //mass/radius
-    double m_orig = 5e-4, r_orig = 0.000467;
+    //double m_orig = 5e-4, r_orig = 0.000467;
     double m_neptune = 5e-5, r_neptune = 0.000164;
-    double m_earth = 3e-6, r_earth = 0.000043;
+    //double m_earth = 3e-6, r_earth = 0.000043;
     
     // Planet 1
     {
