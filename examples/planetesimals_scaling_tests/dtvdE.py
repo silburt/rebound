@@ -37,14 +37,14 @@ def theory(a,Ms,mp,Me,dt,rh,HSR,choice,scale_factor):
         x = dt
     else:
         x = HSR
-    plt.plot(x, theory,label='R3B theory',linewidth=3)
+    plt.plot(x, theory,label='theory',linewidth=3)
 
 def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
 #plot dt vs.
 y_choice = int(sys.argv[1])      #0 = plot elapsed time, 1 = energy, 2=N_CE
-x_choice = 1                     #0 = dt, 1 = HSR, 2 = Np
+x_choice = 0                     #0 = dt, 1 = HSR, 2 = Np
 
 dirP = str('dtvdE_files/')
 Navg = 3                       #number of points at end of .txt file to average energy over
@@ -52,10 +52,10 @@ xvals = []
 
 if x_choice == 0:   #dt
     ext = 'dt'
-    xname = 'timestep (years)'
+    xname = '$dt$ (years)'
     yvals = ['Np0']
     path = '_th*_elapsedtime.txt'
-    labels = ['Simulation']
+    labels = ['simulation']
     marker = '.'
     title = 'dt: Integrating 2p, 2pl system for 1000 orbits'
     HSR = 6
@@ -67,7 +67,7 @@ if x_choice == 1:   #HSR
     #yvals = ['Np1000_sd*']
     yvals = ['Np0_th*']
     path = '_elapsedtime.txt'
-    labels = ['Simulation']
+    labels = ['simulation']
     marker = '.'
     title = 'HSR: Integrating 2p, 2pl system for 1M orbits'
     dt = np.array(1e-3)/twopi  #must be in yr/2pi format
@@ -157,7 +157,7 @@ if y_choice == 0:
     name = 'elapsed time (seconds)'
     oname = 'ET'
 elif y_choice == 1:
-    name = 'Fractional Energy Error'
+    name = 'relative energy error'
     oname = 'dE'
 elif y_choice == 2:
     name = '# Close Encouters'

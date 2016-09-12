@@ -29,7 +29,6 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     pool = mp.Pool(processes=length)
-    args=[runs[i] for i in xrange(0,length)]
-    pool.map(execute, args)
+    pool.map(execute, runs)
     pool.close()
     pool.join()

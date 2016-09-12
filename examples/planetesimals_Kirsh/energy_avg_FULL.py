@@ -21,7 +21,7 @@ def get_cmap(N):
         return scalar_map.to_rgba(index)
     return map_index_to_rgb_color
 
-plot_choice = 1     #1 = plot energy, 2 = plot semi-major axis
+plot_choice = 2     #1 = plot energy, 2 = plot semi-major axis
 time_sort = 0        #sort runs according to time?
 
 ms = 0.4

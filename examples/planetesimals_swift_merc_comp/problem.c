@@ -211,7 +211,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e,%e,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E,E0);
+        fprintf(append, "%f,%e,%d,%d,%.1f,%d,%e,%e,%e,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E,E0,r->energy_offset);
         fclose(append);
     }
     
