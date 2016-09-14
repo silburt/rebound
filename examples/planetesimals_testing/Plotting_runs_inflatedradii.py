@@ -11,7 +11,7 @@ import numpy as np
 n_runs = 2
 N_planetesimals = 1000
 tmax = 1e6
-radius = np.logspace(0,0.5,n_runs)
+radius = np.logspace(0,1.8,n_runs)
 radius = np.insert(radius,1,[1,1])
 n_runs += 2
 runs = []

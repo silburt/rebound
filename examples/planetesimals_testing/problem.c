@@ -39,14 +39,12 @@ struct reb_particle comr0;
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    r->usleep = 1000;
+    r->usleep = 2000;
     
     double tmax = INFINITY;
     //int N_planetesimals = 1000;
     int N_planetesimals = 0;
-    double planet_radius_fac = atof(argv[1]);
-    int seed = atoi(argv[2]);
-    strcat(output_name,argv[3]); strcat(output_name,".txt"); argv4=argv[3];
+    strcat(output_name,argv[1]); strcat(output_name,".txt"); argv4=argv[1];
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -54,6 +52,7 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 6;        //Hill radii
+    r->ri_hermes.adaptive_hill_switch_factor = 0;
     r->dt = 0.001;
     
     r->collision = REB_COLLISION_DIRECT;
@@ -72,7 +71,7 @@ int main(int argc, char* argv[]){
     star.r		= 0.005;        // Radius of particle is in AU!
 	reb_add(r, star);
    
-    srand(seed);
+    srand(10);
     t_log_output = 1.00048;
     t_output = r->dt;
     
@@ -85,7 +84,7 @@ int main(int argc, char* argv[]){
         }else{a=0.5,m=5e-5,e=0;}
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, 0);
-        p.r = planet_radius_fac*1.6e-4;              //radius of particle is in AU!
+        p.r = 2*1.6e-4;              //radius of particle is in AU!
         p.hash = r->N;
         reb_add(r, p);
     }
@@ -123,7 +122,7 @@ int main(int argc, char* argv[]){
     E0 = reb_tools_energy(r);
     double junk=0, junk2=0;
     c_momentum(r, &LA0, &LL0, junk, junk2);
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv[3]); strcat(syss,"*");
+    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,argv4); strcat(syss,"*");
     system(syss);
     
     t_ini = time(NULL);
@@ -225,6 +224,64 @@ void heartbeat(struct reb_simulation* r){
         }
     }
 }
+
+void nearmiss_hit_tests(struct reb_simulation* r){
+    struct reb_particle star = r->particles[0];
+    
+    int hit = 1;
+    double mass = 1e-7;
+    {//planetesimal 1
+        double f;
+        if(hit)f = -0.94; else f = -0.91; //nearmiss/short encounter
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.4, 0, 0, 0, f);
+        pt.r = 4e-5;
+        pt.hash = r->N;
+        reb_add(r, pt);
+    }
+    {//planetesimal 2
+        double f;
+        if(hit)f = 2.6705; else f = 2.67; //nearmiss
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.2, 0.4, 0, 0, 0, f);
+        pt.r = 4e-5;
+        pt.hash = r->N;
+        reb_add(r, pt);
+    }
+    
+
+    {//planetesimal 3
+        double f;
+        if(hit)f = 1.83; else f = 1.835; //nearmiss
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.3, 0, 0, M_PI, f);
+        pt.r = 4e-5;
+        pt.hash = r->N;
+        reb_add(r, pt);
+    }
+    
+    /*
+    {//planetesimal 4
+        double f;
+        if(hit)f= 1.92; else f=1.951;
+        struct reb_particle pt = {0};
+        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.8, 0, 0, M_PI, f);
+        pt.r = 4e-5;
+        pt.hash = r->N;
+        reb_add(r, pt);
+    }*/
+    
+    /*
+     {//planetesimal glide beside
+     double a=0.4895, e=0.1, f=-0.27;  //long encounter
+     struct reb_particle pt = {0};
+     pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, a, e, 0, 0, 0, f);
+     pt.r = 4e-5;
+     pt.hash = r->N;
+     reb_add(r, pt);
+     }*/
+}
+
 
 //works only for one planet!
 double c_angle(struct reb_simulation* r, double r_ps, int id, int incoming){
@@ -370,57 +427,3 @@ void c_momentum(struct reb_simulation* r, double* dL_ang, double* dL_lin, double
     }
 }
 
-void nearmiss_hit_tests(struct reb_simulation* r){
-    struct reb_particle star = r->particles[0];
-    
-    int hit = 1;
-    double mass = 1e-9;
-    {//planetesimal 1
-        double f;
-        if(hit)f = -0.94; else f = -0.91; //nearmiss/short encounter
-        struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.1, 0.4, 0, 0, 0, f);
-        pt.r = 4e-5;
-        pt.hash = r->N;
-        reb_add(r, pt);
-    }
-    {//planetesimal 2
-        double f;
-        if(hit)f = 2.6748; else f = 2.67; //nearmiss
-        struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.2, 0.4, 0, 0, 0, f);
-        pt.r = 4e-5;
-        pt.hash = r->N;
-        reb_add(r, pt);
-    }
-    
-    {//planetesimal 3
-        double f;
-        if(hit)f = 1.828; else f = 1.83; //nearmiss
-        struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.3, 0, 0, M_PI, f);
-        pt.r = 4e-5;
-        pt.hash = r->N;
-        reb_add(r, pt);
-    }
-    
-    {//planetesimal 4
-        double f;
-        if(hit)f= 1.9522; else f=1.951;
-        struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, mass, r->particles[1].x+0.3, 0.8, 0, 0, M_PI, f);
-        pt.r = 4e-5;
-        pt.hash = r->N;
-        reb_add(r, pt);
-    }
-    
-    /*
-     {//planetesimal glide beside
-     double a=0.4895, e=0.1, f=-0.27;  //long encounter
-     struct reb_particle pt = {0};
-     pt = reb_tools_orbit_to_particle(r->G, star, 1e-9, a, e, 0, 0, 0, f);
-     pt.r = 4e-5;
-     pt.hash = r->N;
-     reb_add(r, pt);
-     }*/
-}

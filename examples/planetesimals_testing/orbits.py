@@ -96,7 +96,7 @@ if diagnostics == 1:
     axes[1].plot(time,data[:,3], 'o', ms=ms, markeredgecolor='none', label='mini: Np')
     axes[1].legend(loc='upper left',prop={'size':10})
 #axes[1].set_yscale('log')
-    axes[1].set_ylim([0.1,max(data[:,2])])
+    axes[1].set_ylim([0.1,max(data[:,2])+1])
     axes[1].set_ylabel('Number of particles')
 #momentum
     axes[2].plot(time,com, 'o', ms=ms, markeredgecolor='none',label='')
