@@ -188,8 +188,8 @@ int main(int argc, char* argv[]){
     tau_e[iJ+1] = mig_rate/K;
     tau_m[iJ+1] = pow(growthfac, (r->dt/tau_a[iJ]));
     tau_e[iJ+2] = mig_rate/K;                           //Uranus - eccentricity damping only
-    tau_a[iJ+3] = -10*mig_rate;                         //Neptune
-    tau_e[iJ+3] = 10*mig_rate/K;
+    tau_a[iJ+3] = -5*mig_rate;                         //Neptune
+    tau_e[iJ+3] = 5*mig_rate/K;
     
     //extra arrays
     a = calloc(sizeof(double),r->N);
