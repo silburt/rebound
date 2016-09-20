@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[3]);
     
     //other parameters
-    double growthfac = 1; if(growthfac < 1) growthfac = 1;
+    double growthfac = 1; if(growthfac < 1)growthfac = 1;
     iJ = 4;     //index of Jupiter, this is important!
     
     r->integrator	= REB_INTEGRATOR_HERMES;
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]){
     tau_e[iJ+2] = mig_rate/K;                           //Uranus - eccentricity damping only
     tau_a[iJ+3] = -5*mig_rate;                         //Neptune
     tau_e[iJ+3] = 5*mig_rate/K;
-    
+ 
     //extra arrays
     a = calloc(sizeof(double),r->N);
     e = calloc(sizeof(double),r->N);
