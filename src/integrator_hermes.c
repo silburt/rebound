@@ -58,8 +58,8 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         mini->gravity = REB_GRAVITY_BASIC;
         mini->dt = r->dt;
         mini->additional_forces = reb_integrator_hermes_additional_forces_mini;
-        mini->ri_hermes.global = r;    //set to != 0 so that collision.c knows to remove from both
     }
+    mini->ri_hermes.global = r;    //set to != 0 so that collision.c knows to remove from both
     mini->testparticle_type = r->testparticle_type;
     mini->collision = r->collision;
     mini->collision_resolve = r->collision_resolve;
@@ -95,7 +95,7 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
         reb_add(r->ri_hermes.mini, r->particles[i]);
         r->ri_hermes.is_in_mini[i] = 1;
         if (r->ri_hermes.global_index_from_mini_index_N>=r->ri_hermes.global_index_from_mini_index_Nmax){
-            r->ri_hermes.global_index_from_mini_index_Nmax += 32;
+            while(r->ri_hermes.global_index_from_mini_index_N>=r->ri_hermes.global_index_from_mini_index_Nmax) r->ri_hermes.global_index_from_mini_index_Nmax += 32;
             r->ri_hermes.global_index_from_mini_index = realloc(r->ri_hermes.global_index_from_mini_index,r->ri_hermes.global_index_from_mini_index_Nmax*sizeof(int));
         }
         r->ri_hermes.global_index_from_mini_index[r->ri_hermes.global_index_from_mini_index_N] = i;
