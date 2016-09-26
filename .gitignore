@@ -41,9 +41,9 @@ examples/planetesimals_scaling_tests/saved_output/*
 examples/planetesimals_Kirsh/energy_avg/*
 examples/planetesimals_Kirsh/output/*
 examples/planetesimals_Kirsh/saved_output/*
-examples/planetesimals_massiveSS/output/*
-examples/planetesimals_massiveSS/energy_avg/*
-examples/planetesimals_massiveSS/saved_output/*
+examples/planetesimals_old/planetesimals_massiveSS/output/*
+examples/planetesimals_old/planetesimals_massiveSS/energy_avg/*
+examples/planetesimals_old/planetesimals_massiveSS/saved_output/*
 examples/planetesimals_swift_merc_comp/output/*
 examples/planetesimals_swift_merc_comp/saved_output/*
 examples/planetesimals_swift_merc_comp/energy_avg/*
@@ -58,7 +58,7 @@ examples/planetesimals_migration_test/output/*
 examples/planetesimals_migration_test/saved_output/*
 examples/planetesimals_resonance/output/*
 examples/planetesimals_resonance/saved_output/*
-examples/planetesimal_Chelsea_Cristobel/saved_output/*
-examples/planetesimal_Chelsea_Cristobel/output/*
+examples/planetesimals_old/planetesimal_Chelsea_Cristobel/saved_output/*
+examples/planetesimals_old/planetesimal_Chelsea_Cristobel/output/*
 examples/planetesimal_postdoc/output/*
 examples/planetesimal_postdoc/saved_output/*
