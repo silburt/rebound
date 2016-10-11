@@ -62,3 +62,5 @@ examples/planetesimals_old/planetesimal_Chelsea_Cristobel/saved_output/*
 examples/planetesimals_old/planetesimal_Chelsea_Cristobel/output/*
 examples/planetesimal_postdoc/output/*
 examples/planetesimal_postdoc/saved_output/*
+examples/ari_instability_time/saved_output/*
+examples/ari_instability_time/output/*
