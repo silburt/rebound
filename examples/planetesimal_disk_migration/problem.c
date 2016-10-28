@@ -33,6 +33,7 @@ int main(int argc, char* argv[]){
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->heartbeat	= heartbeat;
     r->testparticle_type = 1;
+    r->usleep = 2000;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]){
 	star.m 		= 1;
     star.r		= 0.005;        // Radius of particle is in AU!
 	reb_add(r, star);
-    
+
     // Planet 1 - inner massive planet to scatter planetesimals out
     {
         double a=a_scat_planet, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]){
         p.r = 0.000467;
         reb_add(r, p);
     }
-    
+
     // Planet 2 - outer smaller planet to migrate in the disk
     {
         double a=a_mig_planet, m=2.3*m_earth, e=0, inc=reb_random_normal(0.00001);
