@@ -66,9 +66,9 @@ int main(int argc, char* argv[]){
     strcat(output_name,argv[4]);        //name
     
     //Migration parameters
-    mig_time = 15000;
+    mig_time = 35000;
     dispersal_time = 2000;              //gas is dispersing, mig_rate -> infinity.
-    mig_rate = 1e5*2*M_PI;              //AU/(yr/2pi)
+    mig_rate = 5e5*2*M_PI;              //AU/(yr/2pi)
     double K = 100.0;                   //Lee & Peale (2002) K.
     double da = 0.00;                   //fractional offset of outer planet from current position
     
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]){
     //d
     {
         double a_real = 0.509, e_real = 0.008;
-        double a=a_real+da*a_real, m=7.6*m_earth, e=0, inc=reb_random_normal(0.00001);
+        double a=pow(pow(calc_a(r,inner),1.5)*1.51,2./3.), m=7.6*m_earth, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
         p.r = 9.7*r_earth;
