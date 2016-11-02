@@ -29,14 +29,17 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f);
 double calc_a(struct reb_simulation* r, int index);
 void eia_snapshot(struct reb_simulation* r, char* time);
 
+//General
 double E0;
 char output_name[200] = {0};
 time_t t_ini;
+int N_prev;     //keep track of ejected particles
+
+//migration
 double* tau_a; 	/**< Migration timescale in years for all particles */
 double* tau_e; 	/**< Eccentricity damping timescale in years for all particles */
-double mig_time;
+double mig_time, dispersal_time, mig_rate;
 int rescale_energy;
-int N_prev;     //keep track of ejected particles
 
 //eia snapshot
 char eia_out[100] = {0};
@@ -52,33 +55,33 @@ double* mass; double* semi; double* ecc; double* omega; double* lambda;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
+    double m_earth = 0.000003003;       //convert Earth mass to Solar mass.
+    double r_earth = 4.2587e-5;         //convert Earth radii to AU.
     
 //**********************Parameter List**********************
-    int warm_start = 1;                 //if 0, cold start, if 1, warm start
+    int warm_start = 0;                 //if 0, cold start, if 1, warm start
     int N_planetesimals = atoi(argv[1]);
     int seed = atoi(argv[2]);
     strcat(output_name,argv[3]);        //name
     
     //Migration parameters
-    mig_time = 15000;
-    double mig_rate = 4e4;              //mini Jupiters = 2e4, Neptunes = 5e4
-    double K = 10.0;                    //Lee & Peale (2002) K.
-    rescale_energy = 0;                 //after migration is done, rescale energy
+    mig_time = 14000;
+    dispersal_time = 2000;              //gas is dispersing, mig_rate -> infinity.
+    mig_rate = 2e5*M_PI;                //mini Jupiters = 2e4, Neptunes = 5e4
+    double K = 100.0;                   //Lee & Peale (2002) K.
+    double da = 0.00;                   //fractional offset of outer planet from current position
     
     //Planetesimal disk parameters
-    double m_earth = 0.000003003;       //convert Earth mass to Solar mass.
-    double r_earth = 4.2587e-5;         //convert Earth radii to AU.
-    double total_disk_mass = m_earth*50;
-    double a_extend = 0.2;              //extension of planetesimal disk beyond planet orbits (AU)
-    double powerlaw = 1;
+    double total_disk_mass = m_earth;
+    double alpha = 0;                   //reb_powerlaw uses x^alpha-http://mathworld.wolfram.com/RandomNumber.html
     double N_eia_binary_outputs = 7;    //number of eia_snapshot and binary output intervals
+//**********************************************************
     
     //resonance parameters - shouldn't have to change
     inner = 2;                          //inner planet in resonance (0=star)
     outer = 3;                          //outer planet in resonance
-    order = 1;                          //Order of the resonance
-    jay = 3;                            //j value (i.e. j*lambda_1 - (j-1)*lambda_2 - omega_1)
-//**********************************************************
+    order = 1;                          //order of the resonance
+    jay = 3;                            //j value of resonance (i.e. j*lambda_1 - (j-1)*lambda_2 - omega_1)
     
 	// Standard Simulation Setup
     r->integrator	= REB_INTEGRATOR_HERMES;
@@ -91,7 +94,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.hill_switch_factor = 3;
     r->ri_hermes.solar_switch_factor = 20.;
     r->dt = 0.01;
-    double tmax = 1e6;
+    double tmax = 1e5*2*M_PI;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -107,21 +110,21 @@ int main(int argc, char* argv[]){
     //output stuff
     output_inc = tmax/N_eia_binary_outputs;
     output_time = output_inc;
+//**********************************************************
     
     srand(seed);
     
 	// Star
 	struct reb_particle star = {0};
-	star.m 		= 1;
+	star.m 		= 1.04;
     star.r		= 0.005;            // Radius of particle is in AU!
     star.hash = 0;
 	reb_add(r, star);
     
-    double da = 0.1;                //fractional offset from current position
     //b
     {
-        double a_real = 0.2514;
-        double a=a_real+da*a_real, m=2.1*m_earth, e=0.04, inc=reb_random_normal(0.00001);
+        double a_real = 0.2514, e_real=0.04; //<-true e, but start with 0!
+        double a=a_real, m=2.1*m_earth, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
         p.r = 7.1*r_earth;
@@ -131,8 +134,8 @@ int main(int argc, char* argv[]){
     
     //c
     {
-        double a_real = 0.384;
-        double a=a_real+da*a_real, m=4.0*m_earth, e=0.014, inc=reb_random_normal(0.00001);
+        double a_real = 0.384, e_real = 0.014; //<-true e, but start with 0!
+        double a=a_real, m=4.0*m_earth, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
         p.r = 9.0*r_earth;
@@ -142,8 +145,8 @@ int main(int argc, char* argv[]){
     
     //d
     {
-        double a_real = 0.509;
-        double a=a_real+da*a_real, m=7.6*m_earth, e=0.008, inc=reb_random_normal(0.00001);
+        double a_real = 0.509, e_real = 0.008;
+        double a=a_real+da*a_real, m=7.6*m_earth, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
         p.r = 9.7*r_earth;
@@ -152,16 +155,10 @@ int main(int argc, char* argv[]){
     }
     
     r->N_active = r->N;
-    double amin=calc_a(r,1)-a_extend, amax=calc_a(r,2)+a_extend;    //planetesimal disk min/max
+    //following Chatterjee, inner/outer edges are 0.01AU inside 3:1 period ratio for inner/outer planet
+    double amin=pow(pow(calc_a(r,inner),1.5)/3.,2./3.) + 0.01;
+    double amax=pow(pow(calc_a(r,outer)-da*calc_a(r,outer),1.5)*3.,2./3.) - 0.01; //account for da offset
     double planetesimal_mass = total_disk_mass/N_planetesimals;
-    
-    //migration arrays
-    tau_a = calloc(sizeof(double),r->N_active);
-    tau_e = calloc(sizeof(double),r->N_active);
-    //tau_a[inner] = 2.*M_PI*mig_rate;
-    //tau_e[inner] = tau_a[inner]/K;
-    tau_a[outer] = 3*M_PI*mig_rate;
-    tau_e[outer] = tau_a[outer]/K;
     
     //resonance arrays
     mass = calloc(sizeof(double),r->N_active);
@@ -190,16 +187,64 @@ int main(int argc, char* argv[]){
         struct reb_particle p = r->particles[i];
         fprintf(out1,"Planet %d: m=%e, r=%e, a=%e\n",i,p.m,p.r,calc_a(r,i));
     }
-    fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,powerlaw);
+    fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,alpha);
     fprintf(out1, "\nMigration parameters:\nMigration Time=%f, Migration Rate=%f, K=%f",mig_time, mig_rate, K);
     fclose(out1);
     
     //run Simulations
-    if(warm_start){
+    if(warm_start){//*****************************WARM START*****************************
         // Generate Planetesimal Disk
         while(r->N<(N_planetesimals + r->N_active)){
             struct reb_particle pt = {0};
-            double a    = reb_random_powerlaw(amin,amax,powerlaw);
+            double a    = reb_random_powerlaw(amin,amax,alpha);
+            double e    = reb_random_rayleigh(0.005);
+            double inc  = reb_random_rayleigh(0.005);
+            double Omega = reb_random_uniform(0,2.*M_PI);
+            double apsis = reb_random_uniform(0,2.*M_PI);
+            double phi 	= reb_random_uniform(0,2.*M_PI);
+            pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
+            pt.r 		= 0.00000934532;
+            pt.hash = r->N;
+            reb_add(r, pt);
+        }
+        
+        //damping (migration) arrays
+        tau_a = calloc(sizeof(double),r->N);
+        tau_e = calloc(sizeof(double),r->N);
+        //tau_a[inner] = mig_rate;
+        //tau_e[inner] = tau_a[inner]/K;
+        tau_a[outer] = mig_rate;
+        tau_e[outer] = tau_a[outer]/K;
+        for(int i=r->N_active;i<r->N;i++){tau_a[i] = 2*tau_a[outer]; tau_e[i] = 2*tau_e[i]/K;}   //planetesimal damping
+        
+        N_prev = r->N;
+        reb_move_to_com(r);
+        E0 = reb_tools_energy(r);
+        
+        //initial snapshot
+        {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t); eia_snapshot(r, out_time);}
+        
+        // Integrate!
+        reb_integrate(r, tmax);
+    } else {//*****************************COLD START*****************************
+        reb_move_to_com(r);
+        E0 = reb_tools_energy(r);
+        
+        tau_a = calloc(sizeof(double),r->N);
+        tau_e = calloc(sizeof(double),r->N);
+        tau_a[outer] = mig_rate;
+        tau_e[outer] = tau_a[outer]/K;
+        
+        reb_integrate(r, mig_time+dispersal_time);
+        strcat(binary_out,".bin");
+        reb_output_binary(r, binary_out);
+        r->integrator	= REB_INTEGRATOR_HERMES;
+        r->heartbeat	= heartbeat;
+        
+        // Generate Planetesimal Disk
+        while(r->N<(N_planetesimals + r->N_active)){
+            struct reb_particle pt = {0};
+            double a    = reb_random_powerlaw(amin,amax,alpha);
             double e    = reb_random_rayleigh(0.005);
             double inc  = reb_random_rayleigh(0.005);
             double Omega = reb_random_uniform(0,2.*M_PI);
@@ -214,52 +259,15 @@ int main(int argc, char* argv[]){
         N_prev = r->N;
         reb_move_to_com(r);
         E0 = reb_tools_energy(r);
+        rescale_energy = 1;
         
         //initial snapshot
         {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t); eia_snapshot(r, out_time);}
         
         // Integrate!
         reb_integrate(r, tmax);
-    } else {
-        reb_move_to_com(r);
-        E0 = reb_tools_energy(r);
-        
-        reb_integrate(r, mig_time);
-        strcat(binary_out,".bin");
-        reb_output_binary(r, binary_out);
-        //struct reb_simulation* s = reb_create_simulation_from_binary(binary_out);
-        struct reb_simulation* s = r;
-        s->integrator	= REB_INTEGRATOR_HERMES;
-        s->heartbeat	= heartbeat;
-        
-        // Generate Planetesimal Disk
-        while(s->N<(N_planetesimals + s->N_active)){
-            struct reb_particle pt = {0};
-            double a    = reb_random_powerlaw(amin,amax,powerlaw);
-            double e    = reb_random_rayleigh(0.005);
-            double inc  = reb_random_rayleigh(0.005);
-            double Omega = reb_random_uniform(0,2.*M_PI);
-            double apsis = reb_random_uniform(0,2.*M_PI);
-            double phi 	= reb_random_uniform(0,2.*M_PI);
-            pt = reb_tools_orbit_to_particle(s->G, star, s->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
-            pt.r 		= 0.00000934532;
-            pt.hash = s->N;
-            reb_add(s, pt);
-        }
-        
-        N_prev = s->N;
-        reb_move_to_com(s);
-        E0 = reb_tools_energy(s);
-        rescale_energy = 1;
-        
-        //initial snapshot
-        {char out_time[10] = {0}; sprintf(out_time,"%.0f",s->t); eia_snapshot(s, out_time);}
-        
-        // Integrate!
-        reb_integrate(s, tmax);
-    }
+    }//*****************************POST INTEGRATION*****************************
     
-    //post integration
     {
         char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
         eia_snapshot(r, out_time);
@@ -375,8 +383,8 @@ void calc_resonant_angles(struct reb_simulation* r, FILE* f){
     while(phi3 >= 2*M_PI) phi3 -= 2*M_PI;
     while(phi3 < 0.) phi3 += 2*M_PI;
     
-    fprintf(f,"%e,%e,%f,%f,%f,%f,%f,%f,%f\n",mass[inner],semi[inner],ecc[inner],mass[outer],semi[outer],ecc[outer],phi,phi2,phi3);
-    
+    for(int i=1;i<r->N_active;i++) fprintf(f,"%e,%f,%f,",mass[i],semi[i],ecc[i]);
+    fprintf(f,"%f,%f,%f\n",phi,phi2,phi3);
 }
 
 double calc_a(struct reb_simulation* r, int index){
@@ -400,11 +408,16 @@ double calc_a(struct reb_simulation* r, int index){
 }
 
 void migration_forces(struct reb_simulation* r){
-    if(r->t < mig_time){
+    if(r->t < (mig_time + dispersal_time)){
+        if(r->t > mig_time){
+            double fac = pow(1e7/mig_rate + 1, 1./(dispersal_time/r->dt - 1));
+            tau_a[outer] *= fac;
+            tau_e[outer] *= fac;
+        }
         const double G = r->G;
         struct reb_particle* const particles = r->particles;
         struct reb_particle com = reb_get_com(r);
-        for(int i=1;i<r->N_active;i++){
+        for(int i=1;i<r->N;i++){
             if (tau_e[i]!=0||tau_a[i]!=0){
                 struct reb_particle* p = &(particles[i]);
                 const double dvx = p->vx-com.vx;
@@ -434,7 +447,7 @@ void migration_forces(struct reb_simulation* r){
                     const double ey = 1./mu*( (v*v-mu/r)*dy - r*vr*dvy );
                     const double ez = 1./mu*( (v*v-mu/r)*dz - r*vr*dvz );
                     const double e = sqrt( ex*ex + ey*ey + ez*ez );		// eccentricity
-                    const double a = -mu/( v*v - 2.*mu/r );			// semi major axis
+                    const double a = -mu/( v*v - 2.*mu/r );             // semi major axis
                     const double prefac1 = 1./(1.-e*e) /tau_e[i]/1.5;
                     const double prefac2 = 1./(r*h) * sqrt(mu/a/(1.-e*e))  /tau_e[i]/1.5;
                     p->ax += -dvx*prefac1 + (hy*dz-hz*dy)*prefac2;
@@ -444,6 +457,7 @@ void migration_forces(struct reb_simulation* r){
             }
             com = reb_get_com_of_pair(com,particles[i]);
         }
+        reb_move_to_com(r);
     }
 }
 

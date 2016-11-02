@@ -11,8 +11,7 @@ colors=['b','g','m','r','c','y']
 file_name=str(sys.argv[1])
 
 fos = open(''+file_name, 'r')
-time, dE, N, N_mini, HSF, m1, a1, e1, m2, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
-#time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+time, dE, N, N_mini, HSF, m1, a1, e1, m2, a2, e2, m3, a3, e3, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 
 ms=3
 fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10), sharex=True)
@@ -22,9 +21,10 @@ plt.subplots_adjust(hspace = 0.35)
 axes[0].plot(time, dE,'o',ms=ms, markeredgecolor='none')
 axes[1].plot(time, N, 'o', ms=ms, markeredgecolor='none')
 #axes[1].plot(time, N_mini, 'o', ms=ms, markeredgecolor='none')
-axes[2].plot(time, (a2/a1)**(1.5), 'o', ms=ms, markeredgecolor='none')
+axes[2].plot(time, (a3/a2)**(1.5), 'o', ms=ms, markeredgecolor='none')
 axes[3].plot(time, e1, 'o', ms=ms, markeredgecolor='none', label='planet 1')
 axes[3].plot(time, e2, 'o', ms=ms, markeredgecolor='none', label='planet 2')
+axes[3].plot(time, e3, 'o', ms=ms, markeredgecolor='none', label='planet 3')
 
 #labelling
 axes[0].set_ylabel('Fractional Energy', fontsize=13)

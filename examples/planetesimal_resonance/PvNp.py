@@ -1,5 +1,5 @@
-#This macro calculates the average energy for a set of HERMES runs.
-#This plot is going in the paper
+#This macro shows the evolution of the period ratio as a function of the number of planetesimals
+#Key plot for the eventual paper.
 
 import glob
 import matplotlib.pyplot as plt
@@ -38,7 +38,8 @@ files = sorted(files, key = natural_key)
 fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10,10), sharex=True)
 
 for f in files[5:]:
-    time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(f, delimiter=',', unpack=True)
+    time, dE, N, N_mini, HSF, m1, m2, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(f, delimiter=',', unpack=True)
+    #time, dE, N, N_mini, a1, e1, a2, e2, phi1, phi2, phi3 = np.loadtxt(f, delimiter=',', unpack=True)
     axes[0].plot(time,np.sqrt((a2**3)/(a1**3)), label='N='+str(N[0]))
     axes[1].plot(time,N_mini/N[0],'.')
 axes[0].set_ylabel('P2/P1')
