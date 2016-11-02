@@ -48,6 +48,7 @@ double output_inc;
 
 //binary save
 char binary_out[100] = {0};
+int orbital_output_freq;
 
 //resonance stuff
 int inner, outer, order, jay;
@@ -59,20 +60,20 @@ int main(int argc, char* argv[]){
     double r_earth = 4.2587e-5;         //convert Earth radii to AU.
     
 //**********************Parameter List**********************
-    int warm_start = 0;                 //if 0, cold start, if 1, warm start
-    int N_planetesimals = atoi(argv[1]);
-    int seed = atoi(argv[2]);
-    strcat(output_name,argv[3]);        //name
+    int warm_start = atoi(argv[1]);;     //if 0, cold start, if 1, warm start
+    int N_planetesimals = atoi(argv[2]);
+    int seed = atoi(argv[3]);
+    strcat(output_name,argv[4]);        //name
     
     //Migration parameters
-    mig_time = 14000;
+    mig_time = 15000;
     dispersal_time = 2000;              //gas is dispersing, mig_rate -> infinity.
-    mig_rate = 2e5*M_PI;                //mini Jupiters = 2e4, Neptunes = 5e4
+    mig_rate = 1e5*2*M_PI;              //AU/(yr/2pi)
     double K = 100.0;                   //Lee & Peale (2002) K.
     double da = 0.00;                   //fractional offset of outer planet from current position
     
     //Planetesimal disk parameters
-    double total_disk_mass = m_earth;
+    double total_disk_mass=2.7*m_earth; //2.7m_earth = 20% mass of planets
     double alpha = 0;                   //reb_powerlaw uses x^alpha-http://mathworld.wolfram.com/RandomNumber.html
     double N_eia_binary_outputs = 7;    //number of eia_snapshot and binary output intervals
 //**********************************************************
@@ -94,7 +95,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.hill_switch_factor = 3;
     r->ri_hermes.solar_switch_factor = 20.;
     r->dt = 0.01;
-    double tmax = 1e5*2*M_PI;
+    double tmax = 1e5*2*M_PI + mig_time + dispersal_time;
     
     // Collisions
     r->collision = REB_COLLISION_DIRECT;
@@ -110,6 +111,7 @@ int main(int argc, char* argv[]){
     //output stuff
     output_inc = tmax/N_eia_binary_outputs;
     output_time = output_inc;
+    orbital_output_freq = 25;
 //**********************************************************
     
     srand(seed);
@@ -188,7 +190,7 @@ int main(int argc, char* argv[]){
         fprintf(out1,"Planet %d: m=%e, r=%e, a=%e\n",i,p.m,p.r,calc_a(r,i));
     }
     fprintf(out1, "\nPlanetesimal Disk:\nNumber of planetesimals=%d\ntotal mass of planetesimal disk=%e\nmass of each planetesimal=%e\nsemi-major axis limits of planetesimal disk: a_min=%f, amax_pl=%f\npowerlaw of planetesimal disk=%.2f\n",N_planetesimals,total_disk_mass,planetesimal_mass,amin,amax,alpha);
-    fprintf(out1, "\nMigration parameters:\nMigration Time=%f, Migration Rate=%f, K=%f",mig_time, mig_rate, K);
+    fprintf(out1, "\nMigration parameters:\nMigration Time=%f, Migration Rate=%f, K=%f, Dispersal_time=%f",mig_time, mig_rate, K, dispersal_time);
     fclose(out1);
     
     //run Simulations
@@ -284,7 +286,7 @@ double tout = 0;
 void heartbeat(struct reb_simulation* r){
     //output values to file
     if (tout <r->t){
-        tout += 25;
+        tout += orbital_output_freq;
         double E = reb_tools_energy(r);
         double relE = fabs((E-E0)/E0);
         int N_mini = 0;
@@ -332,6 +334,7 @@ void heartbeat(struct reb_simulation* r){
         eia_snapshot(r,out_time);
         char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
+        //orbital_output_freq = 100;  //make txt outputs much longer now.
     }
 }
 
