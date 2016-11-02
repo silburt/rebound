@@ -326,7 +326,7 @@ void heartbeat(struct reb_simulation* r){
     }
     
     //rescale energy, also output post-migration eia snapshot
-    if(rescale_energy == 0 && r->t >= mig_time){
+    if(rescale_energy == 0 && r->t >= (mig_time + dispersal_time)){
         printf("\n **Migration is done, rescaling energy, outputting eia snapshot and binary**\n");
         rescale_energy = 1;
         E0 = reb_tools_energy(r);
