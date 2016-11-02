@@ -64,3 +64,5 @@ examples/planetesimal_postdoc/output/*
 examples/planetesimal_postdoc/saved_output/*
 examples/ari_instability_time/saved_output/*
 examples/ari_instability_time/output/*
+examples/planetesimal_Kepler51/output/*
+examples/planetesimal_Kepler51/saved_output/*
