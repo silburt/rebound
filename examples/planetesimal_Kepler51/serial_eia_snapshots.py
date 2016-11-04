@@ -28,6 +28,7 @@ for f in files:
             axes[j].plot(a,e,'.')
             axes[j].plot(a[0],e[0],'o',color='red')
             axes[j].plot(a[1],e[1],'o',color='orange')
+            axes[j].plot(a[2],e[2],'o',color='yellow')
             axes[j].set_title('t = '+str(time[0])+' years, N='+str(len(a)))
             axes[j].yaxis.set_ticks(np.arange(0,max(e),0.1))
         axes[Nsnapshots-1].set_ylabel('$e$')

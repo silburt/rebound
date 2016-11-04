@@ -90,6 +90,8 @@ int main(int argc, char* argv[]){
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
+    r->ri_hermes.adaptive_hill_switch_factor = 0;
+    r->ri_hermes.hill_switch_factor = 6.;
     
     //Important parameters
     r->ri_hermes.hill_switch_factor = 3;
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]){
     //output stuff
     output_inc = tmax/N_eia_binary_outputs;
     output_time = output_inc;
-    orbital_output_freq = 25;
+    orbital_output_freq = 25;       //how often to output orbital parameters to *.txt
 //**********************************************************
     
     srand(seed);
@@ -263,8 +265,8 @@ int main(int argc, char* argv[]){
         E0 = reb_tools_energy(r);
         rescale_energy = 1;
         
-        //initial snapshot
-        {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t); eia_snapshot(r, out_time);}
+        //initial snapshot - for cold start, it's convenient to label the first output as t=0...
+        {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t-mig_time-dispersal_time); eia_snapshot(r, out_time);}
         
         // Integrate!
         reb_integrate(r, tmax);
