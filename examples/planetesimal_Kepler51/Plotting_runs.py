@@ -8,20 +8,28 @@ import random
 import numpy as np
 
 #Specify what runs you want *****************************
-N_runs = 2
+N_runs = 3
 
 random.seed()
 runs = []
 Np = "{:.0f}".format(2000)
+ep = "{:.0e}".format(1e-9)
 for i in xrange(0,N_runs):
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/cold_AHSFoff_Np%s_sd%s'%(Np,seed)
-    runs.append((0,Np,seed,name))
+    name = 'output/cold_AHSFoff_ep1e-9_Np%s_sd%s'%(Np,seed)
+    runs.append((0,Np,seed,name,ep))
 
+ep = "{:.0e}".format(1e-7)
 for i in xrange(0,N_runs):
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/warm_AHSFoff_Np%s_sd%s'%(Np,seed)
-    runs.append((1,Np,seed,name))
+    name = 'output/cold_AHSFoff_ep1e-7_Np%s_sd%s'%(Np,seed)
+    runs.append((0,Np,seed,name,ep))
+
+ep = "{:.0e}".format(1e-5)
+for i in xrange(0,N_runs):
+    seed = "{:.0f}".format(int(1000*random.random()))
+    name = 'output/cold_AHSFoff_ep1e-5_Np%s_sd%s'%(Np,seed)
+    runs.append((0,Np,seed,name,ep))
 
 os.system('make')
 

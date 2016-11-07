@@ -64,6 +64,7 @@ int main(int argc, char* argv[]){
     int N_planetesimals = atoi(argv[2]);
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]);        //name
+    double epsilon = atof(argv[5]);     //temp!
     
     //Migration parameters
     mig_time = 35000;
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]){
     double da = 0.00;                   //fractional offset of outer planet from current position
     
     //Planetesimal disk parameters
-    double total_disk_mass=2.7*m_earth; //2.7m_earth = 20% mass of planets
+    double total_disk_mass=2.7*m_earth; //2.7m_earth = 20% mass of planets, 1.16m_earth = 10% of outer planets
     double alpha = 0;                   //reb_powerlaw uses x^alpha-http://mathworld.wolfram.com/RandomNumber.html
     double N_eia_binary_outputs = 7;    //number of eia_snapshot and binary output intervals
 //**********************************************************
@@ -90,8 +91,11 @@ int main(int argc, char* argv[]){
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
-    r->ri_hermes.adaptive_hill_switch_factor = 0;
     r->ri_hermes.hill_switch_factor = 6.;
+    
+    //****Testing**** simulation params
+    r->ri_hermes.adaptive_hill_switch_factor = 0;
+    r->ri_ias15.epsilon = epsilon; 
     
     //Important parameters
     r->ri_hermes.hill_switch_factor = 3;
@@ -228,6 +232,10 @@ int main(int argc, char* argv[]){
         //initial snapshot
         {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t); eia_snapshot(r, out_time);}
         
+        //timing
+        t_ini = time(NULL);
+        struct tm *tmp = gmtime(&t_ini);
+        
         // Integrate!
         reb_integrate(r, tmax);
     } else {//*****************************COLD START*****************************
@@ -268,6 +276,10 @@ int main(int argc, char* argv[]){
         //initial snapshot - for cold start, it's convenient to label the first output as t=0...
         {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t-mig_time-dispersal_time); eia_snapshot(r, out_time);}
         
+        //timing
+        t_ini = time(NULL);
+        struct tm *tmp = gmtime(&t_ini);
+        
         // Integrate!
         reb_integrate(r, tmax);
     }//*****************************POST INTEGRATION*****************************
@@ -277,6 +289,14 @@ int main(int argc, char* argv[]){
         eia_snapshot(r, out_time);
         char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
+        
+        //timing
+        time_t t_fini = time(NULL);
+        struct tm *tmp2 = gmtime(&t_fini);
+        double time = t_fini - t_ini;
+        FILE* out1 = fopen(info,"a");
+        fprintf(out1, "\n\n\nElapsed simulation time(s)= %f",time);
+        fclose(out1);
         printf("\nSimulation complete. Saved to binary \n\n");
     }
     
