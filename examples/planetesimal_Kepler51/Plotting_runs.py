@@ -8,27 +8,16 @@ import random
 import numpy as np
 
 #Specify what runs you want *****************************
-N_runs = 3
+N_runs = 12
 
 random.seed()
 runs = []
 Np = "{:.0f}".format(2000)
-ep = "{:.0e}".format(1e-9)
+epsilon = np.logspace(-9,-5,N_runs)
 for i in xrange(0,N_runs):
+    ep = "{:.0e}".format(epsilon[i])
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/cold_AHSFoff_ep1e-9_Np%s_sd%s'%(Np,seed)
-    runs.append((0,Np,seed,name,ep))
-
-ep = "{:.0e}".format(1e-7)
-for i in xrange(0,N_runs):
-    seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/cold_AHSFoff_ep1e-7_Np%s_sd%s'%(Np,seed)
-    runs.append((0,Np,seed,name,ep))
-
-ep = "{:.0e}".format(1e-5)
-for i in xrange(0,N_runs):
-    seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/cold_AHSFoff_ep1e-5_Np%s_sd%s'%(Np,seed)
+    name = 'output/cold_AHSFoff_ep%s_Np%s_sd%s'%(ep,Np,seed)
     runs.append((0,Np,seed,name,ep))
 
 os.system('make')
@@ -36,7 +25,7 @@ os.system('make')
 length = len(runs)
 
 def execute(pars):
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
+    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
