@@ -91,14 +91,13 @@ int main(int argc, char* argv[]){
     r->additional_forces = migration_forces;
     r->force_is_velocity_dependent = 1;
     r->testparticle_type = 1;
-    r->ri_hermes.hill_switch_factor = 6.;
     
     //****Testing**** simulation params
     r->ri_hermes.adaptive_hill_switch_factor = 0;
     r->ri_ias15.epsilon = epsilon; 
     
     //Important parameters
-    r->ri_hermes.hill_switch_factor = 3;
+    r->ri_hermes.hill_switch_factor = 6;
     r->ri_hermes.solar_switch_factor = 20.;
     r->dt = 0.01;
     double tmax = 1e5*2*M_PI + mig_time + dispersal_time;
@@ -176,7 +175,6 @@ int main(int argc, char* argv[]){
     lambda = calloc(sizeof(double),r->N_active);
     
     //naming
-    if(warm_start){strcat(output_name,"_warm");} else {strcat(output_name,"_cold");}
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
     char info[200] = {0}; strcat(info,output_name);
     strcat(binary_out,output_name); strcat(binary_out,"_t=");
@@ -248,7 +246,6 @@ int main(int argc, char* argv[]){
         tau_e[outer] = tau_a[outer]/K;
         
         reb_integrate(r, mig_time+dispersal_time);
-        strcat(binary_out,".bin");
         reb_output_binary(r, binary_out);
         r->integrator	= REB_INTEGRATOR_HERMES;
         r->heartbeat	= heartbeat;

@@ -25,8 +25,8 @@ while i < N:            #just want the main .txt files
         i += 1
 
 def execute(filename):
-    os.system('python orbits.py '+filename)
-    #os.system('python check_resonance.py '+filename)
+    #os.system('python orbits.py '+filename)
+    os.system('python check_resonance.py '+filename)
     print 'finished process'
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
