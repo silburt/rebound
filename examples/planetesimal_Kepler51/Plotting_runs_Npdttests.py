@@ -6,6 +6,7 @@ import sys
 import time
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 #Specify what runs you want *****************************
 N_runs = 40
@@ -22,6 +23,11 @@ while i < N_runs:
         Npl = np.append(Npl, Np)
         i += 1
 
+plt.scatter(Npl,timestep)
+plt.xlabel('log10(N_planetesimals)')
+plt.ylabel('log10(timestep)')
+plt.savefig('output/sensitests.png')
+
 for i in xrange(0,N_runs):
     dt = "{:.1e}".format(10**(timestep[i]))
     Np = "{:.0e}".format(10**(Npl[i]))
@@ -34,8 +40,7 @@ os.system('make')
 length = len(runs)
 
 def execute(pars):
-    print pars
-#os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3])+' '+str(pars[4]))
+    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
