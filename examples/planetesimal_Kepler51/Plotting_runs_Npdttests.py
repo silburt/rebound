@@ -6,7 +6,7 @@ import sys
 import time
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 #Specify what runs you want *****************************
 N_runs = 40
@@ -23,10 +23,10 @@ while i < N_runs:
         Npl = np.append(Npl, Np)
         i += 1
 
-plt.scatter(Npl,timestep)
-plt.xlabel('log10(N_planetesimals)')
-plt.ylabel('log10(timestep)')
-plt.savefig('output/sensitests.png')
+#plt.scatter(Npl,timestep)
+#plt.xlabel('log10(N_planetesimals)')
+#plt.ylabel('log10(timestep)')
+#plt.savefig('output/sensitests.png')
 
 for i in xrange(0,N_runs):
     dt = "{:.1e}".format(10**(timestep[i]))
