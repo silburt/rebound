@@ -6,13 +6,13 @@ import sys
 import time
 import random
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 #Specify what runs you want *****************************
 
 #equal spacing
-t = np.logspace(-4.25,-2,6)
-N = np.logspace(2.6,4.5,6)
+t = np.logspace(-4,-2,4)
+N = np.logspace(2.6,4.5,5)
 array = []
 for tt in t:
     for NN in N:
@@ -21,14 +21,14 @@ for tt in t:
 N_runs = len(array)
 Npl,timestep = zip(*array)
 
-#plt.scatter(Npl,timestep)
-#plt.xlabel('N_planetesimals')
-#plt.ylabel('timestep')
-#plt.xscale('log')
-#plt.yscale('log')
-#plt.xlim([1e2,1e5])
-#plt.ylim([1e-1,1e-5])
-#plt.savefig('output/sensitests.png')
+plt.scatter(Npl,timestep)
+plt.xlabel('N_planetesimals')
+plt.ylabel('timestep')
+plt.xscale('log')
+plt.yscale('log')
+plt.xlim([1e2,1e5])
+plt.ylim([1e-1,1e-5])
+plt.savefig('output/sensitests.png')
 
 runs = []
 for i in xrange(0,N_runs):
@@ -41,7 +41,8 @@ for i in xrange(0,N_runs):
 os.system('make')
 
 def execute(pars):
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
+    print pars
+#os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
