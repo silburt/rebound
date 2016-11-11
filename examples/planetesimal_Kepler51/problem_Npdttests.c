@@ -12,6 +12,10 @@
  * c: P = 85.31, a = 0.384, M = 4.0M_Earth, e=0.014, r=9.0R_Earth
  * d: P = 130.19, a = 0.509, M = 7.6M_Earth, e=0.008, r=9.7R_earth
  *
+ * In this problem, I'm specifically wanting to track the period evolution vs. dt and Np. 
+ * Assume a cold start for simplicity. Also, making the planetesimal disk limits much closer than
+ * what I think Chatterjee is setting, and removing the inner planet, since this is just a 
+ * convergence test.
  */
 
 #include <stdio.h>
@@ -60,7 +64,8 @@ int main(int argc, char* argv[]){
     double r_earth = 4.2587e-5;         //convert Earth radii to AU.
     
 //**********************Parameter List**********************
-    int warm_start = atoi(argv[1]);     //if 0, cold start, if 1, warm start
+    int warm_start = 0;     //if 0, cold start, if 1, warm start
+    double dt = atof(argv[1])*2*M_PI;
     int N_planetesimals = atoi(argv[2]);
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]);        //name
@@ -79,8 +84,8 @@ int main(int argc, char* argv[]){
 //**********************************************************
     
     //resonance parameters - shouldn't have to change
-    inner = 2;                          //inner planet in resonance (0=star)
-    outer = 3;                          //outer planet in resonance
+    inner = 1;                          //inner planet in resonance (0=star)
+    outer = 2;                          //outer planet in resonance
     order = 1;                          //order of the resonance
     jay = 3;                            //j value of resonance (i.e. j*lambda_1 - (j-1)*lambda_2 - omega_1)
     
@@ -97,7 +102,7 @@ int main(int argc, char* argv[]){
     //Important parameters
     r->ri_hermes.hill_switch_factor = 6;
     r->ri_hermes.solar_switch_factor = 20.;
-    r->dt = 0.01;
+    r->dt = dt;
     double tmax = 1e5*2*M_PI + mig_time + dispersal_time;
     
     // Collisions
@@ -126,20 +131,21 @@ int main(int argc, char* argv[]){
     star.hash = 0;
 	reb_add(r, star);
     
+    /*
     //b
     {
-        double a_real = 0.2514, e_real=0.04; //<-true e, but start with 0!
+        double a_real = 0.2514; //<-true e, but start with 0!
         double a=a_real, m=2.1*m_earth, e=0, inc=reb_random_normal(0.0001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
         p.r = 7.1*r_earth;
         p.hash = r->N;
         reb_add(r, p);
-    }
+    }*/
     
     //c
     {
-        double a_real = 0.384, e_real = 0.014; //<-true e, but start with 0!
+        double a_real = 0.384; //<-true e, but start with 0!
         double a=a_real, m=4.0*m_earth, e=0, inc=reb_random_normal(0.0001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
@@ -150,7 +156,7 @@ int main(int argc, char* argv[]){
     
     //d
     {
-        double a_real = 0.509, e_real = 0.008;
+        double a_real = 0.509;
         double a=pow(pow(calc_a(r,inner),1.5)*1.51,2./3.), m=7.6*m_earth, e=0, inc=reb_random_normal(0.0001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, reb_random_uniform(0,2*M_PI));
@@ -161,8 +167,8 @@ int main(int argc, char* argv[]){
     
     r->N_active = r->N;
     //following Chatterjee, inner/outer edges are 0.01AU inside 3:1 period ratio for inner/outer planet
-    double amin=pow(pow(calc_a(r,inner),1.5)/3.,2./3.) + 0.01;
-    double amax=pow(pow(calc_a(r,outer)-da*calc_a(r,outer),1.5)*3.,2./3.) - 0.01; //account for da offset
+    double amin=pow(pow(calc_a(r,1),1.5)/1.5,2./3.) + 0.01;
+    double amax=pow(pow(calc_a(r,outer)-da*calc_a(r,outer),1.5)*1.5,2./3.) - 0.01; //account for da offset
     double planetesimal_mass = total_disk_mass/N_planetesimals;
     
     //resonance arrays

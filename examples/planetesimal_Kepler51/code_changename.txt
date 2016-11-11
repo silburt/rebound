@@ -1,0 +1,8 @@
+Contrary to the naming (which I fucked up) there are 25000 planetesimals (not 5000) in each run. 
+
+But you can rename them using (just in the ordinary unix terminal!):
+
+for file in Vanilla_powerlaw*.txt
+do
+mv -i "${file}" "${file/Np5000/Np25000}"
+done
