@@ -166,7 +166,7 @@ int main(int argc, char* argv[]){
     }
     
     r->N_active = r->N;
-    //following Chatterjee, inner/outer edges are 0.01AU inside 3:1 period ratio for inner/outer planet
+    //edges of planetesimal disk
     double amin=pow(pow(calc_a(r,1),1.5)/1.5,2./3.) + 0.01;
     double amax=pow(pow(calc_a(r,outer)-da*calc_a(r,outer),1.5)*1.5,2./3.) - 0.01; //account for da offset
     double planetesimal_mass = total_disk_mass/N_planetesimals;
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]){
     FILE* out1 = fopen(info,"w");
     fprintf(out1, "Simulation Details:\n");
     int coll_on = 0; if(r->collision_resolve == reb_collision_resolve_merge) coll_on =1;
-    fprintf(out1, "\nSetup Parmaeters:\nHSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d, AdaptiveHSF=%d\n",r->ri_hermes.hill_switch_factor,r->ri_hermes.solar_switch_factor,r->dt,tmax,coll_on,r->ri_hermes.adaptive_hill_switch_factor);
+    fprintf(out1, "\nSetup Parmaeters:\nwarm_start=%d, HSF=%.2f, RSF=%.1f, dt=%e, tmax=%e, collisions_on=%d, AdaptiveHSF=%d\n",warm_start, r->ri_hermes.hill_switch_factor,r->ri_hermes.solar_switch_factor,r->dt,tmax,coll_on,r->ri_hermes.adaptive_hill_switch_factor);
     fprintf(out1, "\nPlanet(s):\n");
     for(int i=1;i<r->N_active;i++){
         struct reb_particle p = r->particles[i];
