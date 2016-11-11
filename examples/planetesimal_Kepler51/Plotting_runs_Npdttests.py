@@ -9,7 +9,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 
 #Specify what runs you want *****************************
-N_runs = 40
+N_runs = 2
 np.random.seed(10)
 runs = []
 timestep = np.empty(0)
@@ -30,9 +30,9 @@ while i < N_runs:
 
 for i in xrange(0,N_runs):
     dt = "{:.1e}".format(10**(timestep[i]))
-    Np = "{:.0e}".format(10**(Npl[i]))
+    Np = int(np.round(10**(Npl[i])))
     seed = "{:.0f}".format(int(1000*random.random()))
-    name = 'output/sensitests_dt%s_Np%s_sd%s'%(dt,Np,seed)
+    name = 'output/sensitests_dt%s_Np%d_sd%s'%(dt,Np,seed)
     runs.append((dt,Np,seed,name))
 
 os.system('make')

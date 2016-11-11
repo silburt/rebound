@@ -244,7 +244,6 @@ int main(int argc, char* argv[]){
         tau_e[outer] = tau_a[outer]/K;
         
         reb_integrate(r, mig_time+dispersal_time);
-        reb_output_binary(r, binary_out);
         r->integrator	= REB_INTEGRATOR_HERMES;
         r->heartbeat	= heartbeat;
         
@@ -267,9 +266,6 @@ int main(int argc, char* argv[]){
         reb_move_to_com(r);
         E0 = reb_tools_energy(r);
         rescale_energy = 1;
-        
-        //initial snapshot - for cold start, it's convenient to label the first output as t=0...
-        {char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t-mig_time-dispersal_time); eia_snapshot(r, out_time);}
         
         //timing
         t_ini = time(NULL);
@@ -319,7 +315,10 @@ void heartbeat(struct reb_simulation* r){
     
     //output binary and eia snapshot
     if(output_time < r->t){
-        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        char out_time[10] = {0};
+        double ttime = r->t; if(warm_start == 0){ttime = ttime - mig_time-dispersal_time;}
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",ttime);
+        eia_snapshot(r,out_time);
         char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
         reb_output_binary(r, out);
         output_time += output_inc;
@@ -347,11 +346,9 @@ void heartbeat(struct reb_simulation* r){
         printf("\n **Migration is done, rescaling energy, outputting eia snapshot and binary**\n");
         rescale_energy = 1;
         E0 = reb_tools_energy(r);
-        char out_time[10] = {0}; sprintf(out_time,"%.0f",r->t);
+        double ttime = r->t; if(warm_start == 0){ttime = ttime - mig_time-dispersal_time;}
+        char out_time[10] = {0}; sprintf(out_time,"%.0f",ttime);
         eia_snapshot(r,out_time);
-        char out[200] = {0}; strcat(out, binary_out); strcat(out, out_time); strcat(out, ".bin");
-        reb_output_binary(r, out);
-        //orbital_output_freq = 100;  //make txt outputs much longer now.
     }
 }
 

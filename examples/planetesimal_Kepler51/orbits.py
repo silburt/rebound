@@ -9,9 +9,17 @@ import re
 colors=['b','g','m','r','c','y']
 
 file_name=str(sys.argv[1])
+Nplanets=int(sys.argv[2])
 
-fos = open(''+file_name, 'r')
-time, dE, N, N_mini, HSF, m1, a1, e1, m2, a2, e2, m3, a3, e3, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+fos = open(file_name, 'r')
+if Nplanets == 2:
+    try:
+        time, dE, N, N_mini, HSF, m1, a1, e1, m2, a2, e2, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
+    except:
+        skip = 1
+        print "ejected planet for system %s"%file_name
+else:
+    time, dE, N, N_mini, HSF, m1, a1, e1, m2, a2, e2, m3, a3, e3, phi1, phi2, phi3 = np.loadtxt(fos, delimiter=',', unpack=True)
 
 ms=3
 fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10,10), sharex=True)
@@ -25,7 +33,8 @@ axes[1].plot(time, N_mini, 'o', ms=ms, markeredgecolor='none')
 axes[2].plot(time, HSF, 'o', ms=ms, markeredgecolor='none')
 axes[3].plot(time, (a1 - a1.mean())/a1.std(), 'o', ms=ms, markeredgecolor='none',label='planet 1')
 axes[3].plot(time, (a2 - a2.mean())/a2.std(), 'o', ms=ms, markeredgecolor='none',label='planet 2')
-axes[3].plot(time, (a3 - a3.mean())/a3.std(), 'o', ms=ms, markeredgecolor='none',label='planet 3')
+if Nplanets == 3:
+    axes[3].plot(time, (a3 - a3.mean())/a3.std(), 'o', ms=ms, markeredgecolor='none',label='planet 3')
 #axes[3].plot(time, e1, 'o', ms=ms, markeredgecolor='none', label='planet 1')
 #axes[3].plot(time, e2, 'o', ms=ms, markeredgecolor='none', label='planet 2')
 #axes[3].plot(time, e3, 'o', ms=ms, markeredgecolor='none', label='planet 3')

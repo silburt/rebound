@@ -17,7 +17,7 @@ P=P.astype(np.float)
 #Parameters
 var = m             #variable to plot
 res_thresh = 0.06   #distance from resonance.
-res = 2
+res = 4/3.
 
 systems = np.unique(name)
 
