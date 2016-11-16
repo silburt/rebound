@@ -28,6 +28,6 @@ int main(int argc, char* argv[]) {
 	p2.vy = 1;
 	reb_add(r, p2);
 
-	reb_integrate(r,100.);
+	reb_integrate(r,1e6);
 }
 

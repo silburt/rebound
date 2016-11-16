@@ -17,7 +17,7 @@ P=P.astype(np.float)
 #Parameters
 var = m             #variable to plot
 res_thresh = 0.06   #distance from resonance.
-res = 4/3.
+res = 2
 
 systems = np.unique(name)
 
@@ -31,31 +31,7 @@ for n in systems:
         if vararr[idx] > 0 and vararr[idx+1] > 0:
             ax.scatter(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]))
             ax.text(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]),'%s'%(n), size=10, zorder=1, color='k')
-'''
-#analysis
-name_current = ''
-i=0
-while i < len(data):
-    if name_current != name[i]:
-        name_current = name[i]
-        N = 0
-        try:
-            while name[i+N] == name_current:
-                N += 1
-        except:
-            N = Npl[i]
-        Parr, vararr = np.asarray(zip(*sorted(zip(P[i:i+N],var[i:i+N]))))
-        Pratio = Parr[1:-1]/Parr[0:-2]
-        index = np.where(np.abs(Pratio - res) < res_thresh)[0]
-        for idx in index:
-            if vararr[idx] > 0 and vararr[idx+1] > 0:
-                ax.scatter(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]))
-                ax.text(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]),'%s'%(name[i]), size=10, zorder=1, color='k')
-        i += N
-    else:
-        i += 1
-        print "Something weird happened here"
-'''
+
 if var.all() == m.all():
     ax.set_ylabel('Mass Planet 1 (log10(M$_{Jupiter}$))')
     ax.set_zlabel('Mass Planet 2 (log10(M$_{Jupiter}$))')

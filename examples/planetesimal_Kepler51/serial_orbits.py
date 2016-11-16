@@ -30,8 +30,8 @@ for i in range(N):
     vals.append((files[i],Nplanets))
 
 def execute(pars):
-    os.system('python orbits.py '+pars[0]+' '+pars[1])
-    #os.system('python check_resonance.py '+pars[0]+' '+pars[1])
+    #os.system('python orbits.py '+pars[0]+' '+pars[1])
+    os.system('python check_resonance.py '+pars[0]+' '+pars[1])
     print 'finished process'
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
