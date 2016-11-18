@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
     int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HERMES;
+	r->integrator	= REB_INTEGRATOR_IAS15;
     r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
@@ -212,9 +212,13 @@ void heartbeat(struct reb_simulation* r){
             }
         }*/
         
+        int mini_N = 0;
+        int mini_active = 0;
+        if(r->integrator==REB_INTEGRATOR_HERMES){ mini_N =r->ri_hermes.mini->N; mini_active=r->ri_hermes.mini_active;}
+        
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%f,%e,%d,%d,%d,%.1f,%f,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,r->ri_hermes.mini_active,time,calc_a(r,1),r->ri_hermes.hill_switch_factor);
+        fprintf(append, "%f,%e,%d,%d,%d,%.1f,%f,%e\n",r->t,dE,r->N,mini_N,mini_active,time,calc_a(r,1),r->ri_hermes.hill_switch_factor);
         fclose(append);
     }
     
