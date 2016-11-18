@@ -262,6 +262,7 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
     struct reb_particle* particles = r->particles;
     double min_dt_enc2 = INFINITY;
     double m0 = particles[0].m;
+    int* is_in_mini = r->ri_hermes.is_in_mini;
     for(int i=1;i<_N_active;i++){                                             //run over massive bodies
         double ep, ap;
         reb_integrator_hermes_get_ae(r, com, i, &ap, &ep);
@@ -269,6 +270,7 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
         double rp_max = ap*(1.+ep);
         double np = sqrt(mu/(ap*ap*ap));
         for(int j=i+1;j<r->N;j++){                                              //run over massive + planetesimal bodies
+            if(is_in_mini[j] == 1) continue;
             double e, a, n;
             reb_integrator_hermes_get_ae(r, com, j, &a, &e);
             double r_min = a*(1.-e);

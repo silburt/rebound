@@ -14,6 +14,7 @@
 void heartbeat(struct reb_simulation* r);
 double c_angle(struct reb_simulation* r, double r_ps, int i, int incoming);
 struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice);
+double calc_a(struct reb_simulation* r, int index);
 
 double E0, t_output, t_log_output, xyz_t = 0;
 int xyz_counter = 0, numdt = 20;
@@ -48,8 +49,8 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;        //Hill radii
-    r->ri_hermes.adaptive_hill_switch_factor = 0;
-    r->dt = 0.01;
+    r->ri_hermes.adaptive_hill_switch_factor = 1;
+    r->dt = 0.05;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -70,10 +71,12 @@ int main(int argc, char* argv[]){
     
     //planet
     {
-        double a=1, m=5e-5, e=0.01, inc=reb_random_normal(0.00001);
+        double m_neptune = 5e-5, r_neptune = 1.6e-4;
+        double m_earth = 3e-6, r_earth = 0.00004258689;
+        double a=1, m=m_neptune, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
-        p2.r = 2e-4;
+        p2.r = r_neptune;
         p2.hash = r->N;
         reb_add(r, p2);
     }
@@ -211,7 +214,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%f,%e,%d,%d,%.1f,%d,%e,%e,%e,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E,E0,r->energy_offset);
+        fprintf(append, "%f,%e,%d,%d,%d,%.1f,%f,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,r->ri_hermes.mini_active,time,calc_a(r,1),r->ri_hermes.hill_switch_factor);
         fclose(append);
     }
     
@@ -433,4 +436,24 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fclose(swifter);
     fclose(swifterparams);
     fclose(mercuryparams);
+}
+
+double calc_a(struct reb_simulation* r, int index){
+    struct reb_particle* const particles = r->particles;
+    struct reb_particle com = reb_get_com(r);
+    struct reb_particle p = particles[index];
+    const double mu = r->G*(com.m + p.m);
+    const double dvx = p.vx-com.vx;
+    const double dvy = p.vy-com.vy;
+    const double dvz = p.vz-com.vz;
+    const double dx = p.x-com.x;
+    const double dy = p.y-com.y;
+    const double dz = p.z-com.z;
+    
+    const double v2 = dvx*dvx + dvy*dvy + dvz*dvz;
+    const double d = sqrt(dx*dx + dy*dy + dz*dz);    //distance
+    const double dinv = 1./d;
+    const double a = -mu/(v2 - 2.*mu*dinv);
+    
+    return a;
 }
