@@ -20,7 +20,7 @@ if diagnostics == 1:
     fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,10))
     axes[0].plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
     axes[0].plot(time,0.8e-13*time, color='red', label='t')
-    axes[0].plot(time,0.8e-11*time**0.5, color='black', label='t^0.5')
+    axes[0].plot(time,0.8e-10*time**0.5, color='black', label='t^0.5')
     axes[0].set_xscale('log')
     axes[0].set_yscale('log')
     axes[0].set_xlim([1,max(time)])

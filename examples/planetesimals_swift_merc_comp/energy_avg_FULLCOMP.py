@@ -40,15 +40,17 @@ def get_data(files, ext):
             print 'couldnt read in data file '+f
     return data, n_it, N_files
 
-def get_times(files, ext):
+def get_times(files, ext, integ):
     elapsed = []
     for f in files:
         ff = open(f+ext, 'r')
         lines = ff.readlines()
-        if ext == '':
+        if integ == 'H':
             elapsed.append(float(lines[1].split()[-2])/3600.)
-        else:
+        elif integ == 'S':
             elapsed.append((float(lines[1].split()[-1]) - float(lines[0].split()[-1]))/3600.)
+        elif integ == 'M':
+            elapsed.append(float(lines[0].split()[-1])/3600.)
     return elapsed
 
 def cdf(array):
@@ -69,38 +71,44 @@ alpha = 0.4
 ##############################################
 #PLANETESIMAL
 dirP = str(sys.argv[1])
-files = glob.glob(dirP+'*.txt')
-N = len(files)
-i=0
-while i < N:    #just want the main .txt files
-    f = files[i]
-    string = f.split("_")
-    if ("removed" in string[-1]) or ("elapsed" in string[-1]):
-        files.remove(files[i])
-        N -= 1
-    else:
-        i += 1
+name = ['t5e7','Earth','IAS15Neptune', 'retrydef']
+outname = ['Default','Earth-sized','IAS', 'retrydef']
+color_back = ['lightgreen','violet','yellow','navajowhite']
+color_main = ['darkgreen','darkviolet','olive','darkorange']
+times_H = []
+for ii in range(len(name)):
+    files = glob.glob(dirP+name[ii]+'*.txt')
+    N = len(files)
+    i=0
+    while i < N:    #just want the main .txt files
+        f = files[i]
+        string = f.split("_")
+        if ("removed" in string[-1]) or ("elapsed" in string[-1]):
+            files.remove(files[i])
+            N -= 1
+        else:
+            i += 1
 
-data, n_it, N_files = get_data(files,'')
-E = np.zeros(shape=(N_files,n_it))
-Eavg = np.zeros(n_it)
-time = np.zeros(n_it)
-vals_for_med = np.zeros(N_files)
-for i in xrange(0,n_it):
-    for j in range(0,N_files):
-        split = data[j][i].split(",")
-        vals_for_med[j] = float(split[1])
-        E[j][i] = vals_for_med[j]
-    Eavg[i] = np.median(vals_for_med)
-    time[i] = float(split[0])
+    data, n_it, N_files = get_data(files,'')
+    E = np.zeros(shape=(N_files,n_it))
+    Eavg = np.zeros(n_it)
+    time = np.zeros(n_it)
+    vals_for_med = np.zeros(N_files)
+    for i in xrange(0,n_it):
+        for j in range(0,N_files):
+            split = data[j][i].split(",")
+            vals_for_med[j] = float(split[1])
+            E[j][i] = vals_for_med[j]
+        Eavg[i] = np.median(vals_for_med)
+        time[i] = float(split[0])
 
-for i in xrange(0,N_files):
-    axes[0].plot(time,E[i], '.', color='lightgreen', alpha=alpha)
-axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkgreen', label='HERMES avg.')
+    for i in xrange(0,N_files):
+        axes[0].plot(time,E[i], '.', color=color_back[ii], alpha=alpha)
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color=color_main[ii], label='HERMES avg. '+outname[ii])
 
-#Elapsed time
-files = glob.glob(dirP+'*_elapsedtime.txt')
-times_H = get_times(files,'')
+    #Elapsed time
+    files = glob.glob(dirP+name[ii]+'*_elapsedtime.txt')
+    times_H.append(get_times(files,'','H'))
 
 ##############################################
 #SWIFTER
@@ -128,7 +136,7 @@ if swifter == 1:
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkblue', label='SyMBA Avg.')
 
 #Elapsed time
-times_S = get_times(files,'/elapsed_time.txt')
+times_S = get_times(files,'/elapsed_time.txt','S')
 
 ##############################################
 #MERCURY
@@ -163,11 +171,11 @@ if mercury == 1:
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
 
 #Elapsed time
-times_M = get_times(files,'/elapsed_time.txt')
+times_M = get_times(files,'/ET.txt','M')
 
 ##############################################
 #Final plotting stuff
-axes[0].legend(loc='upper left',prop={'size':10}, numpoints=1, markerscale=3)
+axes[0].legend(loc='upper left',prop={'size':7}, numpoints=1, markerscale=3)
 axes[0].set_ylabel('Fractional Energy Error', fontsize=13)
 axes[0].set_xlabel('Time (Years)', fontsize=13)
 axes[0].set_yscale('log')
@@ -176,20 +184,21 @@ axes[0].set_xscale('log')
 axes[0].set_xlim([0.5,time[-1]])
 
 ms=10
-axes[1].plot(times_H, np.ones(len(times_H)), 'o', markeredgecolor='none', ms=ms, color='lightgreen')
-axes[1].plot(times_S, np.ones(len(times_S))*2, 'o', markeredgecolor='none', ms=ms, color='dodgerblue')
-axes[1].plot(times_M, np.ones(len(times_M))*3, 'o',markeredgecolor='none', ms=ms,color='salmon')
+for ii in range(len(times_H)):
+    axes[1].plot(times_H[ii], np.ones(len(times_H[ii]))*(ii+1), 'o', markeredgecolor='none', ms=ms, color=color_main[ii])
+axes[1].plot(times_S, np.ones(len(times_S))*(len(times_H)+1), 'o', markeredgecolor='none', ms=ms, color='dodgerblue')
+axes[1].plot(times_M, np.ones(len(times_M))*(len(times_H)+2), 'o',markeredgecolor='none', ms=ms,color='salmon')
 axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=13)
-axes[1].set_yticks(range(1,4))
-axes[1].set_yticklabels(['HERMES','SyMBA','MERCURY'])
-axes[1].set_ylim([0.5,3.5])
+axes[1].set_yticks(range(1,7))
+axes[1].set_yticklabels(outname+['SyMBA','MERCURY'])
+axes[1].set_ylim([0.5,6.5])
 print 'Preparing PDF'
 
 #from matplotlib.backends.backend_pdf import PdfPages
 #pp = PdfPages(dirP+'energy_avg_FULL.pdf')
 #plt.savefig(pp, format='pdf')
 plt.savefig(dirP+'energy_avg_FULL.png')
-plt.show()
+#plt.show()
 
 
 
