@@ -31,6 +31,7 @@ def get_data(files, ext):
         try:
             ff = open(f+ext, 'r')
             lines = ff.readlines()
+            lines = lines[9:-1]
             length = len(lines)
             if length < n_it:   #need to find array with shortest length
                 n_it = length
@@ -69,10 +70,10 @@ ms = 0.25
 alpha = 0.4
 
 ##############################################
-#PLANETESIMAL
+#HERMES
 dirP = str(sys.argv[1])
-name = ['t5e7','Earth','IAS15Neptune', 'retrydef']
-outname = ['Default','Earth-sized','IAS', 'retrydef']
+name = ['t5e7','Earth','ias15_', 'retrydef']
+outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'HERMES:Neptune2']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
 times_H = []
@@ -104,7 +105,9 @@ for ii in range(len(name)):
 
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color=color_back[ii], alpha=alpha)
-    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color=color_main[ii], label='HERMES avg. '+outname[ii])
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color=color_main[ii], label=outname[ii])
+    axes[0].plot(time, 1e-10*time**0.5, color='black')
+    axes[0].plot(time, 0.4e-16*time**0.5, color='black')
 
     #Elapsed time
     files = glob.glob(dirP+name[ii]+'*_elapsedtime.txt')
@@ -148,8 +151,29 @@ if mercury == 1:
     E = np.zeros(shape=(N_files,n_it))
     Eavg = np.zeros(n_it)
     time = np.zeros(n_it)
+    np = np.zeros(n_it)
     vals_for_med = np.zeros(N_files)
+    vals_for_np = np.zeros(N_files)
 
+    print 'calculating avg. energy'
+    for i in xrange(0,n_it):
+        split = data[0][i].split()
+        vals_for_med[0] = float(split[4])
+        E[0][i] = vals_for_med[0]
+        t=float(split[0])
+        for j in range(1,N_files):
+            split = data[j][i].split()
+            if float(split[0]) == t:
+                vals_for_med[j] = float(split[4])
+                vals_for_np[j] = int(split[7])
+                E[j][i] = vals_for_med[j]
+            else:
+                print 'problem, times dont match'
+        Eavg[i] = np.median(vals_for_med)
+        time[i] = float(split[1])
+        np[i] = np.median(vals_for_np)
+
+'''
     print 'calculating avg energy'
     for i in xrange(0,n_it):
         split = data[0][i].split()
@@ -165,7 +189,7 @@ if mercury == 1:
                 print 'problem, times dont match'
         Eavg[i] = np.median(vals_for_med)
         time[i] = float(split[0])*0.01721420632
-
+'''
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='salmon', alpha=alpha)
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
@@ -179,7 +203,7 @@ axes[0].legend(loc='upper left',prop={'size':7}, numpoints=1, markerscale=3)
 axes[0].set_ylabel('Fractional Energy Error', fontsize=13)
 axes[0].set_xlabel('Time (Years)', fontsize=13)
 axes[0].set_yscale('log')
-axes[0].set_ylim([1e-12, 1e-3])
+axes[0].set_ylim([1e-16, 1e-3])
 axes[0].set_xscale('log')
 axes[0].set_xlim([0.5,time[-1]])
 
@@ -199,43 +223,3 @@ print 'Preparing PDF'
 #plt.savefig(pp, format='pdf')
 plt.savefig(dirP+'energy_avg_FULL.png')
 #plt.show()
-
-
-
-
-#used to be for HERMES
-'''
-    #Removed Particles
-    dirP = str(sys.argv[1])
-    files = glob.glob(dirP+'*_removed.txt')
-    eject = np.zeros(0)
-    collide = np.zeros(0)
-    time = np.zeros(0)
-    Ntot=0
-    Ncoll=0
-    Nej=0
-    for f in files:
-    ff = open(f, 'r')
-    lines = ff.readlines()
-    for line in lines:
-    split = line.split(',')
-    val = float(split[1])
-    if split[0] == "Collision":
-    collide = sort_index(collide, val)
-    Ncoll += 1
-    elif split[0] == "Ejection":
-    eject = sort_index(eject, val)
-    Nej += 1
-    time = sort_index(time, val)
-    Ntot += 1
-    
-    Ntot /= len(files)
-    Ncoll /= len(files)
-    Nej /= len(files)
-    axes[1].plot(time, cdf(time)*Ntot, 'k', label='Avg. tot. removed particles (N='+str(Ntot)+')')
-    axes[1].plot(collide, cdf(collide)*Ncoll, 'k--',label='Avg. collided particles (N='+str(Ncoll)+')')
-    axes[1].plot(eject, cdf(eject)*Nej, 'k-.',label='Avg. ejected particles (N='+str(Nej)+')')
-    axes[1].legend(loc='upper left',prop={'size':10})
-    axes[1].set_xlabel('time (years)', fontsize=16)
-    axes[1].set_ylabel('CDF of removed particles', fontsize=16)
-    '''

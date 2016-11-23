@@ -415,7 +415,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," allow collisions to occur = yes\n");
     fprintf(mercuryparams," include collisional fragmentation = no\n");
     fprintf(mercuryparams," express time in days or years = years\n");
-    fprintf(mercuryparams," express time relative to integration start time = no\n");
+    fprintf(mercuryparams," express time relative to integration start time = yes\n");
     fprintf(mercuryparams," output precision = medium\n");
     fprintf(mercuryparams," < not used at present >\n");
     fprintf(mercuryparams," include relativity in integration= no\n");
