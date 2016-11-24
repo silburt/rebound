@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
     int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_IAS15;
+	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
