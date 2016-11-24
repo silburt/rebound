@@ -7,8 +7,8 @@ import numpy as np
 import random
 
 #May31 Mercury_swifter comps
-tmax=5e7
-params=[(tmax,50,13,"output/t5e7_Np50_sd13"),(tmax,50,23,"output/t5e7_Np50_sd23"),(tmax,50,33,"output/t5e7_Np50_sd33"),(tmax,50,52,"output/t5e7_Np50_sd52"),(tmax,50,62,"output/t5e7_Np50_sd62")]
+tmax=6.28e6
+params=[(tmax,1000,13,"output/t1e6_Np1000_sd13"),(tmax,1000,14,"output/t1e6_Np1000_sd14"),(tmax,1000,50,"output/t1e6_Np1000_sd50"),(tmax,1000,60,"output/t1e6_Np1000_sd60")]
 
 #params = []
 #np.random.seed()

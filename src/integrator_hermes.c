@@ -152,7 +152,6 @@ void reb_integrator_hermes_part2(struct reb_simulation* r){
         //if(r->ri_hermes.collision_this_global_dt && r->track_energy_offset){
         //    double Ef = reb_tools_energy(r);
         //    r->energy_offset += r->ri_hermes.energy_before_timestep - Ef;
-        //    printf("\ndE_real=%e\n",r->ri_hermes.energy_before_timestep - Ef);
         //}
     }
 }
@@ -266,14 +265,14 @@ static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r){
     double min_dt_enc2 = INFINITY;
     double m0 = particles[0].m;
     int* is_in_mini = r->ri_hermes.is_in_mini;
-    for(int i=1;i<_N_active;i++){                                             //run over massive bodies
+    for(int i=1;i<_N_active;i++){                                               //run over massive bodies
         double ep, ap;
         reb_integrator_hermes_get_ae(r, com, i, &ap, &ep);
         double rp_min = ap*(1.-ep);
         double rp_max = ap*(1.+ep);
         double np = sqrt(mu/(ap*ap*ap));
         for(int j=i+1;j<r->N;j++){                                              //run over massive + planetesimal bodies
-            if(is_in_mini[j] == 1) continue;
+            if(is_in_mini[j] == 1) continue;                                    //exclude bodies in mini from Auto HSF calc
             double e, a, n;
             reb_integrator_hermes_get_ae(r, com, j, &a, &e);
             double r_min = a*(1.-e);

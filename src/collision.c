@@ -463,7 +463,7 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
                 
     double invmass = 1.0/(pi->m + pj->m);
     
-    //Scale out energy from collision
+    //Scale out energy from collision - initial energy
     double Ei=0, Ef=0;
     if(r->track_energy_offset) Ei = reb_tools_energy(r);
     
@@ -478,6 +478,7 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
     pi->r  = pow(pow(pi->r,3.)+pow(pj->r,3.),1./3.);
     pi->lastcollision = r->t;
     
+    //Scale out energy from collision - final energy
     if(r->track_energy_offset){
         Ef = r->energy_offset;
         const int N = r->N;
@@ -486,7 +487,7 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
         int N_interact = (r->testparticle_type==0)?_N_active:(N-N_var);
         const struct reb_particle* restrict const particles = r->particles;
         for (int k=0;k<N_interact;k++){
-            if(k==j) continue;
+            if(k==j) continue;      //j is the particle that will be removed but hasn't yet
             struct reb_particle pk = particles[k];
             Ef += 0.5 * pk.m * (pk.vx*pk.vx + pk.vy*pk.vy + pk.vz*pk.vz);
         }

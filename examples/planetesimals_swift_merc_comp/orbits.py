@@ -17,7 +17,7 @@ data = np.loadtxt(fos, delimiter=',')
 ms=3
 if diagnostics == 1:
     time = data[:,0]
-    fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(10,10))
+    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
     axes[0].plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
     axes[0].plot(time,0.8e-13*time, color='red', label='t')
     axes[0].plot(time,0.8e-10*time**0.5, color='black', label='t^0.5')
@@ -32,8 +32,9 @@ if diagnostics == 1:
     axes[1].set_ylim([0,max(data[:,2])])
     axes[1].set_xlim([1,max(time)])
     axes[1].set_ylabel('Number of particles')
-    axes[2].plot(time,data[:,7], 'o', ms=ms, markeredgecolor='none')
-    axes[2].set_ylabel('Hybrid Switch Factor')
+    axes[1].set_xscale('log')
+    axes[2].plot(time,data[:,6], 'o', ms=ms, markeredgecolor='none')
+    axes[2].set_ylabel('Semi-major Axis')
     print "percent mini active is %f"%(sum(data[:,4])/len(data[:,4]))
 else:
     plt.plot(data[:,0],data[:,1], 'o', ms=ms, markeredgecolor='none')
@@ -47,4 +48,4 @@ else:
 
 file_output_name = re.sub('\.txt$', '', file_name)
 plt.savefig(file_output_name+'.png')
-plt.show()
+#plt.show()
