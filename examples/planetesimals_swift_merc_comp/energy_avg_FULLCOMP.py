@@ -78,7 +78,8 @@ counter = 1
 ##############################################
 #HERMES
 dirP = str(sys.argv[1])
-name = ['t5e7','Earth','ias15_', 'whfast']
+#name = ['t5e7','Earth','ias15_', 'whfast']
+name = ['t1e6']
 outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'WHFAST:Neptune']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
@@ -111,13 +112,13 @@ for ii in range(len(name)):
         Energy = np.asarray(zip(*Energy))
         Npar = np.asarray(zip(*Npar))
         aa = np.asarray(zip(*aa))
-        axes[0].plot(time/(2*np.pi),np.mean(Energy,axis=1), '.', markeredgecolor='none', color=color_main[ii], label=outname[ii]+', Np=%d'%len(time))
+        axes[0].plot(time/(2*np.pi),np.mean(Energy,axis=1), '.', markeredgecolor='none', color=color_main[ii], label=outname[ii])
         axes[0].plot(time/(2*np.pi), 1e-10*time**0.5, color='black')
         axes[0].plot(time/(2*np.pi), 0.4e-16*time**0.5, color='black')
         axes[2].plot(time/(2*np.pi),np.mean(aa,axis=1), '.', markeredgecolor='none', color=color_main[ii])
         axes[3].plot(time/(2*np.pi),np.mean(Npar,axis=1), '.', markeredgecolor='none', color=color_main[ii])
     except:
-        axes[0].plot(time/(2*np.pi),E, '.', color=color_back[ii], alpha=alpha,label=outname[ii]+', Np=%d'%len(time))
+        axes[0].plot(time/(2*np.pi),E, '.', color=color_back[ii], alpha=alpha,label=outname[ii])
         axes[2].plot(time/(2*np.pi),a,'.',color=color_back[ii],alpha=alpha,label=outname[ii])
         print "each file has different dimensions, probably IAS15"
     
@@ -151,7 +152,7 @@ if swifter == 1:
     j=0
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='dodgerblue', alpha=alpha)
-    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkblue', label='SyMBA Avg., Np=%d'%len(time))
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkblue', label='SyMBA Avg.')
 
     #Elapsed time
     times_S = get_times(files,'/elapsed_time.txt','S')
@@ -193,7 +194,7 @@ if mercury == 1:
 
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='salmon', alpha=alpha)
-    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg., Np=%d'%len(time))
+    axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
     axes[3].plot(time, nump, '.', markeredgecolor='none', color='darkred')
 
     #get median semi-major axis
@@ -219,23 +220,25 @@ if mercury == 1:
 ##############################################
 #Final plotting stuff
 fontsize=10
+xmin = 1
 axes[0].legend(loc='upper left',prop={'size':7}, numpoints=1, markerscale=3)
 axes[0].set_ylabel('Fractional Energy Error', fontsize=fontsize)
 axes[0].set_xlabel('Time (Years)', fontsize=fontsize)
 axes[0].set_yscale('log')
 axes[0].set_ylim([1e-16, 1])
 axes[0].set_xscale('log')
-axes[0].set_xlim([10,time[-1]])
-axes[2].set_ylabel('Semi-major axis')
-axes[2].set_xlabel('Time (Years)', fontsize=fontsize)
-axes[3].set_ylabel('Number of particles')
-axes[3].set_xscale('log')
-axes[3].set_xlabel('Time (Years)', fontsize=fontsize)
+axes[0].set_xlim([xmin,time[-1]])
 axes[1].set_ylabel('Elapsed time (hours)')
 axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=fontsize)
 axes[1].set_yticks(range(1,7))
 axes[1].set_yticklabels(ETarr,fontsize=fontsize)
 axes[1].set_ylim([0.5,6.5])
+axes[2].set_ylabel('Semi-major axis')
+axes[2].set_xlabel('Time (Years)', fontsize=fontsize)
+axes[3].set_ylabel('Number of particles')
+axes[3].set_xscale('log')
+axes[3].set_xlabel('Time (Years)', fontsize=fontsize)
+axes[3].set_xlim([xmin,time[-1]])
 
 '''
 for ii in range(len(times_H)):
