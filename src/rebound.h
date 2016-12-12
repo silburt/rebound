@@ -26,6 +26,8 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 #include <stdint.h>
+#include <sys/time.h>
+#include <pthread.h>
 #ifndef M_PI
 // Make sure M_PI is defined. 
 #define M_PI           3.14159265358979323846       ///< The mathematical constant pi.
@@ -36,6 +38,7 @@
 
 extern const char* reb_build_str;   ///< Date and time build string.
 extern const char* reb_version_str; ///< Version string.
+extern const char* reb_logo[26];    ///< Logo of rebound. 
 
 /**
  * @brief Enumeration describing the return status of rebound_integrate
@@ -248,6 +251,127 @@ struct reb_simulation_integrator_hermes {
 
 
 /**
+ * @brief Enumeration describing the contents of a binary field. Used to read and write binary files.
+ */
+enum REB_BINARY_FIELD_TYPE {
+    REB_BINARY_FIELD_TYPE_T = 0,
+    REB_BINARY_FIELD_TYPE_G = 1,
+    REB_BINARY_FIELD_TYPE_SOFTENING = 2,
+    REB_BINARY_FIELD_TYPE_DT = 3,
+    REB_BINARY_FIELD_TYPE_N = 4,
+    REB_BINARY_FIELD_TYPE_NVAR = 5,
+    REB_BINARY_FIELD_TYPE_VARCONFIGN = 6,
+    REB_BINARY_FIELD_TYPE_NACTIVE = 7,
+    REB_BINARY_FIELD_TYPE_TESTPARTICLETYPE = 8,
+    REB_BINARY_FIELD_TYPE_HASHCTR = 9, 
+    REB_BINARY_FIELD_TYPE_OPENINGANGLE2 = 10,
+    REB_BINARY_FIELD_TYPE_STATUS = 11,
+    REB_BINARY_FIELD_TYPE_EXACTFINISHTIME = 12,
+    REB_BINARY_FIELD_TYPE_FORCEISVELOCITYDEP = 13,
+    REB_BINARY_FIELD_TYPE_GRAVITYIGNORETERMS = 14,
+    REB_BINARY_FIELD_TYPE_OUTPUTTIMINGLAST = 15,
+    REB_BINARY_FIELD_TYPE_SAVEMESSAGES = 16,
+    REB_BINARY_FIELD_TYPE_EXITMAXDISTANCE = 17,
+    REB_BINARY_FIELD_TYPE_EXITMINDISTANCE = 18,
+    REB_BINARY_FIELD_TYPE_USLEEP = 19,
+    REB_BINARY_FIELD_TYPE_TRACKENERGYOFFSET = 20,
+    REB_BINARY_FIELD_TYPE_ENERGYOFFSET = 21,
+    REB_BINARY_FIELD_TYPE_BOXSIZE = 22, 
+    REB_BINARY_FIELD_TYPE_BOXSIZEMAX = 23, 
+    REB_BINARY_FIELD_TYPE_ROOTSIZE = 24,
+    REB_BINARY_FIELD_TYPE_ROOTN = 25,
+    REB_BINARY_FIELD_TYPE_ROOTNX = 26, 
+    REB_BINARY_FIELD_TYPE_ROOTNY = 27,
+    REB_BINARY_FIELD_TYPE_ROOTNZ = 28,
+    REB_BINARY_FIELD_TYPE_NGHOSTX = 29,
+    REB_BINARY_FIELD_TYPE_NGHOSTY = 30,
+    REB_BINARY_FIELD_TYPE_NGHOSTZ = 31,
+    REB_BINARY_FIELD_TYPE_COLLISIONRESOLVEKEEPSORTED = 32,
+    REB_BINARY_FIELD_TYPE_MINIMUMCOLLISIONVELOCITY = 33,
+    REB_BINARY_FIELD_TYPE_COLLISIONSPLOG = 34, 
+    REB_BINARY_FIELD_TYPE_MAXRADIUS = 35, 
+    REB_BINARY_FIELD_TYPE_COLLISIONSNLOG = 36, 
+    REB_BINARY_FIELD_TYPE_CALCULATEMEGNO = 37, 
+    REB_BINARY_FIELD_TYPE_MEGNOYS = 38, 
+    REB_BINARY_FIELD_TYPE_MEGNOYSS = 39, 
+    REB_BINARY_FIELD_TYPE_MEGNOCOVYT = 40,
+    REB_BINARY_FIELD_TYPE_MEGNOVART = 41, 
+    REB_BINARY_FIELD_TYPE_MEGNOMEANT = 42, 
+    REB_BINARY_FIELD_TYPE_MEGNOMEANY = 43, 
+    REB_BINARY_FIELD_TYPE_MEGNON = 44,
+    REB_BINARY_FIELD_TYPE_SASIZEFIRST = 45,
+    REB_BINARY_FIELD_TYPE_SASIZESNAPSHOT = 46,
+    REB_BINARY_FIELD_TYPE_SAINTERVAL = 47,
+    REB_BINARY_FIELD_TYPE_SANEXT = 48,
+    REB_BINARY_FIELD_TYPE_SAWALLTIME = 49,
+    REB_BINARY_FIELD_TYPE_COLLISION = 50,
+    REB_BINARY_FIELD_TYPE_INTEGRATOR = 51,
+    REB_BINARY_FIELD_TYPE_BOUNDARY = 52,
+    REB_BINARY_FIELD_TYPE_GRAVITY = 53,
+    REB_BINARY_FIELD_TYPE_SEI_OMEGA = 54,
+    REB_BINARY_FIELD_TYPE_SEI_OMEGAZ = 55,
+    REB_BINARY_FIELD_TYPE_SEI_LASTDT = 56,
+    REB_BINARY_FIELD_TYPE_SEI_SINDT = 57,
+    REB_BINARY_FIELD_TYPE_SEI_TANDT = 58,
+    REB_BINARY_FIELD_TYPE_SEI_SINDTZ = 59,
+    REB_BINARY_FIELD_TYPE_SEI_TANDTZ = 60,
+    REB_BINARY_FIELD_TYPE_WHFAST_CORRECTOR = 61,
+    REB_BINARY_FIELD_TYPE_WHFAST_RECALCJAC = 62, 
+    REB_BINARY_FIELD_TYPE_WHFAST_SAFEMODE = 63,
+    REB_BINARY_FIELD_TYPE_WHFAST_KEEPUNSYNC = 64,
+    REB_BINARY_FIELD_TYPE_WHFAST_ISSYNCHRON = 65,
+    REB_BINARY_FIELD_TYPE_WHFAST_TIMESTEPWARN = 66,
+    REB_BINARY_FIELD_TYPE_IAS15_EPSILON = 69,
+    REB_BINARY_FIELD_TYPE_IAS15_MINDT = 70,
+    REB_BINARY_FIELD_TYPE_IAS15_EPSILONGLOBAL = 71,
+    REB_BINARY_FIELD_TYPE_IAS15_ITERATIONSMAX = 72,
+    REB_BINARY_FIELD_TYPE_HERMES_HSF = 73,
+    REB_BINARY_FIELD_TYPE_HERMES_SSF = 74,
+    REB_BINARY_FIELD_TYPE_HERMES_ADAPTIVE = 75,
+    REB_BINARY_FIELD_TYPE_HERMES_TIMESTEPWARN = 76,
+    REB_BINARY_FIELD_TYPE_HERMES_STEPS = 77,
+    REB_BINARY_FIELD_TYPE_HERMES_STEPS_MA = 78,
+    REB_BINARY_FIELD_TYPE_HERMES_STEPS_MN = 79,
+    REB_BINARY_FIELD_TYPE_WHFASTH_CORRECTOR = 80,
+    REB_BINARY_FIELD_TYPE_WHFASTH_RECALCHELIO = 81,
+    REB_BINARY_FIELD_TYPE_WHFASTH_SAFEMODE = 82,
+    REB_BINARY_FIELD_TYPE_WHFASTH_TIMESTEPWARN =83,
+    REB_BINARY_FIELD_TYPE_WHFASTH_ISSYNCHRON = 84,
+    REB_BINARY_FIELD_TYPE_PARTICLES = 85,
+    REB_BINARY_FIELD_TYPE_VARCONFIG = 86,
+    REB_BINARY_FIELD_TYPE_FUNCTIONPOINTERS = 87,
+    REB_BINARY_FIELD_TYPE_IAS15_ALLOCATEDN = 88,
+    REB_BINARY_FIELD_TYPE_IAS15_AT = 89,
+    REB_BINARY_FIELD_TYPE_IAS15_X0 = 90,
+    REB_BINARY_FIELD_TYPE_IAS15_V0 = 91,
+    REB_BINARY_FIELD_TYPE_IAS15_A0 = 92,
+    REB_BINARY_FIELD_TYPE_IAS15_CSX = 93,
+    REB_BINARY_FIELD_TYPE_IAS15_CSV = 94,
+    REB_BINARY_FIELD_TYPE_IAS15_CSA0 = 95,
+    REB_BINARY_FIELD_TYPE_IAS15_G = 96,
+    REB_BINARY_FIELD_TYPE_IAS15_B = 97,
+    REB_BINARY_FIELD_TYPE_IAS15_CSB = 98,
+    REB_BINARY_FIELD_TYPE_IAS15_E = 99,
+    REB_BINARY_FIELD_TYPE_IAS15_BR = 100,
+    REB_BINARY_FIELD_TYPE_IAS15_ER = 101,
+    REB_BINARY_FIELD_TYPE_SAINTERVALWALLTIME = 102,
+    REB_BINARY_FIELD_TYPE_WHFASTH_KEEPUNSYNC = 103,
+    REB_BINARY_FIELD_TYPE_WHFAST_PJ = 104,
+    REB_BINARY_FIELD_TYPE_WHFAST_ETA = 105,
+    REB_BINARY_FIELD_TYPE_WHFASTH_PH = 106,
+    REB_BINARY_FIELD_TYPE_END = 9999,
+};
+
+/**
+ * @brief This structure is used to save and load binary files.
+ */
+struct reb_binary_field {
+    enum REB_BINARY_FIELD_TYPE type;    ///< Type of what field
+    long size;                          ///< Size in bytes of field (only what follows, not the binary field, itself).
+};
+
+
+/**
  * @brief This structure contains variables used by the SEI integrator.
  * @details This is where the user sets the orbital frequency OMEGA for 
  * shearing sheet simulations.
@@ -311,6 +435,13 @@ struct reb_simulation_integrator_whfast {
      * Access this array with caution.
      */
     struct reb_particle* restrict p_j;
+    
+    /**
+     * @brief Generate inertial coordinates at the end of the integration, but do not change the Jacobi coordinates
+     * @details Danger zone! Only use this flag if you are absolutely sure what you are doing. This is intended for
+     * simulation which have to be reproducible on a bit by bit basis.
+     */
+    unsigned int keep_unsynchronized;
 
     /**
      * @cond PRIVATE
@@ -362,6 +493,13 @@ struct reb_simulation_integrator_whfasthelio {
      * Access this array with caution.
      */
     struct reb_particle* restrict p_h;
+    
+    /**
+     * @brief Generate inertial coordinates at the end of the integration, but do not change the Heliocentric coordinates
+     * @details Danger zone! Only use this flag if you are absolutely sure what you are doing. This is intended for
+     * simulation which have to be reproducible on a bit by bit basis.
+     */
+    unsigned int keep_unsynchronized;
 
     /**
      * @cond PRIVATE
@@ -534,6 +672,21 @@ struct reb_simulation {
     double megno_mean_t;    ///< mean of t
     double megno_mean_Y;    ///< mean of MEGNO Y
     long   megno_n;     ///< number of covariance updates
+    /** @} */
+    
+    
+    /**
+     * \name Variables related to SimulationArchive 
+     * @{
+     */
+    long   simulationarchive_size_first;        ///< Size of the initial binary file in a SA
+    long   simulationarchive_size_snapshot;     ///< Size of a snapshot in a SA (other than 1st), in bytes
+    double simulationarchive_interval;          ///< Current sampling cadence, in code units
+    double simulationarchive_interval_walltime; ///< Current sampling cadence, in wall time
+    double simulationarchive_next;              ///< Next output time
+    char*  simulationarchive_filename;          ///< Name of output file
+    double simulationarchive_walltime;          ///< Current walltime since beginning of simulation
+    struct timeval simulationarchive_time;      ///< Time of last output
     /** @} */
 
     /**
@@ -1136,13 +1289,13 @@ enum reb_input_binary_messages {
     REB_INPUT_BINARY_WARNING_VERSION = 2,
     REB_INPUT_BINARY_WARNING_POINTERS = 4,
     REB_INPUT_BINARY_WARNING_PARTICLES = 8,
-    REB_INPUT_BINARY_WARNING_VARCONFIG = 16,
+    REB_INPUT_BINARY_WARNING_FIELD_UNKOWN = 128,
 };
 
 /**
- * @brief Same as reb_create_simulation_from_binary() but lets user specify the value of save_messages flag.
+ * @brief Similar to reb_create_simulation_from_binary() but allows takes simulation as an argument (will be overwritten) and allows for manual message handling.
  */
-struct reb_simulation* reb_create_simulation_from_binary_with_messages(char* filename, enum reb_input_binary_messages* messages);
+void reb_create_simulation_from_binary_with_messages(struct reb_simulation* r, char* filename, enum reb_input_binary_messages* messages);
 
 /**
  * @brief This function sets up a Plummer sphere.
@@ -1300,7 +1453,7 @@ struct reb_particle reb_particle_plus(struct reb_particle p1, struct reb_particl
 
 /**
  * @brief Multiply a particle's members by a constant.
- * @brief Multiplies particle's positions, velocities, accelerations and mass by a constant.
+ * @details Multiplies particle's positions, velocities, accelerations and mass by a constant.
  * @param p1 reb_particle to modify.
  * @param value Value by which to multiply particle's fields.
  * @returns A new particle with no pointers (not in any simulation etc.) set.
@@ -1309,7 +1462,7 @@ struct reb_particle reb_particle_multiply(struct reb_particle p1, double value);
 
 /**
  * @brief Divide a particle's members by a constant.
- * @brief Divides particle's positions, velocities, accelerations and mass by a constant.
+ * @details Divides particle's positions, velocities, accelerations and mass by a constant.
  * @param p1 reb_particle to modify.
  * @param value Value by which to divide particle's fields.
  * @returns A new particle with no pointers (not in any simulation etc.) set.
@@ -1317,6 +1470,32 @@ struct reb_particle reb_particle_multiply(struct reb_particle p1, double value);
 struct reb_particle reb_particle_divide(struct reb_particle p1, double value);
 /** @} */
 /** @} */
+
+
+/**
+ * @brief Restart a simulation using a SimulationArchive file.
+ * @detail Note that use of this function is dependent on many requirements. 
+ * See python documentation and Rein&Tamayo for full details.
+ * @param filename The name of the file to be opened. 
+ * @returns Returns a pointer to a new reb_simulation structure. Returns
+ * NULL if an error occured. 
+ */
+struct reb_simulation* reb_simulationarchive_restart(char* filename);
+
+/**
+ * @brief Load information from a specific snapshot a SimulationArchive file.
+ * @detail This function is used by the python wrapper. If you use it by itself,
+ * be sure to look at the python source code beforehand.
+ */
+int reb_simulationarchive_load_snapshot(struct reb_simulation* r, char* filename, long snapshot);
+
+/**
+ * @brief Estimate the file size of a simulation using SimulationArchive.
+ * @param r The simulation to be considered. Needs to have r->simulationarchive_interval set and particles need to be present in the simulation. 
+ * @param tmax Maximum integration time. 
+ * @returns Returns the approximate size of the SimulationArchive file in bytes.
+ */
+long reb_simulationarchive_estimate_size(struct reb_simulation* const r, double tmax);
 
 /**
  * \name Miscellaneous tools
@@ -1422,5 +1601,82 @@ void reb_error(struct reb_simulation* const r, const char* const msg);
 int reb_get_next_message(struct reb_simulation* const r, char* const buf);
 /** @} */
 /** @} */
+
+#ifdef OPENGL
+/**
+ * @cond PRIVATE
+ * Related to OpenGL visualization. Nothing to be changed by the user.
+ */
+struct reb_quaternion {
+    double x, y, z, w;
+};
+
+struct reb_display_data {
+    struct reb_simulation* r;
+    double tmax;
+    enum REB_STATUS return_status;
+    struct reb_simulation* r_copy;
+    struct reb_particle* particles_copy;
+    double* eta_copy;
+    double retina;
+    struct reb_particle* p_j_copy;
+    struct reb_particle* p_h_copy;
+    unsigned long allocated_N;
+    unsigned long allocated_N_whfast;
+    unsigned long allocated_N_whfasthelio;
+    unsigned int opengl_enabled;
+    pthread_mutex_t* mutex;         /**< Mutex to guarantee non-flickering */
+    int spheres;                    /**< Switches between point sprite and real spheres. */
+    int pause;                      /**< Pauses visualization, but keep simulation running */
+    int wire;                       /**< Shows/hides orbit wires. */
+    int onscreentext;               /**< Shows/hides onscreen text. */
+    int onscreenhelp;               /**< Shows/hides onscreen help. */
+    int multisample;                /**< Turn off/on multisampling. */
+    int clear;                      /**< Toggles clearing the display on each draw. */
+    int ghostboxes;                 /**< Shows/hides ghost boxes. */
+    int reference;                  /**< reb_particle used as a reference for centering. */
+    unsigned int mouse_action;      
+    unsigned int key_mods;      
+    double mouse_x;
+    double mouse_y;
+    struct reb_quaternion view;
+    double scale;
+    unsigned int simplefont_tex;
+    unsigned int simplefont_shader_program;
+    unsigned int simplefont_shader_vao;
+    unsigned int simplefont_shader_pos_location;
+    unsigned int simplefont_shader_ypos_location;
+    unsigned int simplefont_shader_scale_location;
+    unsigned int simplefont_shader_aspect_location;
+    unsigned int simplefont_shader_charval_buffer;
+    unsigned int box_shader_program;
+    unsigned int box_shader_box_vao;
+    unsigned int box_shader_cross_vao;
+    unsigned int box_shader_mvp_location;
+    unsigned int box_shader_color_location;
+    unsigned int point_shader_mvp_location;
+    unsigned int point_shader_color_location;
+    unsigned int point_shader_program;
+    unsigned int point_shader_particle_vao;
+    unsigned int sphere_shader_mvp_location;
+    unsigned int sphere_shader_program;
+    unsigned int sphere_shader_particle_vao;
+    unsigned int sphere_shader_vertex_count;
+    unsigned int orbit_shader_mvp_location;
+    unsigned int orbit_shader_program;
+    unsigned int orbit_shader_particle_vao;
+    unsigned int orbit_shader_vertex_count;
+};
+#else //OPENGL
+struct reb_display_data {
+    struct reb_simulation* r;
+    double tmax;
+    enum REB_STATUS return_status;
+};
+#endif // OPENGL
+/**
+ * @cond PRIVATE
+ */
+
 
 #endif
