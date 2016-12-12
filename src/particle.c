@@ -212,7 +212,7 @@ int reb_remove(struct reb_simulation* const r, int index, int keepSorted){
         struct reb_simulation* global = r->ri_hermes.global;
 
         if (keepSorted!=1){
-            reb_exit("When removing particles from a mini simulation, keepSorted must be set to 1. Make sure the 'collision_resolve_keep_sorted' flag is set to 1.");
+            reb_warning(r,"When using HERMES, r->collision_resolve_keep_sorted = 1 to avoid unpredictable behaviour when removing particles from the simulation.");
         }
         
         //remove from global and update global arrays
