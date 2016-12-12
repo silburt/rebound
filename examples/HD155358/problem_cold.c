@@ -45,7 +45,6 @@ int main(int argc, char* argv[]){
     r->ri_hermes.solar_switch_factor = 20.;
     r->testparticle_type = 1;
     //r->gravity_ignore_10 = 0; //Use if created binary with WHFAST but now using !WHFAST.
-    r->dt = 0.005;
     double tmax = 1e6;
     tout = r->t;
     
