@@ -65,11 +65,11 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
     
     double mJ = 0.00095424836;  //mass of Jupiter
-    double a1 = 0.64;
+    double a1 = 0.641;
     r->dt = 2*M_PI*pow(a1,1.5)/50;
     // Planet 1
     {
-        double a=a1, m=0.929*mJ, inc=reb_random_normal(0.00001);
+        double a=a1, m=0.926*mJ, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, 0, inc, 0, 0, 0);
         p.r = 0.000467;
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
     
     //Planet 2
     {
-        double a=1.02, m=0.841*mJ, inc=reb_random_normal(0.00001);
+        double a=1.02, m=0.853*mJ, inc=reb_random_normal(0.00001);
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, 0, inc, 0, 0, 0);
         p.r = 0.000467;

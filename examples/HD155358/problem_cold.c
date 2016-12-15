@@ -52,7 +52,7 @@ int main(int argc, char* argv[]){
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
-    r->collision_resolve_keep_sorted = 0;
+    r->collision_resolve_keep_sorted = 1;
     
     // Boundaries
     r->boundary	= REB_BOUNDARY_OPEN;
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]){
     while(r->N<(N_planetesimals + r->N_active)){
 		struct reb_particle pt = {0};
 		double a    = reb_random_powerlaw(amin,amax,powerlaw);
-        double e    = reb_random_rayleigh(0.005);
-        double inc  = reb_random_rayleigh(0.005);
+        double e    = reb_random_rayleigh(0.001);
+        double inc  = reb_random_rayleigh(0.001);
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
         double phi 	= reb_random_uniform(0,2.*M_PI);
