@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;        //Hill radii
     r->ri_hermes.adaptive_hill_switch_factor = 1;
-    r->dt = 0.063;
+    r->dt = 0.05;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -292,6 +292,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     char m1[200]={0}; strcat(m1,mercury_dir); strcat(m1,"mercury_big.in");
     char m2[200]={0}; strcat(m2,mercury_dir); strcat(m2,"mercury_small.in");
     char m3[200]={0}; strcat(m3,mercury_dir); strcat(m3,"mercury_param.in");
+    char m4[200]={0}; strcat(m4,mercury_dir); strcat(m4,"mercury.inc");
     
     printf("\ns1=%s\n",s1);
     
@@ -301,6 +302,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     FILE* mercuryb = fopen(m1,"w");
     FILE* mercurys = fopen(m2,"w");
     FILE* mercuryparams = fopen(m3,"w");
+    FILE* mercuryinc = fopen(m4,"w");
     
     //conversion options - swifter
     int alt_units = 0;
@@ -380,7 +382,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     for(int i=1;i<N_active;i++){
         struct reb_particle p = particles[i];
         double rr = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-        fprintf(mercuryb," BODY%d      m=%.16f r=%f\n",i,p.m,HSR*rr*pow(p.m/(particles[0].m*3.),2./3.));
+        fprintf(mercuryb," BD%d        m=%.16f r=%f\n",i,p.m,HSR*rr*pow(p.m/(particles[0].m*3.),2./3.));
         fprintf(mercuryb," %.16f %.16f %.16f\n",p.x - p0.x,p.y - p0.y,p.z - p0.z);
         fprintf(mercuryb," %.16f %.16f %.16f\n",(p.vx - p0.vx)*AU_d,(p.vy - p0.vy)*AU_d,(p.vz - p0.vz)*AU_d);   //AU/day
         fprintf(mercuryb," 0. 0. 0.\n");
@@ -389,7 +391,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     for(int i=N_active;i<N;i++){
         struct reb_particle p = particles[i];
         double rr = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-        fprintf(mercurys," BODY%d      m=%.16f r=%f\n",i,p.m,HSR*rr*pow(p.m/(particles[0].m*3.),2./3.));
+        fprintf(mercurys," BD%d        m=%.16f r=%f\n",i,p.m,HSR*rr*pow(p.m/(particles[0].m*3.),2./3.));
         fprintf(mercurys," %.16f %.16f %.16f\n",p.x - p0.x,p.y - p0.y,p.z - p0.z);     //AU, heliocentric
         fprintf(mercurys," %.16f %.16f %.16f\n",(p.vx - p0.vx)*AU_d,(p.vy - p0.vy)*AU_d,(p.vz - p0.vz)*AU_d);   //AU/day
         fprintf(mercurys," 0. 0. 0.\n");
@@ -435,11 +437,58 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," number of timesteps between data dumps = 500\n");
     fprintf(mercuryparams," number of timesteps between periodic effects = 100\n");
     
+    //Mercury.inc
+    int cmax; if(N > 1e4) cmax = N/100; else cmax = 50;
+    fprintf(mercuryinc,"c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c      MERCURY.INC    (ErikSoft   4 March 2001)\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c Author: John E. Chambers\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c Parameters that you may want to alter at some point:\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c NMAX  = maximum number of bodies\n");
+    fprintf(mercuryinc,"c CMAX  = maximum number of close-encounter minima monitored simultaneously\n");
+    fprintf(mercuryinc,"c NMESS = maximum number of messages in message.in\n");
+    fprintf(mercuryinc,"c HUGE  = an implausibly large number\n");
+    fprintf(mercuryinc,"c NFILES = maximum number of files that can be open at the same time\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"      integer NMAX, CMAX, NMESS, NFILES\n");
+    fprintf(mercuryinc,"      real*8 HUGE\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"      parameter (NMAX = %d)\n",N);
+    fprintf(mercuryinc,"      parameter (CMAX = %d)\n",cmax);
+    fprintf(mercuryinc,"      parameter (NMESS = 200)\n");
+    fprintf(mercuryinc,"      parameter (HUGE = 9.9d29)\n");
+    fprintf(mercuryinc,"      parameter (NFILES = 50)\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c------------------------------------------------------------------------------\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c Constants:\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"c DR = conversion factor from degrees to radians\n");
+    fprintf(mercuryinc,"c K2 = Gaussian gravitational constant squared\n");
+    fprintf(mercuryinc,"c AU = astronomical unit in cm\n");
+    fprintf(mercuryinc,"c MSUN = mass of the Sun in g\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"      real*8 PI,TWOPI,PIBY2,DR,K2,AU,MSUN\n");
+    fprintf(mercuryinc,"c\n");
+    fprintf(mercuryinc,"      parameter (PI = 3.141592653589793d0)\n");
+    fprintf(mercuryinc,"      parameter (TWOPI = PI * 2.d0)\n");
+    fprintf(mercuryinc,"      parameter (PIBY2 = PI * .5d0)\n");
+    fprintf(mercuryinc,"      parameter (DR = PI / 180.d0)\n");
+    fprintf(mercuryinc,"      parameter (K2 = 2.959122082855911d-4)\n");
+    fprintf(mercuryinc,"      parameter (AU = 1.4959787e13)\n");
+    fprintf(mercuryinc,"      parameter (MSUN = 1.9891e33)\n");
+    
     fclose(mercuryb);
     fclose(mercurys);
     fclose(swifter);
     fclose(swifterparams);
     fclose(mercuryparams);
+    fclose(mercuryinc);
 }
 
 double calc_a(struct reb_simulation* r, int index){
