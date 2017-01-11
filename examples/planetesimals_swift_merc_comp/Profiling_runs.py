@@ -7,20 +7,16 @@ import numpy as np
 import random
 
 #May31 Mercury_swifter comps
-tmax=6.28e5
-params=[(tmax,40000,13,"output/t1e5_Np40000_sd13"),(tmax,40000,14,"output/t1e5_Np40000_sd14"),(tmax,40000,50,"output/t1e5_Np40000_sd50"),(tmax,40000,60,"output/t1e5_Np40000_sd60")]
+tmax=62.84
+Np=30000
+N_runs = 3
+params = []
+for i in range(N_runs):
+    seed = int(1000*random.random())
+    name = "output/t%.0e_Np%d_sd%d"%(tmax,Np,seed)
+    params.append((tmax,Np,seed,name))
 
-#params = []
-#np.random.seed()
-#tmax = "{:.0e}".format(10000)
-#Np = np.logspace(1,4,50,dtype=int)
-#for i in xrange(0,len(Np)):
-#    seed = "{:.0f}".format(int(1000*random.random()))
-#    name = 'output/t'+tmax+'_Np'+str(Np[i])+'_HSR3_dt0.01'
-#    params.append((tmax,Np[i],seed,name))
-
-length = len(params)
-
+N_procs = 1
 os.system('make')
 
 def execute(pars):
@@ -41,8 +37,10 @@ if __name__== '__main__':
     if input == 1:
         os.system('rm -rf ../../../mercury6/input_files/*')
         os.system('rm -rf ../../../swifter/example/input_files/*')
-    pool = mp.Pool(processes=length)
-    args=[params[i] for i in xrange(0,length)]
+    pool = mp.Pool(processes=N_procs)
+    args=[params[i] for i in xrange(0,N_runs)]
     pool.map(execute, args)
     pool.close()
     pool.join()
+
+#params=[(tmax,40000,13,"output/t1e5_Np40000_sd13"),(tmax,40000,14,"output/t1e5_Np40000_sd14"),(tmax,40000,50,"output/t1e5_Np40000_sd50"),(tmax,40000,60,"output/t1e5_Np40000_sd60")]

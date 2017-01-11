@@ -79,7 +79,7 @@ counter = 1
 #HERMES
 dirP = str(sys.argv[1])
 #name = ['t5e7','Earth','ias15_', 'whfast']
-name = ['t1e6']
+name = ['t1e5']
 outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'WHFAST:Neptune']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
@@ -196,7 +196,7 @@ if mercury == 1:
         axes[0].plot(time,E[i], '.', color='salmon', alpha=alpha)
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
     axes[3].plot(time, nump, '.', markeredgecolor='none', color='darkred')
-
+'''
     #get median semi-major axis
     r = []
     day2yr2pi = 365./(2.*np.pi)
@@ -216,7 +216,7 @@ if mercury == 1:
     axes[1].plot(times_M, np.ones(len(times_M))*counter, 'o',markeredgecolor='none', ms=10,color='salmon')
     counter += 1
     ETarr.append('MERCURY')
-
+'''
 ##############################################
 #Final plotting stuff
 fontsize=10

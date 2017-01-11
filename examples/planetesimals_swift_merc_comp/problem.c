@@ -64,7 +64,7 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
    
     srand(seed);
-    int n_output = 50000;
+    int n_output = 500;
     t_log_output = pow(tmax + 1, 1./(n_output - 1));
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
@@ -363,7 +363,8 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(swifterparams,"RHILL_PRESENT  yes\n");
     
     //mercury initial:
-    double day_zero = 2451179.5;
+    //double day_zero = 2451179.5;
+    double day_zero = 0;
     fprintf(mercuryb,")O+_06 Big-body initial data  (WARNING: Do not delete this line!!)\n");
     fprintf(mercuryb,") Lines beginning with `)' are ignored.\n");
     fprintf(mercuryb,")---------------------------------------------------------------------\n");
@@ -407,7 +408,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," algorithm (MVS, BS, BS2, RADAU, HYBRID etc) = hyb\n");
     fprintf(mercuryparams," start time (days)= %f\n",day_zero);
     fprintf(mercuryparams," stop time (days) =%.1f\n",tmax*yr2day + day_zero);
-    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/r->dt/n_output)*yr2day);
+    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/n_output)*yr2day);
     fprintf(mercuryparams," timestep (days) = %f\n",r->dt*yr2day);
     fprintf(mercuryparams," accuracy parameter=1.d-12\n");
     fprintf(mercuryparams,")---------------------------------------------------------------------\n");
@@ -434,7 +435,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," < not used at present >\n");
     fprintf(mercuryparams," < not used at present >\n");
     fprintf(mercuryparams," Hybrid integrator changeover (Hill radii) = 3.\n");
-    fprintf(mercuryparams," number of timesteps between data dumps = 500\n");
+    fprintf(mercuryparams," number of timesteps between data dumps = %d\n",output_rate);
     fprintf(mercuryparams," number of timesteps between periodic effects = 100\n");
     
     //Mercury.inc
