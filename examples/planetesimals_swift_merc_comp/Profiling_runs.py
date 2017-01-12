@@ -5,10 +5,11 @@ import os
 import sys
 import numpy as np
 import random
+import time
 
 #May31 Mercury_swifter comps
 tmax=10
-N_runs = 1
+N_runs = 100
 Np=np.concatenate([np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4)])
 params = []
 for i in range(N_runs):
@@ -24,7 +25,11 @@ def execute(pars):
     swifter_dir = '../../../swifter/example/input_files/Np'+str(pars[1])+'_sd'+str(pars[2])+'/'
     os.system('mkdir '+mercury_dir)
     os.system('mkdir '+swifter_dir)
+    start = time.time()
     os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+ ' '+str(pars[3])+' '+mercury_dir+' '+swifter_dir)
+    f = open('%s_ET.txt'%str(pars[3]),'w')
+    f.write('Elapsed time is %f seconds.'%(time.time() - start))
+    f.close()
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
