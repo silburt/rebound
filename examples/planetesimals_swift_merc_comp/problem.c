@@ -88,8 +88,8 @@ int main(int argc, char* argv[]){
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
     double planetesimal_mass = 1e-8;
     //double amin = 0.4, amax = 0.6;        //for planetesimal disk
-    double amin = 0.8, amax = 1.2;
-    double powerlaw = 0.5;
+    double amin = 0.85, amax = 1.15;
+    double powerlaw = 0;
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
 		double a	= reb_random_powerlaw(amin,amax,powerlaw);
@@ -408,7 +408,8 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," algorithm (MVS, BS, BS2, RADAU, HYBRID etc) = hyb\n");
     fprintf(mercuryparams," start time (days)= %f\n",day_zero);
     fprintf(mercuryparams," stop time (days) =%.1f\n",tmax*yr2day + day_zero);
-    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/n_output)*yr2day);
+//    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/n_output)*yr2day);
+    fprintf(mercuryparams," output interval (days) = %.1f\n",tmax*yr2day + day_zero);
     fprintf(mercuryparams," timestep (days) = %f\n",r->dt*yr2day);
     fprintf(mercuryparams," accuracy parameter=1.d-12\n");
     fprintf(mercuryparams,")---------------------------------------------------------------------\n");
@@ -435,7 +436,8 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams," < not used at present >\n");
     fprintf(mercuryparams," < not used at present >\n");
     fprintf(mercuryparams," Hybrid integrator changeover (Hill radii) = 3.\n");
-    fprintf(mercuryparams," number of timesteps between data dumps = %d\n",output_rate);
+    //fprintf(mercuryparams," number of timesteps between data dumps = %d\n",output_rate);
+    fprintf(mercuryparams," number of timesteps between data dumps = 10000\n");
     fprintf(mercuryparams," number of timesteps between periodic effects = 100\n");
     
     //Mercury.inc

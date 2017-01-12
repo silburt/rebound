@@ -7,14 +7,14 @@ import numpy as np
 import random
 
 #May31 Mercury_swifter comps
-tmax=62.84
-Np=30000
-N_runs = 3
+tmax=10
+N_runs = 100
+Np=np.concatenate([np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4)])
 params = []
 for i in range(N_runs):
     seed = int(1000*random.random())
-    name = "output/t%.0e_Np%d_sd%d"%(tmax,Np,seed)
-    params.append((tmax,Np,seed,name))
+    name = "output/t%.0e_Np%d_sd%d"%(tmax,int(Np[i]),seed)
+    params.append((tmax,int(Np[i]),seed,name))
 
 N_procs = 1
 os.system('make')
@@ -24,7 +24,8 @@ def execute(pars):
     swifter_dir = '../../../swifter/example/input_files/Np'+str(pars[1])+'_sd'+str(pars[2])+'/'
     os.system('mkdir '+mercury_dir)
     os.system('mkdir '+swifter_dir)
-    os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+ ' '+str(pars[3])+' '+mercury_dir+' '+swifter_dir)
+    #os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+ ' '+str(pars[3])+' '+mercury_dir+' '+swifter_dir)
+    print pars
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
