@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 1;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 3;        //Hill radii
     r->dt = 0.04;
     double tmax = atof(argv[1]);
     
