@@ -41,10 +41,11 @@ int main(int argc, char* argv[]){
     r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 6;        //Hill radii
-    r->dt = 0.015;
+    r->ri_hermes.hill_switch_factor = 1;        //Hill radii
+    r->dt = 0.04;
     double tmax = atof(argv[1]);
     
+    r->collision_resolve_keep_sorted = 1;
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_hardsphere;
     r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
    
     srand(seed);
-    int n_output = 50000;
+    int n_output = 10000;
     t_log_output = pow(tmax + 1, 1./(n_output - 1));
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]){
     //double total_planetesimal_mass = 500e-8;
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
     int N_planetesimals = 200;
-    double planetesimal_mass = 2.5e-7;
+    double planetesimal_mass = 1e-8;
     double amin = 0.98, amax = 1.02;
     double powerlaw = 0.5;
     while(r->N<N_planetesimals + r->N_active){
@@ -87,24 +88,10 @@ int main(int argc, char* argv[]){
 		double a	= reb_random_powerlaw(amin,amax,powerlaw);
         double phi 	= reb_random_uniform(0,2.*M_PI);
         double inc = reb_random_normal(0.00001);
+        double e = reb_random_uniform(0,0.01);
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
-        /*
-        double dx = pt.x - r->particles[1].x;
-        double dy = pt.y - r->particles[1].y;
-        double dz = pt.z - r->particles[1].z;
-        while (pow(dx*dx+dy*dy+dz*dz,0.5) < rh*r->ri_hermes.hill_switch_factor){
-            a	= reb_random_powerlaw(amin,amax,powerlaw);
-            phi 	= reb_random_uniform(0,2.*M_PI);
-            inc = reb_random_normal(0.00001);
-            Omega = reb_random_uniform(0,2.*M_PI);
-            apsis = reb_random_uniform(0,2.*M_PI);
-            pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
-            dx = pt.x - r->particles[1].x;
-            dy = pt.y - r->particles[1].y;
-            dz = pt.z - r->particles[1].z;
-        }*/
+        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, e, inc, Omega, apsis,phi);
 		pt.r 		= 4e-5;
         pt.hash = r->N;
 		reb_add(r, pt);
@@ -155,12 +142,10 @@ void heartbeat(struct reb_simulation* r){
         struct tm *tmp2 = gmtime(&t_curr);
         double time = t_curr - t_ini;
         
-        //
         //counting close encounters + calculate angle
         int count_CE = 1;
         if(count_CE){
             struct reb_simulation* mini = r->ri_hermes.mini;
-    
             int tempL_CE = L_CE;
             for(int i=mini->N_active;i<mini->N;i++){//check if entered
                 int mini_id = mini->particles[i].hash;
@@ -187,15 +172,15 @@ void heartbeat(struct reb_simulation* r){
                 }
                 if(found_in_mini == 0){//couldn't find in mini, must have left
                     L_CE--;
-                    for(int k=i;k<tempL_CE2-1;k++) in_mini[k] = in_mini[k+1];
-                    in_mini[tempL_CE2] = 0;
+                    for(int k=i;k<L_CE;k++) in_mini[k] = in_mini[k+1];
+                    in_mini[L_CE+1] = 0;
                 }
             }
         }
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%e\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0));
+        fprintf(append, "%e,%e,%d,%d,%.1f,%d,%f\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,r->ri_hermes.current_hill_switch_factor);
         fclose(append);
     }
     
