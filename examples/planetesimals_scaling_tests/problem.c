@@ -32,9 +32,14 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
+    //args
+    int test_dt = 0;
+    double HSF_or_dt = atof(argv[1]);  //HSF or dt depending on test_dt value
+    strcat(output_name,argv[2]); strcat(output_name,".txt"); argv4=argv[2];
+    double theta = atof(argv[3])*PI;    //planetesimal angle around the planet (0-pi)
+    double f = atof(argv[4])*2*PI;      //intiial position of planet in orbit.
     
     int seed = 10;
-    strcat(output_name,argv[2]); strcat(output_name,".txt"); argv4=argv[2];
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -42,24 +47,23 @@ int main(int argc, char* argv[]){
     r->ri_hermes.adaptive_hill_switch_factor = 0; 
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->usleep = 1000;
+    r->usleep = 300;
     
     double afac = 1;
     double mfac = 1;
     double mpfac = 1;
     
     //which test?
-    int test_dt = 0;
     double tmax;
     if(test_dt){//testing dt
         tmax = 1e5;
         //tmax = 10 * pow(afac,1.5);
         r->ri_hermes.hill_switch_factor = 6;        //units of Hill radii
-        r->dt = atof(argv[1]) * 6.28319;
+        r->dt = HSF_or_dt * 6.28319;
     } else {//testing HSR
         //tmax = 10 * pow(afac,1.5);
         tmax = 7;
-        r->ri_hermes.hill_switch_factor = atof(argv[1]);
+        r->ri_hermes.hill_switch_factor = HSF_or_dt;
         r->dt = 0.001;
     }
     
@@ -87,35 +91,29 @@ int main(int argc, char* argv[]){
     printf("tlogoutput=%f",t_log_output);
     
     //planet 1
+    double a=1*afac;
     {
-        double a=1*afac, m=5e-5*mfac, e=0, inc = reb_random_normal(0.00001);
-        //double a=1, m=5e-4, e=0, inc = reb_random_normal(0.00001);
+        double m=5e-5*mfac, e=0, inc = reb_random_normal(0.00001);
         struct reb_particle p1 = {0};
-        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p1 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, f);
         p1.r = 1.6e-4;              //radius of particle is in AU!
         reb_add(r, p1);
     }
     
     r->N_active = r->N;
-    
     double planetesimal_mass = 1e-8*mpfac;
     {//planetesimal
-        double rr = 0.001;
-        double theta = atof(argv[3])*PI;
-        double f = rr*sin(theta);
-        double dx = rr*sin(theta - PI/2.);
-        double vy = 1.1*pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
-        double vx = pow(2*r->G*r->particles[1].m/rr,0.5)*cos(theta);
-
-        printf("\nvx=%f,vy=%f\n",vx,vy);
-        
+        double rr = 0.005;
+        //double vy = 1.1*pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
+        //double vx = pow(2*r->G*r->particles[1].m/rr,0.5)*cos(theta);
         struct reb_particle pt = {0};
-        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, r->particles[1].x + dx, 0, 0, 0, 0, f);
-        pt.vy += vy;
-        pt.vx += vx;
+        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a + rr*cos(theta), 0, 0, 0, 0, f+rr*sin(theta));
+        pt.vy += r->particles[1].vy/6.5;
+        pt.vx += r->particles[1].vx/6.5;
         pt.r = 4e-5;
         reb_add(r, pt);
     }
+    printf("\np=%f, pl=%f\n\n", sqrt(pow(r->particles[1].x,2)+pow(r->particles[1].y,2)), sqrt(pow(r->particles[2].x,2)+pow(r->particles[2].y,2)));
 
     reb_move_to_com(r);
     /*
@@ -192,7 +190,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%d,%d,%.1f,%d,%.16f,%.16f\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E);
+        fprintf(append, "%e,%e,%d,%d,%.1f,%d,%.16f,%.16f\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E);
         fclose(append);
     }
     
