@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.adaptive_hill_switch_factor = 0; 
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->usleep = 300;
+    //r->usleep = 300;
     
     double afac = 1;
     double mfac = 1;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]){
         pt.r = 4e-5;
         reb_add(r, pt);
     }
-    printf("\np=%f, pl=%f\n\n", sqrt(pow(r->particles[1].x,2)+pow(r->particles[1].y,2)), sqrt(pow(r->particles[2].x,2)+pow(r->particles[2].y,2)));
+    //printf("\np=%f, pl=%f\n\n", sqrt(pow(r->particles[1].x,2)+pow(r->particles[1].y,2)), sqrt(pow(r->particles[2].x,2)+pow(r->particles[2].y,2)));
 
     reb_move_to_com(r);
     /*
@@ -190,7 +190,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%e,%e,%d,%d,%.1f,%d,%.16f,%.16f\n",r->t,dE,r->N,r->ri_hermes.mini->N,time,N_CE,fabs(E-E0),E);
+        fprintf(append, "%e,%e,%d,%d,%.1f,%d\n",r->t,dE,r->N,r->ri_hermes.mini->N);
         fclose(append);
     }
     
