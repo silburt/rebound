@@ -11,14 +11,14 @@ import numpy as np
 
 N_runs = 200
 HSF = 3
-theta = np.linspace(0,N_runs)
-f = random.sample(np.linspace(0,1,N_runs), N_runs)
+theta = np.linspace(0,1,N_runs)
+ff = random.sample(np.linspace(0,1,N_runs), N_runs)
 
 runs = []
 dir = 'output/'
 for i in xrange(0,N_runs):
-    name = dir+'HSF3_theta%.2f_f%.2f'%(theta[i],f[i])
-    runs.append([HSF,name,theta[i],f[i]])
+    name = dir+'HSF3_theta%.2f_f%.2f'%(theta[i],ff[i])
+    runs.append([HSF,name,theta[i],ff[i]])
 
 os.system('make')
 
