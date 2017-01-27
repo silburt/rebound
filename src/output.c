@@ -228,15 +228,13 @@ void reb_output_binary(struct reb_simulation* r, char* filename){
 
     // Output header.
     const char str[] = "REBOUND Binary File. Version: ";
+    char zero = '\0';
     size_t lenheader = strlen(str)+strlen(reb_version_str);
     fwrite(str,sizeof(char),strlen(str),of);
     fwrite(reb_version_str,sizeof(char), strlen(reb_version_str),of);
-    while (lenheader<64){ //padding
-        char space = ' ';
-        if (lenheader==63) space = '\0';
-        fwrite(&space,sizeof(char),1,of);
-        lenheader += 1;
-    }
+    fwrite(&zero,sizeof(char),1,of);
+    fwrite(reb_githash_str,sizeof(char),62-lenheader,of);
+    fwrite(&zero,sizeof(char),1,of);
    
     WRITE_FIELD(T,                  &r->t,                              sizeof(double));
     WRITE_FIELD(G,                  &r->G,                              sizeof(double));
@@ -289,6 +287,7 @@ void reb_output_binary(struct reb_simulation* r, char* filename){
     WRITE_FIELD(SANEXT,             &r->simulationarchive_next,         sizeof(long));
     WRITE_FIELD(SAWALLTIME,         &r->simulationarchive_walltime,     sizeof(double));
     WRITE_FIELD(COLLISION,          &r->collision,                      sizeof(int));
+    WRITE_FIELD(VISUALIZATION,      &r->visualization,                  sizeof(int));
     WRITE_FIELD(INTEGRATOR,         &r->integrator,                     sizeof(int));
     WRITE_FIELD(BOUNDARY,           &r->boundary,                       sizeof(int));
     WRITE_FIELD(GRAVITY,            &r->gravity,                        sizeof(int));
