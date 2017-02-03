@@ -79,7 +79,7 @@ counter = 1
 #HERMES
 dirP = str(sys.argv[1])
 #name = ['t5e7','Earth','ias15_', 'whfast']
-name = ['t1e5']
+name = ['t6e+01']
 outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'WHFAST:Neptune']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
@@ -184,18 +184,18 @@ if mercury == 1:
             split = data[j][i].split()
             if float(split[1]) == t:
                 vals_for_med[j] = float(split[4])
-                vals_for_nump[j] = int(split[7])
+                #vals_for_nump[j] = int(split[7])
                 E[j][i] = vals_for_med[j]
             else:
                 print 'problem, times dont match'
         Eavg[i] = np.median(vals_for_med)
         time[i] = float(split[1])
-        nump[i] = np.median(vals_for_nump)
+        #nump[i] = np.median(vals_for_nump)
 
     for i in xrange(0,N_files):
         axes[0].plot(time,E[i], '.', color='salmon', alpha=alpha)
     axes[0].plot(time, Eavg, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
-    axes[3].plot(time, nump, '.', markeredgecolor='none', color='darkred')
+    #axes[3].plot(time, nump, '.', markeredgecolor='none', color='darkred')
 '''
     #get median semi-major axis
     r = []
