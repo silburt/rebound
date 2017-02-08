@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
     {
         double m_neptune = 5e-5, r_neptune = 1.6e-4;
         double m_earth = 3e-6, r_earth = 0.00004258689;
-        double a=1, m=m_neptune, e=0.01, inc=reb_random_normal(0.00001);
+        double a=1, m=m_neptune, e=0.9, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = r_neptune;
@@ -152,10 +152,6 @@ void heartbeat(struct reb_simulation* r){
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
         
-        time_t t_curr = time(NULL);
-        struct tm *tmp2 = gmtime(&t_curr);
-        double time = t_curr - t_ini;
-        
         /*
         //
         //counting close encounters + calculate angle
@@ -218,7 +214,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%f,%e,%d,%d,%d,%.1f,%f,%e\n",r->t,dE,r->N,mini_N,mini_active,time,calc_a(r,1),r->ri_hermes.hill_switch_factor);
+        fprintf(append, "%f,%e,%d,%d,%d,%f,%e\n",r->t,dE,r->N,mini_N,mini_active,calc_a(r,1),r->ri_hermes.hill_switch_factor);
         fclose(append);
     }
     

@@ -79,7 +79,7 @@ counter = 1
 #HERMES
 dirP = str(sys.argv[1])
 #name = ['t5e7','Earth','ias15_', 'whfast']
-name = ['t6e+01']
+name = ['t1e+06']
 outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'WHFAST:Neptune']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
@@ -91,7 +91,7 @@ for ii in range(len(name)):
     while i < N:    #just want the main .txt files
         f = files[i]
         string = f.split("_")
-        if ("removed" in string[-1]) or ("elapsed" in string[-1]):
+        if ("removed" in string[-1]) or ("elapsed" in string[-1]) or ("ET" in string[-1]):
             files.remove(files[i])
             N -= 1
         else:
@@ -101,7 +101,8 @@ for ii in range(len(name)):
     Npar = []
     aa = []
     for f in files:
-        time, E, Np, miniN, mini_active, elapsedtime, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
+        #time, E, Np, miniN, mini_active, elapsedtime, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
+        time, E, Np, miniN, mini_active, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
         axes[0].plot(time/(2*np.pi),E, '.', color=color_back[ii], alpha=alpha)
         aa.append(a)
         #axes[2].plot(time/(2*np.pi),a,'.',color=color_back[ii],alpha=alpha)

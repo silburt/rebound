@@ -8,9 +8,10 @@ import random
 import time
 
 #May31 Mercury_swifter comps
-tmax=10
-N_runs = 100
-Np=np.concatenate([np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4)])
+tmax=1e6
+N_runs = 1
+#Np=np.concatenate([np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4)])
+Np = [0]
 params = []
 for i in range(N_runs):
     seed = int(1000*random.random())
