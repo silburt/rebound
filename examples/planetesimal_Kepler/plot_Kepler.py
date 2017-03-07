@@ -17,9 +17,9 @@ data = pd.read_csv("planets.csv",names=header, delimiter=',',usecols=usecols,ski
 #data = data[data["Npl"] == 3]
 
 #Parameters
-var = 'r'           #variable to plot
-res_thresh = 0.3   #distance from resonance.
-res = 4./3.
+var = 'm'           #variable to plot
+res_thresh = 1      #distance from resonance.
+res = 2
 
 systems = np.unique(data['name'])
 
@@ -30,7 +30,8 @@ for n in systems:
     Pratio = Parr[1:]/Parr[0:-1]
     index2 = np.where(np.abs(Pratio - res) < res_thresh)[0]
     for idx in index2:
-        if vararr[idx] > 0 and vararr[idx+1] > 0:
+        #if vararr[idx] > 0 and vararr[idx+1] > 0:
+        if vararr[idx] > 0.5 and vararr[idx+1] > 0.5:
             if var == 'm':
                 ax.scatter(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]))
                 ax.text(Pratio[idx],np.log10(vararr[idx]), np.log10(vararr[idx+1]),'%s'%(n), size=10, zorder=1, color='k')
