@@ -12,8 +12,7 @@ double E0;
 
 void heartbeat(struct reb_simulation* r){
     double dE = (reb_tools_energy(r) - E0)/E0;
-	printf("%f, %e, %e, %e\n",r->t,dE, E0, reb_tools_energy(r));
-    //exit(0);
+	printf("%f, %e\n",r->t,dE);
 }
 
 int main(int argc, char* argv[]) {
@@ -29,11 +28,13 @@ int main(int argc, char* argv[]) {
 	reb_add(r, p1);
 	
 	struct reb_particle p2 = {0};
-    p2.m = 1e-4;
+    p2.m = 1e-3;
 	p2.x = 1;
 	p2.vy = 1;
 	reb_add(r, p2);
 
+    r->N_active = r->N;
+    reb_move_to_com(r);
     E0 = reb_tools_energy(r);
     
 	reb_integrate(r,1e6);

@@ -1,5 +1,3 @@
-//This is a modification by Ari Silburt for the WHDS algorithm (Hernandez, 2016).
-
 /**
  * @file    integrator_whfasthelio.c
  * @brief   WHFASTHELIO integration scheme.
@@ -44,8 +42,7 @@
 
 /***************************** 
  * Operators                 */
-/*
- static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
+static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
     const double m0 = r->particles[0].m;
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
@@ -58,26 +55,6 @@
         pz += p_h[i].m* p_h[i].vz;
     }
     for (unsigned int i=1;i<N_real;i++){
-        p_h[i].x += _dt * px/m0;
-        p_h[i].y += _dt * py/m0;
-        p_h[i].z += _dt * pz/m0;
-    }
-}
-*/
-
-static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
-    const double m0 = r->particles[0].m;
-    const int N_real = r->N-r->N_var;
-    struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-    for(int i=1;i<N_real;i++){
-        double px = 0;
-        double py = 0;
-        double pz = 0;
-        for(int j=i+1;j<N_real;j++){
-            px += p_h[j].m* p_h[j].vx;
-            py += p_h[j].m* p_h[j].vy;
-            pz += p_h[j].m* p_h[j].vz;
-        }
         p_h[i].x += _dt * px/m0;
         p_h[i].y += _dt * py/m0;
         p_h[i].z += _dt * pz/m0;
@@ -98,13 +75,10 @@ static void reb_whfasthelio_interaction_step(const struct reb_simulation* const 
 static void reb_whfasthelio_keplerstep(const struct reb_simulation* const r, const double _dt){
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-    const double m0 = r->particles[0].m;
+    const double M = r->particles[0].m*r->G;
 #pragma omp parallel for
     for (unsigned int i=1;i<N_real;i++){
-        double mi = p_h[i].m;
-        double mu = mi*m0/(mi + m0);
-        double mass_term = mu + (mi + m0);
-        kepler_step(r, p_h, r->G*mass_term, i, _dt);
+        kepler_step(r, p_h, M, i, _dt);
     }
     p_h[0].x += _dt*p_h[0].vx;
     p_h[0].y += _dt*p_h[0].vy;
@@ -176,7 +150,7 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
     }else{
         reb_transformations_democratic_heliocentric_to_inertial_pos(particles, ri_whfasthelio->p_h, N_real);
     }
-    
+
     r->t+=r->dt/2.;
 }
 
@@ -207,9 +181,8 @@ void reb_integrator_whfasthelio_synchronize(struct reb_simulation* const r){
 void reb_integrator_whfasthelio_part2(struct reb_simulation* const r){
     struct reb_simulation_integrator_whfasthelio* const ri_whfasthelio = &(r->ri_whfasthelio);
 
-    reb_whfasthelio_jump_step(r,r->dt/2.);
     reb_whfasthelio_interaction_step(r,r->dt);
-    reb_whfasthelio_jump_step(r,r->dt/2.);
+    reb_whfasthelio_jump_step(r,r->dt);
     
     ri_whfasthelio->is_synchronized=0;
     if (ri_whfasthelio->safe_mode){
