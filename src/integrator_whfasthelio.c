@@ -66,9 +66,9 @@
 */
 
 static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
-    const double m0 = r->particles[0].m;
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
+    const double m0 = r->particles[0].m;    //particles[0].m should be solar mass, p_h[0]
     for(int i=1;i<N_real;i++){
         double px = 0;
         double py = 0;
