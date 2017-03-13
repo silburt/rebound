@@ -68,19 +68,14 @@
 static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-    const double m0 = r->particles[0].m;    //particles[0].m should be solar mass, p_h[0]
+    const double m0 = r->particles[0].m;    //particles[0].m = solar mass (p_h[0] = total mass)
     for(int i=1;i<N_real;i++){
-        double px = 0;
-        double py = 0;
-        double pz = 0;
-        for(int j=i+1;j<N_real;j++){
-            px += p_h[j].m* p_h[j].vx;
-            py += p_h[j].m* p_h[j].vy;
-            pz += p_h[j].m* p_h[j].vz;
-        }
-        p_h[i].x += _dt * px/m0;
-        p_h[i].y += _dt * py/m0;
-        p_h[i].z += _dt * pz/m0;
+    for(int j=1;j<N_real;j++){
+        if(i==j) continue;
+        p_h[i].x += _dt * p_h[j].m * p_h[j].vx / m0;
+        p_h[i].y += _dt * p_h[j].m * p_h[j].vy / m0;
+        p_h[i].z += _dt * p_h[j].m * p_h[j].vz / m0;
+    }
     }
 }
 
@@ -101,10 +96,7 @@ static void reb_whfasthelio_keplerstep(const struct reb_simulation* const r, con
     const double m0 = r->particles[0].m;
 #pragma omp parallel for
     for (unsigned int i=1;i<N_real;i++){
-        double mi = p_h[i].m;
-        double mu = mi*m0/(mi + m0);
-        double mass_term = mu + (mi + m0);
-        kepler_step(r, p_h, r->G*mass_term, i, _dt);
+        kepler_step(r, p_h, r->G*(p_h[i].m + m0), i, _dt);
     }
     p_h[0].x += _dt*p_h[0].vx;
     p_h[0].y += _dt*p_h[0].vy;
@@ -156,21 +148,23 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
             }
         }
         ri_whfasthelio->recalculate_heliocentric_this_timestep = 0;
-        reb_transformations_inertial_to_democratic_heliocentric_posvel(particles, ri_whfasthelio->p_h, N_real);
+        reb_transformations_inertial_to_democratic_heliocentric_posvel(particles, ri_whfasthelio->p_h, N_real); //calc every time
     }
 
     if (ri_whfasthelio->is_synchronized==1){
         // First half DRIFT step
         if (ri_whfasthelio->corrector){
-            reb_whfast_apply_corrector(r, 1.,ri_whfasthelio->corrector,reb_whfasthelio_corrector_Z);
+            reb_whfast_apply_corrector(r, 1.,ri_whfasthelio->corrector,reb_whfasthelio_corrector_Z);    //not done
         }
-        reb_whfasthelio_keplerstep(r,r->dt/2.);
+        reb_whfasthelio_keplerstep(r,r->dt/2.); //calc every time
     }else{
         // Combined DRIFT step
         reb_whfasthelio_keplerstep(r,r->dt);
     }
     
-    // For force calculation:
+    reb_whfasthelio_jump_step(r,r->dt/2.);
+    
+    // For force calculation - need to update inertial positions based off updated positions from kepler drift.
     if (r->force_is_velocity_dependent){
         reb_transformations_democratic_heliocentric_to_inertial_posvel(particles, ri_whfasthelio->p_h, N_real);
     }else{
@@ -207,9 +201,8 @@ void reb_integrator_whfasthelio_synchronize(struct reb_simulation* const r){
 void reb_integrator_whfasthelio_part2(struct reb_simulation* const r){
     struct reb_simulation_integrator_whfasthelio* const ri_whfasthelio = &(r->ri_whfasthelio);
 
-    reb_whfasthelio_jump_step(r,r->dt/2.);
-    reb_whfasthelio_interaction_step(r,r->dt);
-    reb_whfasthelio_jump_step(r,r->dt/2.);
+    reb_whfasthelio_interaction_step(r,r->dt);  //updates p_h.vx
+    reb_whfasthelio_jump_step(r,r->dt/2.);      //uses p_h.vx to update p_h.x
     
     ri_whfasthelio->is_synchronized=0;
     if (ri_whfasthelio->safe_mode){

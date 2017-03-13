@@ -12,7 +12,8 @@ double E0;
 
 void heartbeat(struct reb_simulation* r){
     double dE = (reb_tools_energy(r) - E0)/E0;
-	printf("%f, %e\n",r->t,dE);
+	reb_output_timing(r, 0);
+    printf("%e",dE);
 }
 
 int main(int argc, char* argv[]) {
