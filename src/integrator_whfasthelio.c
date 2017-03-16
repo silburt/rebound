@@ -139,7 +139,7 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
         ri_whfasthelio->recalculate_heliocentric_this_timestep = 1;
     }
 
-    if (ri_whfasthelio->safe_mode || ri_whfasthelio->recalculate_heliocentric_this_timestep == 1){
+    if (ri_whfasthelio->safe_mode || ri_whfasthelio->recalculate_heliocentric_this_timestep == 1){  //safe_mode == 1
         if (ri_whfasthelio->is_synchronized==0){
             reb_integrator_whfasthelio_synchronize(r);
             if (ri_whfasthelio->recalculate_heliocentric_but_not_synchronized_warning==0){
@@ -156,12 +156,13 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
         if (ri_whfasthelio->corrector){
             reb_whfast_apply_corrector(r, 1.,ri_whfasthelio->corrector,reb_whfasthelio_corrector_Z);    //not done
         }
-        reb_whfasthelio_keplerstep(r,r->dt/2.); //calc every time
+        reb_whfasthelio_keplerstep(r,r->dt/2.);                                                         //calc every time
     }else{
         // Combined DRIFT step
         reb_whfasthelio_keplerstep(r,r->dt);
     }
     
+    //A.S. updates positions before force calc
     reb_whfasthelio_jump_step(r,r->dt/2.);
     
     // For force calculation - need to update inertial positions based off updated positions from kepler drift.
