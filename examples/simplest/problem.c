@@ -47,14 +47,14 @@ int main(int argc, char* argv[]) {
         reb_add(r, p);
     }
     
-//    {
-//        double m=1e-5, a=2, e=0.1;
-//        struct reb_particle p = {0};
-//        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, reb_random_uniform(0,2.*M_PI));
-//        p.r = 0.000467;
-//        p.hash = r->N;
-//        reb_add(r, p);
-//    }
+    {
+        double m=1e-5, a=2, e=0.1;
+        struct reb_particle p = {0};
+        p = reb_tools_orbit_to_particle(r->G, star, 0, a, e, 0, 0, 0, reb_random_uniform(0,2.*M_PI));
+        p.r = 0.000467;
+        p.hash = r->N;
+        reb_add(r, p);
+    }
 
     //r->N_active = r->N;
     reb_move_to_com(r);

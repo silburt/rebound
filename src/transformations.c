@@ -32,10 +32,10 @@
  * Jacobi */
 
 void reb_transformations_calculate_jacobi_eta(const struct reb_particle* const ps, double* const eta, const int N){
-      eta[0] = ps[0].m;
-      for (unsigned int i=1;i<N;i++){
-          eta[i] = eta[i-1] + ps[i].m;
-      }
+    eta[0] = ps[0].m;
+    for (unsigned int i=1;i<N;i++){
+        eta[i] = eta[i-1] + ps[i].m;
+    }
 }
 
 void reb_transformations_calculate_jacobi_masses(const struct reb_particle* const ps, double* const m_j, double* const eta, const int N){
@@ -313,4 +313,3 @@ void reb_transformations_democratic_heliocentric_to_inertial_posvel(struct reb_p
         particles[0].vz -= p_h[i].vz*mf;
     }
 }
-

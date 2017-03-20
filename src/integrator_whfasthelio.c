@@ -5,7 +5,7 @@
  * @details This file implements the WHFast integration scheme in
  *          Heliocentric Coordinates.
  *          Based on WHFast, described in Rein & Tamayo 2015.
- * 
+ *
  * @section LICENSE
  * Copyright (c) 2016 Hanno Rein, Daniel Tamayo
  *
@@ -40,19 +40,19 @@
 #include "integrator_whfast.h"
 #include "integrator_whfasthelio.h"
 
-/***************************** 
+/*****************************
  * Operators                 */
 static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-    const double m0 = r->particles[0].m;    //particles[0].m = solar mass (p_h[0] = total mass)
+    const double m0 = r->particles[0].m;
     for(int i=1;i<N_real;i++){
-    for(int j=1;j<N_real;j++){
-        if(i==j) continue;
-        p_h[i].x += _dt * p_h[j].m * p_h[j].vx / m0;
-        p_h[i].y += _dt * p_h[j].m * p_h[j].vy / m0;
-        p_h[i].z += _dt * p_h[j].m * p_h[j].vz / m0;
-    }
+        for(int j=1;j<N_real;j++){
+            if(i==j) continue;
+            p_h[i].x += _dt * r->particles[j].m * p_h[j].vx / (m0+ r->particles[j].m);
+            p_h[i].y += _dt * r->particles[j].m * p_h[j].vy / (m0+ r->particles[j].m);
+            p_h[i].z += _dt * r->particles[j].m * p_h[j].vz / (m0+ r->particles[j].m);
+        }
     }
 }
 
@@ -60,9 +60,9 @@ static void reb_whfasthelio_interaction_step(const struct reb_simulation* const 
     struct reb_particle* particles = r->particles;
     const int N_real = r->N-r->N_var;
     struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-    const double m0 = r->particles[0].m;   
+    const double m0 = r->particles[0].m;
     for (unsigned int i=1;i<N_real;i++){
-        const double m = r->particles[i].m;  
+        const double m = r->particles[i].m;
         p_h[i].vx += _dt*particles[i].ax*(m+m0)/m0;
         p_h[i].vy += _dt*particles[i].ay*(m+m0)/m0;
         p_h[i].vz += _dt*particles[i].az*(m+m0)/m0;
@@ -82,7 +82,7 @@ static void reb_whfasthelio_keplerstep(const struct reb_simulation* const r, con
     p_h[0].z += _dt*p_h[0].vz;
 }
 
-/***************************** 
+/*****************************
  * Correctors                */
 
 static void reb_whfasthelio_corrector_Z(struct reb_simulation* r, const double a, const double b){
@@ -110,15 +110,15 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
     struct reb_particle* restrict const particles = r->particles;
     const int N_real = r->N - r->N_var;
     r->gravity_ignore_terms = 2;
-
-
+    
+    
     if (ri_whfasthelio->allocated_N != N_real){
         ri_whfasthelio->allocated_N = N_real;
         ri_whfasthelio->p_h = realloc(ri_whfasthelio->p_h,sizeof(struct reb_particle)*N_real);
         ri_whfasthelio->recalculate_heliocentric_this_timestep = 1;
     }
-
-    if (ri_whfasthelio->safe_mode || ri_whfasthelio->recalculate_heliocentric_this_timestep == 1){  //safe_mode == 1
+    
+    if (ri_whfasthelio->safe_mode || ri_whfasthelio->recalculate_heliocentric_this_timestep == 1){
         if (ri_whfasthelio->is_synchronized==0){
             reb_integrator_whfasthelio_synchronize(r);
             if (ri_whfasthelio->recalculate_heliocentric_but_not_synchronized_warning==0){
@@ -127,23 +127,22 @@ void reb_integrator_whfasthelio_part1(struct reb_simulation* const r){
             }
         }
         ri_whfasthelio->recalculate_heliocentric_this_timestep = 0;
-        reb_transformations_inertial_to_democratic_heliocentric_posvel(particles, ri_whfasthelio->p_h, N_real); //calc every time
+        reb_transformations_inertial_to_democratic_heliocentric_posvel(particles, ri_whfasthelio->p_h, N_real);
     }
-
+    
     if (ri_whfasthelio->is_synchronized==1){
         // First half DRIFT step
         if (ri_whfasthelio->corrector){
-            reb_whfast_apply_corrector(r, 1.,ri_whfasthelio->corrector,reb_whfasthelio_corrector_Z);    //not done
+            reb_whfast_apply_corrector(r, 1.,ri_whfasthelio->corrector,reb_whfasthelio_corrector_Z);
         }
-        reb_whfasthelio_keplerstep(r,r->dt/2.);                                                         //calc every time
+        reb_whfasthelio_keplerstep(r,r->dt/2.);
     }else{
         // Combined DRIFT step
         reb_whfasthelio_keplerstep(r,r->dt);
     }
     
-
     reb_whfasthelio_jump_step(r,r->dt/2.);
-
+    
     // For force calculation:
     if (r->force_is_velocity_dependent){
         reb_transformations_democratic_heliocentric_to_inertial_posvel(particles, ri_whfasthelio->p_h, N_real);
@@ -180,7 +179,7 @@ void reb_integrator_whfasthelio_synchronize(struct reb_simulation* const r){
 
 void reb_integrator_whfasthelio_part2(struct reb_simulation* const r){
     struct reb_simulation_integrator_whfasthelio* const ri_whfasthelio = &(r->ri_whfasthelio);
-
+    
     reb_whfasthelio_interaction_step(r,r->dt);
     reb_whfasthelio_jump_step(r,r->dt/2.);
     
@@ -188,11 +187,11 @@ void reb_integrator_whfasthelio_part2(struct reb_simulation* const r){
     if (ri_whfasthelio->safe_mode){
         reb_integrator_whfasthelio_synchronize(r);
     }
-
+    
     r->t+=r->dt/2.;
     r->dt_last_done = r->dt;
 }
-    
+
 void reb_integrator_whfasthelio_reset(struct reb_simulation* const r){
     struct reb_simulation_integrator_whfasthelio* const ri_whfasthelio = &(r->ri_whfasthelio);
     ri_whfasthelio->allocated_N = 0;
