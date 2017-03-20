@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
-    int mercury_swifter_comp = 1;   //if set to 1, need argv[5] and argv[6]
+    int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
    
     srand(seed);
-    int n_output = 500;
+    int n_output = 3000;
     t_log_output = pow(tmax + 1, 1./(n_output - 1));
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
     {
         double m_neptune = 5e-5, r_neptune = 1.6e-4;
         double m_earth = 3e-6, r_earth = 0.00004258689;
-        double a=1, m=m_neptune, e=0.9, inc=reb_random_normal(0.00001);
+        double a=1, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = r_neptune;
@@ -152,69 +152,13 @@ void heartbeat(struct reb_simulation* r){
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
         
-        /*
-        //
-        //counting close encounters + calculate angle
-        int count_CE = 0;
-        if(count_CE){
-            struct reb_simulation* mini = r->ri_hermes.mini;
-            double r_ps = 0, angle = 0;
-            char ia[200] = {0}; strcat(ia,argv4); strcat(ia,"_inangle.txt");
-            char oa[200] = {0}; strcat(oa,argv4); strcat(oa,"_outangle.txt");
-            struct reb_particle* global = r->particles;
-            double dx = global[0].x - global[1].x;
-            double dy = global[0].y - global[1].y;
-            r_ps = sqrt(dx*dx + dy*dy);  //planet-star distance
-            
-            int tempL_CE = L_CE;
-            for(int i=mini->N_active;i<mini->N;i++){//check if entered
-                int mini_id = mini->particles[i].hash;
-                int found_in_mini = 0;
-                for(int j=0;j<tempL_CE;j++)
-                    if(in_mini[j] == mini_id){//already in in_mini?
-                        found_in_mini = 1;
-                    }
-                if(found_in_mini == 0){//particle must have just entered CE region
-                    in_mini[L_CE] = mini_id;
-                    L_CE++;
-                    angle = c_angle(r, r_ps, mini_id,1);
-                    //printf("\nParticle entered, angle=%f, n_CE=%d,mini_id=%d\n",angle*57.29578,N_CE,mini_id);
-                    N_CE++;
-                    FILE* aa = fopen(ia, "a");
-                    fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,mini_id,N_CE);
-                    fclose(aa);
-                }
-            }
-            
-            int tempL_CE2 = L_CE;
-            for(int i=0;i<tempL_CE2;i++){//check if left mini
-                int id = in_mini[i];
-                int found_in_mini = 0;
-                for(int j=mini->N_active;j<mini->N;j++){
-                    if(mini->particles[j].hash == id){
-                        found_in_mini = 1;
-                    }
-                }
-                if(found_in_mini == 0){//couldn't find in mini, must have left
-                    L_CE--;
-                    for(int k=i;k<tempL_CE2-1;k++) in_mini[k] = in_mini[k+1];
-                    in_mini[tempL_CE2] = 0;
-                    angle = c_angle(r, r_ps, id,0);
-                    //printf("\nParticle left, angle=%f, n_CE=%d, id=%d\n",angle*57.29578,N_CE,id);
-                    FILE* aa = fopen(oa, "a");
-                    fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,id,N_CE);
-                    fclose(aa);
-                }
-            }
-        }*/
-        
         int mini_N = 0;
         int mini_active = 0;
         if(r->integrator==REB_INTEGRATOR_HERMES){ mini_N =r->ri_hermes.mini->N; mini_active=r->ri_hermes.mini_active;}
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%f,%e,%d,%d,%d,%f,%e\n",r->t,dE,r->N,mini_N,mini_active,calc_a(r,1),r->ri_hermes.hill_switch_factor);
+        fprintf(append, "%f,%e,%d,%d,%d,%f,%e,%llu\n",r->t,dE,r->N,mini_N,mini_active,calc_a(r,1),r->ri_hermes.hill_switch_factor,r->ri_hermes.steps_miniactive);
         fclose(append);
     }
     
@@ -509,3 +453,59 @@ double calc_a(struct reb_simulation* r, int index){
     
     return a;
 }
+
+/*
+ //
+ //counting close encounters + calculate angle
+ int count_CE = 0;
+ if(count_CE){
+ struct reb_simulation* mini = r->ri_hermes.mini;
+ double r_ps = 0, angle = 0;
+ char ia[200] = {0}; strcat(ia,argv4); strcat(ia,"_inangle.txt");
+ char oa[200] = {0}; strcat(oa,argv4); strcat(oa,"_outangle.txt");
+ struct reb_particle* global = r->particles;
+ double dx = global[0].x - global[1].x;
+ double dy = global[0].y - global[1].y;
+ r_ps = sqrt(dx*dx + dy*dy);  //planet-star distance
+ 
+ int tempL_CE = L_CE;
+ for(int i=mini->N_active;i<mini->N;i++){//check if entered
+ int mini_id = mini->particles[i].hash;
+ int found_in_mini = 0;
+ for(int j=0;j<tempL_CE;j++)
+ if(in_mini[j] == mini_id){//already in in_mini?
+ found_in_mini = 1;
+ }
+ if(found_in_mini == 0){//particle must have just entered CE region
+ in_mini[L_CE] = mini_id;
+ L_CE++;
+ angle = c_angle(r, r_ps, mini_id,1);
+ //printf("\nParticle entered, angle=%f, n_CE=%d,mini_id=%d\n",angle*57.29578,N_CE,mini_id);
+ N_CE++;
+ FILE* aa = fopen(ia, "a");
+ fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,mini_id,N_CE);
+ fclose(aa);
+ }
+ }
+ 
+ int tempL_CE2 = L_CE;
+ for(int i=0;i<tempL_CE2;i++){//check if left mini
+ int id = in_mini[i];
+ int found_in_mini = 0;
+ for(int j=mini->N_active;j<mini->N;j++){
+ if(mini->particles[j].hash == id){
+ found_in_mini = 1;
+ }
+ }
+ if(found_in_mini == 0){//couldn't find in mini, must have left
+ L_CE--;
+ for(int k=i;k<tempL_CE2-1;k++) in_mini[k] = in_mini[k+1];
+ in_mini[tempL_CE2] = 0;
+ angle = c_angle(r, r_ps, id,0);
+ //printf("\nParticle left, angle=%f, n_CE=%d, id=%d\n",angle*57.29578,N_CE,id);
+ FILE* aa = fopen(oa, "a");
+ fprintf(aa,"%f,%f,%d,%d\n",r->t,angle,id,N_CE);
+ fclose(aa);
+ }
+ }
+ }*/
