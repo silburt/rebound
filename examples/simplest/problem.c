@@ -10,15 +10,19 @@
 #include <stdlib.h>
 double E0;
 
+double tout = 1;
 void heartbeat(struct reb_simulation* r){
-    reb_integrator_synchronize(r);
-    double dE = (reb_tools_energy(r) - E0)/E0;
-	reb_output_timing(r, 0);
-    printf("%e",dE);
-    
-    FILE* f = fopen("test.txt", "a");
-    fprintf(f,"%f,%e\n",r->t,dE);
-    fclose(f);
+    if(r->t > tout){
+        tout *= 1.01;
+        reb_integrator_synchronize(r);
+        double dE = (reb_tools_energy(r) - E0)/E0;
+        reb_output_timing(r, 0);
+        printf("%e",dE);
+        
+        FILE* f = fopen("test.txt", "a");
+        fprintf(f,"%f,%e\n",r->t,dE);
+        fclose(f);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -35,7 +39,7 @@ int main(int argc, char* argv[]) {
 	reb_add(r, star);
 	
     {
-        double m=1e-5, a=1, e=0.9;
+        double m=1e-9, a=1, e=0;
         struct reb_particle p = {0};
         p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, reb_random_uniform(0,2.*M_PI));
         p.r = 0.000467;
@@ -44,7 +48,7 @@ int main(int argc, char* argv[]) {
     }
     
 //    {
-//        double m=1e-5, a=2, e=0;
+//        double m=1e-5, a=2, e=0.1;
 //        struct reb_particle p = {0};
 //        p = reb_tools_orbit_to_particle(r->G, star, m, a, e, 0, 0, 0, reb_random_uniform(0,2.*M_PI));
 //        p.r = 0.000467;
