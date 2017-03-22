@@ -19,8 +19,8 @@ if diagnostics == 1:
     time = data[:,0]
     fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
     axes[0].plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
-    axes[0].plot(time,0.8e-13*time, color='red', label='t')
-    axes[0].plot(time,0.8e-10*time**0.5, color='black', label='t^0.5')
+    axes[0].plot(time,1e-7*time, color='red', label='t')
+    axes[0].plot(time,1e-6*time**0.5, color='black', label='t^0.5')
     axes[0].set_xscale('log')
     axes[0].set_yscale('log')
     axes[0].set_xlim([1,max(time)])
@@ -33,8 +33,10 @@ if diagnostics == 1:
     axes[1].set_xlim([1,max(time)])
     axes[1].set_ylabel('Number of particles')
     axes[1].set_xscale('log')
-    axes[2].plot(time,data[:,6], 'o', ms=ms, markeredgecolor='none')
-    axes[2].set_ylabel('Semi-major Axis')
+    axes[2].plot(time,data[:,7], 'o', ms=ms, markeredgecolor='none')
+    axes[2].set_ylabel('Nsteps Mini Active')
+    axes[2].set_yscale('log')
+    axes[2].set_xscale('log')
     print "percent mini active is %f"%(sum(data[:,4])/len(data[:,4]))
 else:
     plt.plot(data[:,0],data[:,1], 'o', ms=ms, markeredgecolor='none')

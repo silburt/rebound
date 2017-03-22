@@ -18,14 +18,10 @@ char output_name[100] = {0};
 char removed[200] = {0};
 char* argv4;
 double log_constant, tlog_output, lin_constant, tlin_output;
-time_t t_ini;
+clock_t start_t;
 
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
-    double m_earth = 0.000003003;
-    //double m_neptune = 0.00005149;
-    
-    double powerlaw = 0;
     int seed = 10;
     srand(seed);
     strcat(output_name,"output/test");
@@ -34,7 +30,7 @@ int main(int argc, char* argv[]){
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.hill_switch_factor = 6;         //Hill radii
-    r->ri_hermes.adaptive_hill_switch_factor = 0;
+    r->ri_hermes.adaptive_hill_switch_factor = 1;
     r->ri_hermes.solar_switch_factor = 20.;     //X*radius
     r->testparticle_type = 1;
 	r->heartbeat	= heartbeat;
@@ -45,9 +41,9 @@ int main(int argc, char* argv[]){
     r->track_energy_offset = 1;
     r->collision_resolve_keep_sorted = 1;
     
-    r->boundary	= REB_BOUNDARY_OPEN;
-    const double boxsize = 25;
-    reb_configure_box(r,boxsize,2,2,1);
+//    r->boundary	= REB_BOUNDARY_OPEN;
+//    const double boxsize = 25;
+//    reb_configure_box(r,boxsize,2,2,1);
     
 	// Initial conditions
 	struct reb_particle star = {0};
@@ -57,55 +53,52 @@ int main(int argc, char* argv[]){
     
     //does order of adding bodies matter? Yes, apparently it does says Hanno. Jacobi coords.
     
-    //inner massive planet to scatter planetesimals out
-    double a2=3, m2=5e-4, e2=0, inc2=reb_random_normal(0.00001);
-    struct reb_particle p1 = {0};
-    p1 = reb_tools_orbit_to_particle(r->G, star, m2, a2, e2, inc2, 0, 0, 0);
-    p1.r = 0.000467;       //radius of Jupiter (AU)
-    p1.hash = r->N;
-    reb_add(r, p1);
+    //planets
+    double m_neptune = 5e-5, r_neptune = 1.6e-4;
+    double m_earth = 3e-6, r_earth = 0.00004258689;
+    {
+        double a=1, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
+        struct reb_particle p2 = {0};
+        p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p2.r = r_neptune;
+        p2.hash = r->N;
+        reb_add(r, p2);
+    }
     
-    //planet 2
-    double a1=5, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
-    struct reb_particle p2 = {0};
-    p2 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    p2.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
-    //p2.r = 5e-4;
-    p2.hash = r->N;
-    reb_add(r, p2);
+    //planet
+    {
+        double a=2, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
+        struct reb_particle p2 = {0};
+        p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p2.r = r_neptune;
+        p2.hash = r->N;
+        reb_add(r, p2);
+    }
 
     r->N_active = r->N;
-    r->dt = pow(a2,1.5)/50;
+    r->dt = pow(1,1.5)/50;
     
     //planetesimals-what's a reasonable ini? Perfectly cold disk seems unlikely...
-    //double planetesimal_mass = m1/600;     //each planetesimal = 1/600th of planet mass
-    //int N_planetesimals = 230.*m_earth/planetesimal_mass;
-    double total_disk_mass = m1;
-    int N_planetesimals = 100;
-    double planetesimal_mass = total_disk_mass / N_planetesimals;
-    //double amin = a1 - 2, amax = a1 + 2;          //planet in center of disk
-    //double amin = a1 - 0.5, amax = a1 + 2.5;      //planet in asymmetric disk
-    double amin = a1-0.25, amax = a1 + 0.25;                //planet at edge of disk
+    int N_planetesimals = 10;
+    double planetesimal_mass = 1e-8;
+    double amin = 0.85, amax=1.15;
     while(r->N<N_planetesimals + r->N_active){
 		struct reb_particle pt = {0};
-		double a	= reb_random_powerlaw(amin,amax,powerlaw);
-        //double a = draw_ainv_powerlaw(amin,amax);
+		double a	= reb_random_powerlaw(amin,amax,0);
         double e = reb_random_rayleigh(0.2);   //rayleigh dist
         double inc = reb_random_rayleigh(0.005);
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
         double phi 	= reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
+        pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, e, inc, Omega, apsis, phi);
 		pt.r 		= 0.00000934532;
         pt.hash = r->N;
 		reb_add(r, pt);
     }
     
-    int n_output = 25000;
+    int n_output = 5000;
     log_constant = pow(tmax + 1, 1./(n_output - 1));
     tlog_output = r->dt;
-    lin_constant = tmax/n_output;
-    tlin_output = r->dt;
 
     reb_move_to_com(r);
     E0 = reb_tools_energy(r);
@@ -118,15 +111,12 @@ int main(int argc, char* argv[]){
     char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name); strcat(syss,"*");
     system(syss);
     strcat(output_name,".txt");
-    time_t t_ini = time(NULL);
-    struct tm *tmp = gmtime(&t_ini);
     
     //Integrate!
+    start_t = clock();
     reb_integrate(r, tmax);
     
-    time_t t_fini = time(NULL);
-    struct tm *tmp2 = gmtime(&t_fini);
-    double time = t_fini - t_ini;
+    double time = (double)(clock() - start_t)/ CLOCKS_PER_SEC;
     strcat(timeout,"_elapsedtime.txt");
     FILE* outt = fopen(timeout,"w");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
@@ -144,26 +134,21 @@ void heartbeat(struct reb_simulation* r){
         r->energy_offset += E - reb_tools_energy(r);
     }
     
-    if(r->t > tlog_output || r->t > tlin_output){//log output or linear output!!
-        if(r->t > tlog_output)tlog_output = r->t*log_constant; else tlin_output = r->t+lin_constant;
+    if(r->t > tlog_output){//log output or linear output!!
+        tlog_output = r->t*log_constant;
         
         double E = reb_tools_energy(r);
         double dE = fabs((E-E0)/E0);
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
-        double a1 = calc_a(r,1);
-        double a2 = 0;
-        if(r->N_active > 2) a2 = calc_a(r,2);
         
         int N_mini = 0;
         if(r->integrator == REB_INTEGRATOR_HERMES) N_mini = r->ri_hermes.mini->N - r->ri_hermes.mini->N_active;
         
-        time_t t_curr = time(NULL);
-        struct tm *tmp2 = gmtime(&t_curr);
-        double time = t_curr - t_ini;
+        double total_t = (double)(clock() - start_t) / CLOCKS_PER_SEC;
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%e,%e,%e,%f,%d\n",r->t,dE,time,r->ri_hermes.hill_switch_factor,r->N);
+        fprintf(append, "%e,%e,%f,%f,%d,%d,%llu\n",r->t,dE,total_t,r->ri_hermes.hill_switch_factor,r->N,N_mini,r->ri_hermes.steps_miniactive);
         fclose(append);
         
         reb_output_timing(r, 0);
