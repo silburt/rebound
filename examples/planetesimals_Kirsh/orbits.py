@@ -38,7 +38,7 @@ if diagnostics == 1:
     #axes[2].set_ylabel('real life elapsed time (seconds)')
     #axes[2].set_xlabel('simulation time (yrs)')
     #axes[2].set_xlim([1,max(data[:,0])])
-    axes[3].plot(time, data[:,6], '.')
+    axes[3].plot(time, data[:,5], '.')
     axes[3].set_ylabel('HSF')
 else:
     plt.plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')

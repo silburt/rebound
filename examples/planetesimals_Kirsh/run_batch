@@ -1,0 +1,1 @@
+#!/bin/bash#PBS -l nodes=1:ppn=8,walltime=48:00:00#PBS -N openmpmodule load intel/16.0.3 gcc/5.2.0cd $PBS_O_WORKDIRexport OMP_NUM_THREADS=8make clean && make && ./rebound output/Kirsh_sd10 10

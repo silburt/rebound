@@ -11,100 +11,113 @@ double calc_a(struct reb_simulation* r);
 double draw_ainv_powerlaw(double min, double max);
 
 double E0;
-char output_name[100] = {0};
-double log_constant, tlog_output, lin_constant, tlin_output;
+char filename[100] = {0}, simname[300] = {0};
+double log_constant, tlog_output, lin_constant, tlin_output, tbin_constant, tbin;
 time_t t_ini;
 
 int main(int argc, char* argv[]){
-    struct reb_simulation* r = reb_create_simulation();
-    double m_earth = 0.000003003;
-    int seed = atoi(argv[1]);
-    srand(seed);
+    strcat(filename,argv[1]);
+    strcat(simname,filename); strcat(simname,".bin");
+    struct reb_simulation* r;
     
-	//Simulation Setup
-	r->integrator	= REB_INTEGRATOR_HERMES;
-    //r->ri_hermes.hill_switch_factor = 1;  //Hill radii
-    r->ri_hermes.solar_switch_factor = 15.;          //X*radius
-    r->testparticle_type = 1;
-	r->heartbeat	= heartbeat;
-    //r->dt = 12.56;  //planet's period = 125 years
-    r->dt = 2 * 6.283;
     double tmax = 7e4 * 6.283;
     
+    if(access(simname,F_OK) != -1){//if file exists
+        r = reb_create_simulation_from_binary(simname);
+        r->integrator	= REB_INTEGRATOR_HERMES;
+        r->heartbeat	= heartbeat;
+        r->testparticle_type = 1;
+        printf("Found binary. Loaded snapshot at t=%.16f.\n",r->t);
+    } else {
+        printf("No binary file found. Creating new simulation.\n");
+        r = reb_create_simulation();
+        double m_earth = 0.000003003;
+        int seed = atoi(argv[2]);
+        srand(seed);
+        
+        //Simulation Setup
+        r->integrator	= REB_INTEGRATOR_HERMES;
+        r->heartbeat	= heartbeat;
+        r->testparticle_type = 1;
+        //r->dt = 2 * 6.283;  //planet's period = 125 years
+        r->dt = 8;
+        
+        // Initial conditions
+        struct reb_particle star = {0};
+        star.m 		= 1;
+        star.r		= 0.005;        // Radius of particle is in AU!
+        reb_add(r, star);
+        
+        //planet 1
+        double a1=25, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
+        struct reb_particle p1 = {0};
+        p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
+        p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
+        //p1.r = 5e-4;
+        reb_add(r, p1);
+        
+        r->N_active = r->N;
+        reb_move_to_com(r);
+        
+        //planetesimals
+        double planetesimal_mass = m1/600.;     //each planetesimal = 1/600th of planet mass
+        int N_planetesimals = 230.*m_earth/planetesimal_mass;
+        //int N_planetesimals = 5000;
+        double amin = a1 - 10.5, amax = a1 + 10.5;   //10.5AU on each side of the planet
+        while(r->N<N_planetesimals + r->N_active){
+            struct reb_particle pt = {0};
+            double a	= reb_random_powerlaw(amin,amax,1);
+            //double a = draw_ainv_powerlaw(amin,amax);
+            double e = reb_random_rayleigh(0.01);   //rayleigh dist
+            double inc = reb_random_rayleigh(0.005);
+            double Omega = reb_random_uniform(0,2.*M_PI);
+            double apsis = reb_random_uniform(0,2.*M_PI);
+            double phi 	= reb_random_uniform(0,2.*M_PI);
+            pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
+            pt.r 		= 0.00000934532;
+            reb_add(r, pt);
+        }
+    }
+    
+    //output rates
+    int n_output = 10000;
+    log_constant = pow(tmax + 1, 1./(n_output - 1));
+    tlog_output = r->dt;
+    lin_constant = tmax/n_output;
+    tlin_output = r->dt;
+    tbin_constant = tmax/1000;
+    tbin = r->dt;
+    
+    //collisions
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
     r->track_energy_offset = 1;
     r->collision_resolve_keep_sorted = 1;
     
-	// Initial conditions
-	struct reb_particle star = {0};
-	star.m 		= 1;
-    star.r		= 0.005;        // Radius of particle is in AU!
-	reb_add(r, star);
+    // Boundaries
+    r->boundary	= REB_BOUNDARY_OPEN;
+    const double boxsize = 50;
+    reb_configure_box(r,boxsize,3,3,1);
     
-    //planet 1
-    double a1=25, m1=2.3*m_earth, e1=0, inc1=reb_random_normal(0.00001);
-    struct reb_particle p1 = {0};
-    p1 = reb_tools_orbit_to_particle(r->G, star, m1, a1, e1, inc1, 0, 0, 0);
-    //p1.r = atof(argv[4]);
-    p1.r = 0.0000788215;       //radius of particle using 2g/cm^3 (AU)
-    //p1.r = 5e-4;
-    reb_add(r, p1);
-    
-    r->N_active = r->N;
-    reb_move_to_com(r);
-    
-    //planetesimals
-    double planetesimal_mass = m1/600.;     //each planetesimal = 1/600th of planet mass
-    int N_planetesimals = 230.*m_earth/planetesimal_mass;
-    //int N_planetesimals = 5000;
-    double amin = a1 - 10.5, amax = a1 + 10.5;   //10.5AU on each side of the planet
-    while(r->N<N_planetesimals + r->N_active){
-		struct reb_particle pt = {0};
-		double a	= reb_random_powerlaw(amin,amax,1);
-        //double a = draw_ainv_powerlaw(amin,amax);
-        double e = reb_random_rayleigh(0.01);   //rayleigh dist
-        double inc = reb_random_rayleigh(0.005);
-        double Omega = reb_random_uniform(0,2.*M_PI);
-        double apsis = reb_random_uniform(0,2.*M_PI);
-        double phi 	= reb_random_uniform(0,2.*M_PI);
-        pt = reb_tools_orbit_to_particle(r->G, star, r->testparticle_type?planetesimal_mass:0., a, e, inc, Omega, apsis, phi);
-		pt.r 		= 0.00000934532;
-		reb_add(r, pt);
-    }
-    
-    int n_output = 25000;
-    log_constant = pow(tmax + 1, 1./(n_output - 1));
-    tlog_output = r->dt;
-    lin_constant = tmax/n_output;
-    tlin_output = r->dt;
+    //naming
+    char timeout[300] = {0};
+    strcat(timeout, filename); strcat(timeout,"_elapsedtime.txt");
+    strcat(filename,".csv");
     
     E0 = reb_tools_energy(r);
     
-    //naming stuff
-    char seedstr[15];
-    sprintf(seedstr, "%d", seed);
-    char dtstr[15];
-    sprintf(dtstr, "%.2f", r->dt);
-    //char HSRstr[15];
-    //sprintf(HSRstr, "%.2f", r->ri_hermes.hill_switch_factor);
-    strcat(output_name,"output/Kirsh-autoHSF-helio_dt"); strcat(output_name,dtstr); strcat(output_name,"_sd"); strcat(output_name,seedstr);
-    char timeout[200] = {0};
-    strcat(timeout,output_name);
-    strcat(output_name,".txt");
-    char syss[100] = {0}; strcat(syss,"rm -v "); strcat(syss,output_name);
-    system(syss);
-    time_t t_ini = time(NULL);
-    struct tm *tmp = gmtime(&t_ini);
-    
     //Integrate!
+    t_ini = time(NULL);
+    struct tm *tmp = gmtime(&t_ini);
+    heartbeat(r);
     reb_integrate(r, tmax);
+    heartbeat(r);
     
     time_t t_fini = time(NULL);
     struct tm *tmp2 = gmtime(&t_fini);
     double time = t_fini - t_ini;
-    strcat(timeout,"_elapsedtime.txt");
-    FILE* outt = fopen(timeout,"w");
+
+    FILE* outt = fopen(timeout,"a");
     fprintf(outt,"\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
     fclose(outt);
     printf("\nSimulation complete. Elapsed simulation time is %.2f s. \n\n",time);
@@ -122,13 +135,19 @@ void heartbeat(struct reb_simulation* r){
         time_t t_curr = time(NULL);
         struct tm *tmp2 = gmtime(&t_curr);
         double time = t_curr - t_ini;
+        
         FILE *append;
-        append = fopen(output_name, "a");
-        fprintf(append, "%.16f,%.16f,%.16f,%d,%d,%.1f,%f\n",r->t,dE,a1,r->N,r->ri_hermes.mini->N,time,r->ri_hermes.hill_switch_factor);
+        append = fopen(filename, "a");
+        fprintf(append, "%f,%e,%e,%d,%.1f,%f\n",r->t,dE,a1,r->N,time,r->ri_hermes.hill_switch_factor);
         fclose(append);
         
         reb_output_timing(r, 0);
         printf("    dE=%e",dE);
+    }
+    
+    if(r->t > tbin){
+        tbin += tbin_constant;
+        reb_output_binary(r, simname);
     }
 
 }
