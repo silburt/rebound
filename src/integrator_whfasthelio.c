@@ -42,21 +42,8 @@
 
 /*****************************
  * Operators                 */
-//Original Jump step.
-//static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
-//    const int N_real = r->N-r->N_var;
-//    struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
-//    const double m0 = r->particles[0].m;
-//    for(int i=1;i<N_real;i++){
-//        for(int j=1;j<N_real;j++){
-//            if(i==j) continue;
-//            p_h[i].x += _dt * r->particles[j].m * p_h[j].vx / (m0+ r->particles[j].m);
-//            p_h[i].y += _dt * r->particles[j].m * p_h[j].vy / (m0+ r->particles[j].m);
-//            p_h[i].z += _dt * r->particles[j].m * p_h[j].vz / (m0+ r->particles[j].m);
-//        }
-//    }
-//}
-
+//slow jump step
+/*
 static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
     const int N_real = r->N-r->N_var;
     const int N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var;
@@ -79,6 +66,23 @@ static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, doub
                 p_h[i].z += _dt * r->particles[j].m * p_h[j].vz / (m0+ r->particles[j].m);
             }
         }
+    }
+}
+*/
+static void reb_whfasthelio_jump_step(const struct reb_simulation* const r, double _dt){
+    const int N_real = r->N-r->N_var;
+    struct reb_particle* const p_h = r->ri_whfasthelio.p_h;
+    const double m0 = r->particles[0].m;
+    double px = 0, py = 0, pz = 0;
+    for(int i=1;i<N_real;i++){
+        px += _dt * r->particles[i].m * p_h[i].vx / (m0+ r->particles[i].m);
+        py += _dt * r->particles[i].m * p_h[i].vy / (m0+ r->particles[i].m);
+        pz += _dt * r->particles[i].m * p_h[i].vz / (m0+ r->particles[i].m);
+    }
+    for(int i=1;i<N_real;i++){
+            p_h[i].x += px - (_dt * r->particles[i].m * p_h[i].vx / (m0+ r->particles[i].m));
+            p_h[i].y += py - (_dt * r->particles[i].m * p_h[i].vy / (m0+ r->particles[i].m));
+            p_h[i].z += pz - (_dt * r->particles[i].m * p_h[i].vz / (m0+ r->particles[i].m));
     }
 }
 
