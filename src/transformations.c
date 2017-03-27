@@ -32,10 +32,10 @@
  * Jacobi */
 
 void reb_transformations_calculate_jacobi_eta(const struct reb_particle* const ps, double* const eta, const int N){
-    eta[0] = ps[0].m;
-    for (unsigned int i=1;i<N;i++){
-        eta[i] = eta[i-1] + ps[i].m;
-    }
+      eta[0] = ps[0].m;
+      for (unsigned int i=1;i<N;i++){
+          eta[i] = eta[i-1] + ps[i].m;
+      }
 }
 
 void reb_transformations_calculate_jacobi_masses(const struct reb_particle* const ps, double* const m_j, double* const eta, const int N){
@@ -237,7 +237,7 @@ void reb_transformations_jacobi_to_inertial_acc(struct reb_particle* const parti
 }
 
 /******************************
- * Democratic heliocentric */
+ * Democratic heliocentric.   */
 
 void reb_transformations_inertial_to_democratic_heliocentric_posvel(const struct reb_particle* const particles, struct reb_particle* const p_h, const int N){
     p_h[0].x  = 0.;
@@ -248,20 +248,22 @@ void reb_transformations_inertial_to_democratic_heliocentric_posvel(const struct
     p_h[0].vz = 0.;
     p_h[0].m  = 0.;
     for (unsigned int i=0;i<N;i++){
-        p_h[0].x  += particles[i].x *particles[i].m;
-        p_h[0].y  += particles[i].y *particles[i].m;
-        p_h[0].z  += particles[i].z *particles[i].m;
-        p_h[0].vx += particles[i].vx*particles[i].m;
-        p_h[0].vy += particles[i].vy*particles[i].m;
-        p_h[0].vz += particles[i].vz*particles[i].m;
-        p_h[0].m  += particles[i].m;
+        double m = particles[i].m;
+        p_h[0].x  += particles[i].x *m;
+        p_h[0].y  += particles[i].y *m;
+        p_h[0].z  += particles[i].z *m;
+        p_h[0].vx += particles[i].vx*m;
+        p_h[0].vy += particles[i].vy*m;
+        p_h[0].vz += particles[i].vz*m;
+        p_h[0].m  += m;
     }
-    p_h[0].x  /= p_h[0].m;
-    p_h[0].y  /= p_h[0].m;
-    p_h[0].z  /= p_h[0].m;
-    p_h[0].vx /= p_h[0].m;
-    p_h[0].vy /= p_h[0].m;
-    p_h[0].vz /= p_h[0].m;
+    double mtot = p_h[0].m;
+    p_h[0].x  /= mtot;
+    p_h[0].y  /= mtot;
+    p_h[0].z  /= mtot;
+    p_h[0].vx /= mtot;
+    p_h[0].vy /= mtot;
+    p_h[0].vz /= mtot;
     
     const double m0 = particles[0].m;
     for (unsigned int i=1;i<N;i++){
@@ -282,9 +284,10 @@ void reb_transformations_democratic_heliocentric_to_inertial_pos(struct reb_part
     particles[0].y  = p_h[0].y;
     particles[0].z  = p_h[0].z;
     for (unsigned int i=1;i<N;i++){
-        particles[0].x  -= p_h[i].x*particles[i].m/mtot;
-        particles[0].y  -= p_h[i].y*particles[i].m/mtot;
-        particles[0].z  -= p_h[i].z*particles[i].m/mtot;
+        double m = particles[i].m;
+        particles[0].x  -= p_h[i].x*m/mtot;
+        particles[0].y  -= p_h[i].y*m/mtot;
+        particles[0].z  -= p_h[i].z*m/mtot;
     }
     for (unsigned int i=1;i<N;i++){
         particles[i].x = p_h[i].x+particles[0].x;
@@ -303,13 +306,17 @@ void reb_transformations_democratic_heliocentric_to_inertial_posvel(struct reb_p
         particles[i].vy = m0*p_h[i].vy/mf+p_h[0].vy;
         particles[i].vz = m0*p_h[i].vz/mf+p_h[0].vz;
     }
-    particles[0].vx = p_h[0].vx*(m0-mtot)/m0;
-    particles[0].vy = p_h[0].vy*(m0-mtot)/m0;
-    particles[0].vz = p_h[0].vz*(m0-mtot)/m0;
+    particles[0].vx = p_h[0].vx*mtot;
+    particles[0].vy = p_h[0].vy*mtot;
+    particles[0].vz = p_h[0].vz*mtot;
     for (unsigned int i=1;i<N;i++){
-        double mf = particles[i].m/(particles[i].m + m0);
-        particles[0].vx -= p_h[i].vx*mf;
-        particles[0].vy -= p_h[i].vy*mf;
-        particles[0].vz -= p_h[i].vz*mf;
+        double m = particles[i].m;
+        particles[0].vx -= particles[i].vx*m;
+        particles[0].vy -= particles[i].vy*m;
+        particles[0].vz -= particles[i].vz*m;
     }
+    particles[0].vx /= m0;
+    particles[0].vy /= m0;
+    particles[0].vz /= m0;
 }
+
