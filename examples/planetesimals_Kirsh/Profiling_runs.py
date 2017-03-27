@@ -6,7 +6,7 @@ import sys
 import time
 import numpy as np
 
-n_runs = 6
+n_runs = 3
 #HSR = 4.
 #dt = 4.
 #rr = 7.88215e-5
@@ -19,9 +19,9 @@ length = len(params)
 
 os.system('make')
 
-def execute(pars):
-    #os.system('./rebound '+str(pars[0])+' '+str(pars[1])+' '+str(pars[2])+' '+str(pars[3]))
-    os.system('./rebound '+str(pars))
+def execute(seed):
+    name = 'output/Kirsh_sd%d'%seed
+    os.system('./rebound %s %d'%(name,seed))
 
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
