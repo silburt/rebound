@@ -12,7 +12,7 @@ ext = 'sd*'
 
 #Specify directory
 dir = sys.argv[1]
-files = glob.glob(dir+'*'+ext+'.txt')
+files = glob.glob(dir+'*'+ext+'.csv')
 N = len(files)
 i=0
 while i < N:    #just want the main .txt files

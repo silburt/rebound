@@ -1,0 +1,128 @@
+#This is the revamped plot going in the HERMES paper.
+
+import glob
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+import pylab as pl
+import numpy as np
+import matplotlib.cm as cmx
+import matplotlib.colors as colors
+import sys
+import os
+from subprocess import call
+
+#assuming M=G=1!!
+def calc_a(x,y,z,vx,vy,vz):
+    v2 = (vx**2 + vy**2 + vz**2)
+    d = (x**2 + y**2 + z**2)**0.5
+    return -1./(v2 - 2./d)
+
+def get_times(files, ext, integ):
+    elapsed = []
+    for f in files:
+        ff = open(f+ext, 'r')
+        lines = ff.readlines()
+        if integ == 'H':
+            elapsed.append(float(lines[1].split()[-2])/3600.)
+        elif integ == 'S':
+            elapsed.append((float(lines[1].split()[-1]) - float(lines[0].split()[-1]))/3600.)
+        elif integ == 'M':
+            elapsed.append(float(lines[0].split()[-1])/3600.)
+    return elapsed
+
+swifter = 1
+mercury = 1
+
+fig = plt.figure(figsize=(10, 10))
+gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+axes = [plt.subplot(gs[0]),plt.subplot(gs[1])]
+plt.subplots_adjust(hspace = 0.3)
+ms = 0.25
+alpha = 0.4
+counter = 1
+ETarr = ['HERMES']
+
+##############################################
+#HERMES
+dirH = str(sys.argv[1])
+files = glob.glob('%s*_elapsedtime.txt'%dirH)
+dE_arr, t_arr = [], []
+for f in files:
+    f2 = f.split('_elapsedtime.txt')[0]+'.txt'
+    time, dE, N, miniN, miniactive, a, HSF, MAS = np.loadtxt(open(f2,'r'), delimiter=',', unpack=True)
+    time /= 2*np.pi
+    t_arr.append(time), dE_arr.append(dE)
+    axes[0].plot(time,dE, '.', color='lightgreen', alpha=alpha)
+
+dE_mean = np.mean(np.asarray(zip(*dE_arr)),axis=1)
+t_mean = np.mean(np.asarray(zip(*t_arr)),axis=1)
+times_H = get_times(files,'','H')
+axes[0].plot(t_mean, dE_mean, '.', markeredgecolor='none', color='darkgreen', label='HERMES Avg.')
+axes[1].plot(times_H, np.ones(len(times_H))*counter, 'o', markeredgecolor='none', ms=10, color='lightgreen')
+counter += 1
+
+##############################################
+#SWIFTER
+if swifter == 1:
+    print '...Finished Planetesimal, doing Swifter now...'
+    dir = '../../../swifter/example/input_files/'
+    files = [x[0] for x in os.walk(dir)][1:]
+    dE_arrS, t_arrS = [], []
+    for f in files:
+        time, dE, N, offset = np.loadtxt(open(f+'/energyoutput.txt','r'), unpack=True)
+        t_arrS.append(time), dE_arrS.append(dE)
+        axes[0].plot(time,dE, '.', color='dodgerblue', alpha=alpha)
+    dE_meanS = np.mean(np.asarray(zip(*dE_arrS)),axis=1)
+    t_meanS = np.mean(np.asarray(zip(*t_arrS)),axis=1)
+    axes[0].plot(t_meanS, dE_meanS, '.', markeredgecolor='none', color='darkblue', label='SyMBA Avg.')
+
+    #Elapsed time
+    times_S = get_times(files,'/elapsed_time.txt','S')
+    axes[1].plot(times_S, np.ones(len(times_S))*counter, 'o', markeredgecolor='none', ms=10, color='dodgerblue')
+    counter += 1
+    ETarr.append('SyMBA')
+
+##############################################
+#MERCURY
+if mercury == 1:
+    print '...Finished Swifter, doing Mercury now...'
+    dir = '../../../mercury6/input_files/'
+    files = [x[0] for x in os.walk(dir)][1:]
+    dE_arrM, t_arrM = [], []
+    for f in files:
+        time, dE, L = np.loadtxt(open(f+'/eo.txt','r'), unpack=True)
+        time *= 0.0172142
+        t_arrM.append(time), dE_arrM.append(dE)
+        axes[0].plot(time,dE, '.', color='salmon', alpha=alpha)
+
+    dE_meanM = np.mean(np.asarray(zip(*dE_arrM)),axis=1)
+    t_meanM = np.mean(np.asarray(zip(*t_arrM)),axis=1)
+    axes[0].plot(t_meanM, dE_meanM, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
+
+    #Elapsed Time
+    times_M = get_times(files,'/elapsed_time.txt','M')
+    axes[1].plot(times_M, np.ones(len(times_M))*counter, 'o',markeredgecolor='none', ms=10,color='salmon')
+    counter += 1
+    ETarr.append('MERCURY')
+
+##############################################
+#Final plotting stuff
+fontsize=10
+xmin = 1
+axes[0].legend(loc='upper left',prop={'size':7}, numpoints=1, markerscale=3)
+axes[0].set_ylabel('Fractional Energy Error', fontsize=fontsize)
+axes[0].set_xlabel('Time (Years)', fontsize=fontsize)
+axes[0].set_yscale('log')
+axes[0].set_ylim([1e-12, 1e-3])
+axes[0].set_xscale('log')
+axes[0].set_xlim([xmin,time[-1]])
+axes[1].set_ylabel('Elapsed time (hours)')
+axes[1].set_xlabel('Elapsed Simulation Time (Hours)',fontsize=fontsize)
+axes[1].set_yticks(range(1,7))
+axes[1].set_yticklabels(ETarr,fontsize=fontsize)
+axes[1].set_ylim([0.5,6.5])
+
+print 'Preparing PDF'
+#plt.savefig(pp, format='pdf')
+plt.savefig(dirH+'energy_avg_FULL.png')
+#plt.show()

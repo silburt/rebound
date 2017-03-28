@@ -65,7 +65,7 @@ def cdf(array):
     return np.arange(1,len(array)+1)/float(len(array))
 
 swifter = 0
-mercury = 1
+mercury = 0
 
 fig = plt.figure(figsize=(10, 10))
 gs = gridspec.GridSpec(4, 1, height_ratios=[2, 1, 1, 1])
@@ -79,7 +79,8 @@ counter = 1
 #HERMES
 dirP = str(sys.argv[1])
 #name = ['t5e7','Earth','ias15_', 'whfast']
-name = ['t1e+06']
+#name = ['t1e+06']
+name = ['t5e+07']
 outname = ['HERMES:Neptune','HERMES:Earth-sized','IAS15:Neptune', 'WHFAST:Neptune']
 color_back = ['lightgreen','violet','yellow','navajowhite']
 color_main = ['darkgreen','darkviolet','olive','darkorange']
@@ -102,7 +103,8 @@ for ii in range(len(name)):
     aa = []
     for f in files:
         #time, E, Np, miniN, mini_active, elapsedtime, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
-        time, E, Np, miniN, mini_active, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
+        #time, E, Np, miniN, mini_active, a, HSF = np.loadtxt(f,delimiter=',',unpack=True)
+        time, E, Np, miniN, mini_active, a, HSF, stepsminiactive = np.loadtxt(f,delimiter=',',unpack=True)
         axes[0].plot(time/(2*np.pi),E, '.', color=color_back[ii], alpha=alpha)
         aa.append(a)
         #axes[2].plot(time/(2*np.pi),a,'.',color=color_back[ii],alpha=alpha)
@@ -240,14 +242,6 @@ axes[3].set_ylabel('Number of particles')
 axes[3].set_xscale('log')
 axes[3].set_xlabel('Time (Years)', fontsize=fontsize)
 axes[3].set_xlim([xmin,time[-1]])
-
-'''
-for ii in range(len(times_H)):
-
-if swifter == 1:
-
-if mercury == 1:
-'''
 
 print 'Preparing PDF'
 #plt.savefig(pp, format='pdf')
