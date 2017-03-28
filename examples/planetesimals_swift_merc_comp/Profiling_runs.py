@@ -8,15 +8,14 @@ import random
 import time
 
 #May31 Mercury_swifter comps
-tmax=1e6
+tmax=1e4
 N_runs = 1
-#Np=np.concatenate([np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4),np.logspace(0,5,N_runs/4)])
-Np = [0]
+Np = 50
 params = []
 for i in range(N_runs):
     seed = int(1000*random.random())
-    name = "output/t%.0e_Np%d_sd%d"%(tmax,int(Np[i]),seed)
-    params.append((tmax,int(Np[i]),seed,name))
+    name = "output/t%.0e_Np%d_sd%d"%(tmax,Np,seed)
+    params.append((tmax,Np,seed,name))
 
 N_procs = 1
 os.system('make')

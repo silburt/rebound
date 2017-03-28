@@ -11,12 +11,6 @@ import sys
 import os
 from subprocess import call
 
-#assuming M=G=1!!
-def calc_a(x,y,z,vx,vy,vz):
-    v2 = (vx**2 + vy**2 + vz**2)
-    d = (x**2 + y**2 + z**2)**0.5
-    return -1./(v2 - 2./d)
-
 def get_times(files, ext, integ):
     elapsed = []
     for f in files:
@@ -30,8 +24,8 @@ def get_times(files, ext, integ):
             elapsed.append(float(lines[0].split()[-1])/3600.)
     return elapsed
 
-swifter = 1
-mercury = 1
+swifter = 0
+mercury = 0
 
 fig = plt.figure(figsize=(10, 10))
 gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
@@ -50,7 +44,7 @@ dE_arr, t_arr = [], []
 for f in files:
     f2 = f.split('_elapsedtime.txt')[0]+'.txt'
     time, dE, N, miniN, miniactive, a, HSF, MAS = np.loadtxt(open(f2,'r'), delimiter=',', unpack=True)
-    time /= 2*np.pi
+    #time /= 2*np.pi
     t_arr.append(time), dE_arr.append(dE)
     axes[0].plot(time,dE, '.', color='lightgreen', alpha=alpha)
 
@@ -58,6 +52,7 @@ dE_mean = np.mean(np.asarray(zip(*dE_arr)),axis=1)
 t_mean = np.mean(np.asarray(zip(*t_arr)),axis=1)
 times_H = get_times(files,'','H')
 axes[0].plot(t_mean, dE_mean, '.', markeredgecolor='none', color='darkgreen', label='HERMES Avg.')
+axes[0].plot(t_mean, 5e-10*t_mean**0.5, '.', markeredgecolor='none', color='black')
 axes[1].plot(times_H, np.ones(len(times_H))*counter, 'o', markeredgecolor='none', ms=10, color='lightgreen')
 counter += 1
 
@@ -100,7 +95,7 @@ if mercury == 1:
     axes[0].plot(t_meanM, dE_meanM, '.', markeredgecolor='none', color='darkred', label='MERCURY Avg.')
 
     #Elapsed Time
-    times_M = get_times(files,'/elapsed_time.txt','M')
+    times_M = get_times(files,'/ET.txt','M')
     axes[1].plot(times_M, np.ones(len(times_M))*counter, 'o',markeredgecolor='none', ms=10,color='salmon')
     counter += 1
     ETarr.append('MERCURY')

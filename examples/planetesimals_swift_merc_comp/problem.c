@@ -36,25 +36,25 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     
-    double tmax = atof(argv[1]);
+    double tmax = atof(argv[1])*2*M_PI;
     int N_planetesimals = atoi(argv[2]);
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
-    int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
+    int mercury_swifter_comp = 1;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;
     r->ri_hermes.solar_switch_factor = 20.;         //X*radius
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->ri_hermes.hill_switch_factor = 3;        //Hill radii
+    r->ri_hermes.hill_switch_factor = 3;            //Hill radii
     r->ri_hermes.adaptive_hill_switch_factor = 1;
     r->dt = 0.05;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
-    r->track_energy_offset = 1;     //switch to track the energy from collisions/ejections
+    r->track_energy_offset = 1;                     //switch to track the energy from collisions/ejections
     r->collision_resolve_keep_sorted = 1;
     
 	// Initial conditions
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
     
     //planet
     {
-        double m_neptune = 5e-5, r_neptune = 1.6e-4;
+        double m_neptune = 5e-5, r_neptune = 2e-4;
         double m_earth = 3e-6, r_earth = 0.00004258689;
         double a=1, m=m_neptune, e=0, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
