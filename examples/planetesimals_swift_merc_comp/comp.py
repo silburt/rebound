@@ -86,7 +86,7 @@ if mercury == 1:
     dE_arrM, t_arrM = [], []
     for f in files:
         time, dE, L = np.loadtxt(open(f+'/eo.txt','r'), unpack=True)
-        time *= 0.0172142
+        #time *= 0.0172142
         t_arrM.append(time), dE_arrM.append(dE)
         axes[0].plot(time,dE, '.', color='salmon', alpha=alpha)
 

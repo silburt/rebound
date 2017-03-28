@@ -50,7 +50,7 @@ int main(int argc, char* argv[]){
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;            //Hill radii
     r->ri_hermes.adaptive_hill_switch_factor = 1;
-    r->dt = 0.05;
+    r->dt = 0.05;                                   //yr/2*pi (planet @ 1AU takes 2*pi years to orbit)
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -339,7 +339,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     }
     
     //Mercury param file
-    double yr2day = 1.0/AU_d; //yr/2pi -> day
+    double yrtwopi2day = 1.0/AU_d;           //yr/2pi -> day
     fprintf(mercuryparams,")O+_06 Big-body initial data  (WARNING: Do not delete this line!!)\n");
     fprintf(mercuryparams,") Lines beginning with `)' are ignored.\n");
     fprintf(mercuryparams,")---------------------------------------------------------------------\n");
@@ -347,10 +347,10 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
     fprintf(mercuryparams,")---------------------------------------------------------------------\n");
     fprintf(mercuryparams," algorithm (MVS, BS, BS2, RADAU, HYBRID etc) = hyb\n");
     fprintf(mercuryparams," start time (days)= %f\n",day_zero);
-    fprintf(mercuryparams," stop time (days) =%.1f\n",tmax*yr2day + day_zero);
-//    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/n_output)*yr2day);
-    fprintf(mercuryparams," output interval (days) = %.1f\n",tmax*yr2day + day_zero);
-    fprintf(mercuryparams," timestep (days) = %f\n",r->dt*yr2day);
+    fprintf(mercuryparams," stop time (days) = %.1f\n",tmax*yrtwopi2day + day_zero);
+//    fprintf(mercuryparams," output interval (days) = %.2fd0\n",(tmax/n_output)*yrtwopi2day);
+    fprintf(mercuryparams," output interval (days) = %.1f\n",tmax*yrtwopi2day + day_zero);
+    fprintf(mercuryparams," timestep (days) = %f\n",r->dt*yrtwopi2day);
     fprintf(mercuryparams," accuracy parameter=1.d-12\n");
     fprintf(mercuryparams,")---------------------------------------------------------------------\n");
     fprintf(mercuryparams,") Integration options:\n");
