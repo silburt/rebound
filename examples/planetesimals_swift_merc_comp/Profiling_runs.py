@@ -8,7 +8,7 @@ import random
 import time
 
 #May31 Mercury_swifter comps
-tmax=1e4
+tmax=2e3
 N_runs = 1
 Np = 50
 params = []
