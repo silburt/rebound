@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
     int seed = atoi(argv[3]);
     strcat(output_name,argv[4]); strcat(output_name,".txt"); argv4=argv[4];
     
-    int mercury_swifter_comp = 0;   //if set to 1, need argv[5] and argv[6]
+    int mercury_swifter_comp = 1;   //if set to 1, need argv[5] and argv[6]
     
 	//Simulation Setup
 	r->integrator	= REB_INTEGRATOR_HERMES;

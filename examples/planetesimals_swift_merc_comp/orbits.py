@@ -16,7 +16,7 @@ data = np.loadtxt(fos, delimiter=',')
 
 ms=3
 if diagnostics == 1:
-    time = data[:,0]
+    time = data[:,0]/(2*np.pi)
     fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
     axes[0].plot(time,data[:,1], 'o', ms=ms, markeredgecolor='none')
     axes[0].plot(time,1e-7*time, color='red', label='t')
