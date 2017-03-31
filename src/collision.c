@@ -44,6 +44,7 @@
 #endif // MPI
 
 static void reb_tree_get_nearest_neighbour_in_cell(struct reb_simulation* const r, int* collisions_N, struct reb_ghostbox gb, struct reb_ghostbox gbunmod, int ri, double p1_r,  double* nearest_r2, struct reb_collision* collision_nearest, struct reb_treecell* c);
+static double calc_hermes_energy(struct reb_simulation* const r, int j, int Ef_flag);
 
 void reb_collision_search(struct reb_simulation* const r){
 	const int N = r->N;
@@ -465,7 +466,8 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
     
     //Scale out energy from collision - initial energy
     double Ei=0, Ef=0;
-    if(r->track_energy_offset) Ei = reb_tools_energy(r);
+    //if(r->track_energy_offset) Ei = reb_tools_energy(r);
+    if(r->track_energy_offset) Ei = calc_hermes_energy(r,j,0);
     
     // Merge by conserving mass, volume and momentum
     pi->vx = (pi->vx*pi->m + pj->vx*pj->m)*invmass;
@@ -478,6 +480,12 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
     pi->r  = pow(pow(pi->r,3.)+pow(pj->r,3.),1./3.);
     pi->lastcollision = r->t;
     
+    if(r->track_energy_offset){
+        Ef = r->energy_offset + calc_hermes_energy(r,j,1);
+        r->energy_offset += Ei - Ef;
+    }
+    
+    /*
     //Scale out energy from collision - final energy
     if(r->track_energy_offset){
         Ef = r->energy_offset;
@@ -511,7 +519,55 @@ int reb_collision_resolve_merge(struct reb_simulation* const r, struct reb_colli
         if(r->ri_hermes.global->ri_hermes.mini_active){
             r->ri_hermes.global->ri_hermes.collision_this_global_dt = 1;
         }
-    }
+    }*/
     
     return swap?1:2; // Remove particle p2 from simulation
+}
+
+static double calc_hermes_energy(struct reb_simulation* const r, int j, int Ef_flag){
+    double E = 0;
+    struct reb_simulation* global = r->ri_hermes.global;                                        //global sim
+    const int _N_active = ((r->N_active==-1)?r->N:r->N_active) - r->N_var;
+    int N_interactm = (r->testparticle_type==0)?_N_active:(r->N-r->N_var);
+    int N_interactg = (global->testparticle_type==0)?_N_active:(global->N-global->N_var);
+    const struct reb_particle* restrict const particlesm = r->particles;                        //mini particles
+    const struct reb_particle* restrict const particlesg = global->particles;                   //global particles
+    //Kinetic
+    for (int k=0;k<N_interactm;k++){        //mini sim energies
+        if(k==j && Ef_flag) continue;       //only exclude colliding particle in Final energy calc
+        struct reb_particle pk = particlesm[k];
+        E += 0.5 * pk.m * (pk.vx*pk.vx + pk.vy*pk.vy + pk.vz*pk.vz);
+    }
+    for(int k=_N_active;k<N_interactg;k++){//global sim energies *not* in mini
+        if(global->ri_hermes.is_in_mini[k]) continue;
+        struct reb_particle pk = particlesg[k];
+        E += 0.5 * pk.m * (pk.vx*pk.vx + pk.vy*pk.vy + pk.vz*pk.vz);
+    }
+    
+    //Potential
+    for (int k=0;k<_N_active;k++){          //mini sim energies
+        if(k==j && Ef_flag) continue;       //only exclude colliding particle in Final energy calc
+        struct reb_particle pk = particlesm[k];
+        for (int l=k+1;l<N_interactm;l++){
+            if(l==j && Ef_flag) continue;   //only exclude colliding particle in Final energy calc
+            struct reb_particle pl = particlesm[l];
+            double dx = pl.x - pk.x;
+            double dy = pl.y - pk.y;
+            double dz = pl.z - pk.z;
+            E -= r->G*pk.m*pl.m/sqrt(dx*dx + dy*dy + dz*dz);
+        }
+    }
+    for (int k=0;k<_N_active;k++){          //global sim energies *not* in mini
+        if(k==j) continue;
+        struct reb_particle pk = particlesm[k];
+        for (int l=_N_active;l<N_interactg;l++){
+            if(global->ri_hermes.is_in_mini[l]) continue;
+            struct reb_particle pl = particlesg[l];
+            double dx = pl.x - pk.x;
+            double dy = pl.y - pk.y;
+            double dz = pl.z - pk.z;
+            E -= r->G*pk.m*pl.m/sqrt(dx*dx + dy*dy + dz*dz);
+        }
+    }
+    return E;
 }
