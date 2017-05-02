@@ -168,6 +168,7 @@ struct reb_simulation_integrator_hermes {
      * Internal data structures below. Nothing to be changed by the user.
      */
     double current_hill_switch_factor;        ///< HSF used in current timestep (useful to debug adaptive HSF)
+    double current_solar_switch_factor;       ///< SSF used in current timestep (useful to debug adaptive SSF)
     double energy_before_timestep;            ///< Store energy at the beginning of timestep. Used to track energy_offset.
     int collision_this_global_dt;           
     

@@ -15,6 +15,7 @@ void heartbeat(struct reb_simulation* r);
 double c_angle(struct reb_simulation* r, double r_ps, int i, int incoming);
 struct reb_particle ari_get_com(struct reb_simulation* r, int N_choice);
 double calc_a(struct reb_simulation* r, int index);
+void output_data(struct reb_simulation* r);
 
 double E0, t_output, t_log_output, xyz_t = 0;
 int xyz_counter = 0, numdt = 20;
@@ -49,8 +50,10 @@ int main(int argc, char* argv[]){
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
     r->ri_hermes.hill_switch_factor = 3;            //Hill radii
+    r->ri_hermes.solar_switch_factor = 30;
     r->ri_hermes.adaptive_hill_switch_factor = 1;
-    r->dt = 0.01;                                   //yr/2*pi (planet @ 1AU takes 2*pi years to orbit)
+    r->dt = 0.1;                                    //yr/2*pi (planet @ 1AU takes 2*pi years to orbit)
+    //r->usleep = 1000;
     
     r->collision = REB_COLLISION_DIRECT;
     r->collision_resolve = reb_collision_resolve_merge;
@@ -64,7 +67,7 @@ int main(int argc, char* argv[]){
 	reb_add(r, star);
    
     srand(seed);
-    int n_output = 3000;
+    int n_output = 1000;
     t_log_output = pow(tmax + 1, 1./(n_output - 1));
     t_output = r->dt;
     printf("tlogoutput=%f\n",t_log_output);
@@ -73,34 +76,47 @@ int main(int argc, char* argv[]){
     {
         double m_neptune = 5e-5, r_neptune = 2e-4;
         double m_earth = 3e-6, r_earth = 0.00004258689;
-        double a=1, m=m_neptune, e=0.1, inc=reb_random_normal(0.00001);
+        double m_jupiter = 1e-3, r_jupiter = 4.6e-4;
+        double a=1, m=m_jupiter, e=0.7, inc=reb_random_normal(0.00001);
+        struct reb_particle p2 = {0};
+        p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
+        p2.r = r_jupiter;
+        p2.hash = r->N;
+        reb_add(r, p2);
+    }
+    
+    /*
+    {
+        double m_neptune = 5e-5, r_neptune = 2e-4;
+        double m_earth = 3e-6, r_earth = 0.00004258689;
+        double a=1.5, m=m_neptune, e=0.01, inc=reb_random_normal(0.00001);
         struct reb_particle p2 = {0};
         p2 = reb_tools_orbit_to_particle(r->G, star, m, a, e, inc, 0, 0, 0);
         p2.r = r_neptune;
         p2.hash = r->N;
         reb_add(r, p2);
-    }
+    }*/
     
     r->N_active = r->N;
     
     //planetesimals
     //double total_planetesimal_mass = 500e-8;
     //double planetesimal_mass = total_planetesimal_mass/N_planetesimals;
-    double planetesimal_mass = 1e-6;
+    double planetesimal_mass = 1e-8;
     //double amin = 0.4, amax = 0.6;        //for planetesimal disk
     double amin = 0.85, amax = 1.15;
     double powerlaw = 0;
     while(r->N<N_planetesimals + r->N_active){
-		struct reb_particle pt = {0};
-		double a	= reb_random_powerlaw(amin,amax,powerlaw);
+        struct reb_particle pt = {0};
+        double a	= reb_random_powerlaw(amin,amax,powerlaw);
         double phi 	= reb_random_uniform(0,2.*M_PI);
         double inc = reb_random_normal(0.00001);
         double Omega = reb_random_uniform(0,2.*M_PI);
         double apsis = reb_random_uniform(0,2.*M_PI);
         pt = reb_tools_orbit_to_particle(r->G, star, planetesimal_mass, a, 0., inc, Omega, apsis,phi);
-		pt.r 		= 4e-5;
+        pt.r 		= 4e-5;
         pt.hash = r->N;
-		reb_add(r, pt);
+        reb_add(r, pt);
     }
     
     //com
@@ -146,20 +162,7 @@ int main(int argc, char* argv[]){
 void heartbeat(struct reb_simulation* r){
     if(r->t > t_output){//log output
         t_output = r->t*t_log_output;
-        
-        double E = reb_tools_energy(r);
-        double dE = fabs((E-E0)/E0);
-        reb_output_timing(r, 0);
-        printf("    dE=%e",dE);
-        
-        int mini_N = 0;
-        int mini_active = 0;
-        if(r->integrator==REB_INTEGRATOR_HERMES){ mini_N =r->ri_hermes.mini->N; mini_active=r->ri_hermes.mini_active;}
-        
-        FILE *append;
-        append = fopen(output_name, "a");
-        fprintf(append, "%f,%e,%d,%d,%d,%f,%e,%llu\n",r->t,dE,r->N,mini_N,mini_active,calc_a(r,1),r->ri_hermes.hill_switch_factor,r->ri_hermes.steps_miniactive);
-        fclose(append);
+        output_data(r);
     }
     
     //record collisions in mini
@@ -168,6 +171,8 @@ void heartbeat(struct reb_simulation* r){
         FILE* append = fopen(removed,"a");
         fprintf(append,"Collision,%.5f\n",r->t);
         fclose(append);
+        
+        output_data(r);
         
         N_prev = r->N;
     }
@@ -192,10 +197,28 @@ void heartbeat(struct reb_simulation* r){
                 fprintf(append,"Ejection,%.5f\n",r->t);
                 fclose(append);
                 
+                output_data(r);
+                
                 N_prev = r->N;
             }
         }
     }
+}
+
+void output_data(struct reb_simulation* r){
+    double E = reb_tools_energy(r);
+    double dE = fabs((E-E0)/E0);
+    reb_output_timing(r, 0);
+    printf("    dE=%e",dE);
+    
+    int mini_N = 0;
+    int mini_active = 0;
+    if(r->integrator==REB_INTEGRATOR_HERMES){ mini_N =r->ri_hermes.mini->N; mini_active=r->ri_hermes.mini_active;}
+    
+    FILE *append;
+    append = fopen(output_name, "a");
+    fprintf(append, "%f,%e,%d,%d,%d,%f,%f,%f,%llu\n",r->t,dE,r->N,mini_N,mini_active,calc_a(r,1),r->ri_hermes.current_hill_switch_factor,r->ri_hermes.current_solar_switch_factor,r->ri_hermes.steps_miniactive);
+    fclose(append);
 }
 
 //works only for one planet!

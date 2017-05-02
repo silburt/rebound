@@ -8,17 +8,18 @@ import random
 import time
 
 #May31 Mercury_swifter comps
-tmax=2e3
+tmax=2e2
 N_runs = 1
-Np = 50
+Np = 40
 params = []
 for i in range(N_runs):
     seed = int(1000*random.random())
+    seed = 985
     name = "output/t%.0e_Np%d_sd%d"%(tmax,Np,seed)
     params.append((tmax,Np,seed,name))
 
-N_procs = 1
 os.system('make')
+N_procs = 1
 
 def execute(pars):
     mercury_dir = '../../../mercury6/input_files/Np'+str(pars[1])+'_sd'+str(pars[2])+'/'
@@ -34,7 +35,7 @@ def execute(pars):
 #Main multiprocess execution - Give sysname and letters of outer planets close to resonance
 if __name__== '__main__':
     rmv_dflt = 1
-    rmv = raw_input("WARNING! Do you want to remove swifter/mercury directories? (default = 1 = yes, 0 = no) ")
+    rmv = raw_input("WARNING! Do you want to remove swifter/mercury/hermes directories? (default = 1 = yes, 0 = no) ")
     if not rmv:
         input = rmv_dflt
     else:
@@ -42,6 +43,7 @@ if __name__== '__main__':
     if input == 1:
         os.system('rm -rf ../../../mercury6/input_files/*')
         os.system('rm -rf ../../../swifter/example/input_files/*')
+        os.system('rm output/*')
     pool = mp.Pool(processes=N_procs)
     args=[params[i] for i in xrange(0,N_runs)]
     pool.map(execute, args)

@@ -34,32 +34,11 @@ plt.subplots_adjust(hspace = 0.3)
 ms = 0.25
 alpha = 0.4
 counter = 1
-ETarr = ['HERMES']
-
-##############################################
-#HERMES
-dirH = str(sys.argv[1])
-files = glob.glob('%s*_elapsedtime.txt'%dirH)
-dE_arr, t_arr = [], []
-for f in files:
-    f2 = f.split('_elapsedtime.txt')[0]+'.txt'
-    time, dE, N, miniN, miniactive, a, HSF, MAS = np.loadtxt(open(f2,'r'), delimiter=',', unpack=True)
-    time /= 2*np.pi
-    t_arr.append(time), dE_arr.append(dE)
-    axes[0].plot(time,dE, '.', color='lightgreen', alpha=alpha)
-
-dE_mean = np.median(np.asarray(zip(*dE_arr)),axis=1)
-t_mean = np.median(np.asarray(zip(*t_arr)),axis=1)
-times_H = get_times(files,'','H')
-axes[0].plot(t_mean, dE_mean, '.', markeredgecolor='none', color='darkgreen', label='HERMES Avg.')
-axes[0].plot(t_mean, 5e-10*t_mean**0.5, '.', markeredgecolor='none', color='black', label='sqrt(t)')
-axes[1].plot(times_H, np.ones(len(times_H))*counter, 'o', markeredgecolor='none', ms=10, color='lightgreen')
-counter += 1
+ETarr = []
 
 ##############################################
 #SWIFTER
 if swifter == 1:
-    print '...Finished Planetesimal, doing Swifter now...'
     dir = '../../../swifter/example/input_files/'
     files = [x[0] for x in os.walk(dir)][1:]
     dE_arrS, t_arrS = [], []
@@ -85,7 +64,7 @@ if mercury == 1:
     files = [x[0] for x in os.walk(dir)][1:]
     dE_arrM, t_arrM = [], []
     for f in files:
-        data = np.genfromtxt(dir+'eo.txt', delimiter=None, dtype=None, skip_header=2, skip_footer=2)
+        data = np.genfromtxt(f+'/eo.txt', delimiter=None, dtype=None, skip_header=2, skip_footer=2)
         junk,time,junk,junk,dE,junk,dL,N = zip(*data.T)
         #time *= 0.0172142
         t_arrM.append(time), dE_arrM.append(dE)
@@ -100,6 +79,28 @@ if mercury == 1:
     axes[1].plot(times_M, np.ones(len(times_M))*counter, 'o',markeredgecolor='none', ms=10,color='salmon')
     counter += 1
     ETarr.append('MERCURY')
+
+##############################################
+#HERMES
+print '...Doing Hermes now...'
+dirH = str(sys.argv[1])
+files = glob.glob('%s*_elapsedtime.txt'%dirH)
+dE_arr, t_arr = [], []
+for f in files:
+    f2 = f.split('_elapsedtime.txt')[0]+'.txt'
+    time, dE, N, miniN, miniactive, a, HSF, MAS = np.loadtxt(open(f2,'r'), delimiter=',', unpack=True)
+    time /= 2*np.pi
+    t_arr.append(time), dE_arr.append(dE)
+    axes[0].plot(time,dE, '.', color='lightgreen', alpha=alpha)
+
+dE_mean = np.median(np.asarray(zip(*dE_arr)),axis=1)
+t_mean = np.median(np.asarray(zip(*t_arr)),axis=1)
+times_H = get_times(files,'','H')
+axes[0].plot(t_mean, dE_mean, '.', markeredgecolor='none', color='darkgreen', label='HERMES Avg.')
+axes[0].plot(t_mean, 5e-10*t_mean**0.5, '.', markeredgecolor='none', color='black', label='sqrt(t)')
+axes[1].plot(times_H, np.ones(len(times_H))*counter, 'o', markeredgecolor='none', ms=10, color='lightgreen')
+counter += 1
+ETarr.append('HERMES')
 
 ##############################################
 #Final plotting stuff
@@ -120,5 +121,5 @@ axes[1].set_ylim([0.5,6.5])
 
 print 'Preparing PDF'
 #plt.savefig(pp, format='pdf')
-plt.savefig(dirH+'energy_avg_FULL.png')
+plt.savefig(dirH+'comp.png')
 #plt.show()
