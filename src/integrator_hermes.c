@@ -44,6 +44,7 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* r);
 static void reb_integrator_hermes_additional_forces_mini(struct reb_simulation* mini);
 static void reb_integrator_hermes_apply_forces(const struct reb_simulation* r, double* a);
 static void reb_integrator_hermes_get_ae(struct reb_simulation* r, int index, double* a, double* e);
+static void reb_integrator_hermes_autocalc_SSF(struct reb_simulation* r, double* min_dt_enc2, int j);
 static void reb_integrator_hermes_autocalc_HSF(struct reb_simulation* r, double* min_dt_enc2, int i, int j);
 static void reb_integrator_hermes_autocalc_HSF_case_total_overlap(double mu, double ri_min, double ri_max, double ai, double ei, double* vphi_max_i, double* vr_max_i, double aj, double ej, double rj_min, double rj_max, double* vphi_max_j, double* vr_max_j);
 static void reb_integrator_hermes_autocalc_HSF_case_partial_overlap(double mu, double ri_min, double ri_max, double ai, double ei, double* vphi_max_i, double* vr_max_i, double aj, double ej, double rj_min, double rj_max, double* vphi_max_j, double* vr_max_j);
@@ -110,6 +111,7 @@ void reb_integrator_hermes_part1(struct reb_simulation* r){
 
     // Check for Close Encounters and Determine HSF
     r->ri_hermes.current_hill_switch_factor = r->ri_hermes.hill_switch_factor;
+    r->ri_hermes.current_solar_switch_factor = r->ri_hermes.solar_switch_factor;
     reb_integrator_hermes_check_for_encounter(r);
         
     if (r->N != r->ri_hermes.mini->N || mini_previously_active==0) {
@@ -188,12 +190,13 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
     const int _N_active = ((global->N_active==-1)?global->N:global->N_active) - global->N_var;
     struct reb_particle* global_particles = global->particles;
     struct reb_particle p0 = global_particles[0];
-    double solar_check = global->ri_hermes.solar_switch_factor*p0.r;
+    double solar_check = global->ri_hermes.current_solar_switch_factor*p0.r;
     double solar_check2 = solar_check*solar_check;
     double current_hill_switch_factor = global->ri_hermes.current_hill_switch_factor;
     double hill_switch_factor2 = current_hill_switch_factor*current_hill_switch_factor;
     double min_dt_enc2 = INFINITY;
     double min_dt_enc2_autoHSF = INFINITY;
+    double min_dt_enc2_autoSSF = INFINITY;
     for (int i=0; i<_N_active; i++){
         struct reb_particle pi = global_particles[i];
         const double dxi = p0.x - pi.x;
@@ -239,17 +242,30 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
                     global->ri_hermes.global_index_from_mini_index[global->ri_hermes.global_index_from_mini_index_N] = j;
                     global->ri_hermes.global_index_from_mini_index_N++;
                 }
-            } else if(global->ri_hermes.adaptive_hill_switch_factor) reb_integrator_hermes_autocalc_HSF(global, &min_dt_enc2_autoHSF, i, j); //find autoHSF
+            } else if(global->ri_hermes.adaptive_hill_switch_factor){
+                if(i==0){
+                    reb_integrator_hermes_autocalc_SSF(global, &min_dt_enc2_autoSSF, j); //find autoSSF
+                } else {
+                    reb_integrator_hermes_autocalc_HSF(global, &min_dt_enc2_autoHSF, i, j); //find autoHSF
+                }
+            }
         }
     }
     if(global->ri_hermes.adaptive_hill_switch_factor){      //Calc optimal HSF value from min_dt_enc2_autoHSF value found in for loop
+        double dt2 = 16.*global->dt*global->dt;             //Factor of 4:hill sphere > 4*length scales for wiggle room
         if(min_dt_enc2_autoHSF < INFINITY){
-            double dt2 = 16.*global->dt*global->dt;         //Factor of 4:hill sphere > 4*length scales for wiggle room
             double HSF_new = sqrt(dt2/min_dt_enc2_autoHSF);
             double base = 1.25;
             double exp = ceilf(log10(HSF_new)/log10(base)); //round HSF up to nearest multiple of 1.25
             HSF_new = pow(base,exp);
             global->ri_hermes.current_hill_switch_factor = MAX(global->ri_hermes.current_hill_switch_factor, HSF_new); // Increase HSF if needed
+        }
+        if(min_dt_enc2_autoSSF < INFINITY){
+            double SSF_new = sqrt(dt2/min_dt_enc2_autoSSF);
+            double base = 1.25;
+            double exp = ceilf(log10(SSF_new)/log10(base)); //round HSF up to nearest multiple of 1.25
+            SSF_new = pow(base,exp);
+            global->ri_hermes.current_solar_switch_factor = MAX(global->ri_hermes.current_solar_switch_factor, SSF_new); // Increase SSF if needed
         }
     }
     
@@ -257,6 +273,19 @@ static void reb_integrator_hermes_check_for_encounter(struct reb_simulation* glo
         global->ri_hermes.timestep_too_large_warning = 1;
         reb_warning(global,"The timestep is likely too large. Close encounters might be missed. Decrease the timestep or increase the switching radius. This warning will appear only once.");
     }
+}
+
+static void reb_integrator_hermes_autocalc_SSF(struct reb_simulation* r, double* min_dt_enc2, int j){
+    const double m0 = r->particles[0].m;
+    const double G = r->G;
+    double SSF = r->ri_hermes.current_solar_switch_factor;
+    
+    double a, e;
+    reb_integrator_hermes_get_ae(r, j, &a, &e);
+    double v_peri2 = G*m0*(1+e)/((1-e)*a);
+    double rhill_sum = a*pow(r->particles[j].m/(3.*m0),1./3.) + SSF*r->particles[0].r;
+    double dt_enc2 = rhill_sum*rhill_sum/v_peri2;
+    *min_dt_enc2 = MIN(*min_dt_enc2,dt_enc2);
 }
 
 //get min encounter time between overlapping orbits
