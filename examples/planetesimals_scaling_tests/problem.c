@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.adaptive_hill_switch_factor = 0; 
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    //r->usleep = 300;
+    r->usleep = 300;
     
     double afac = 1;
     double mfac = 1;
@@ -56,8 +56,8 @@ int main(int argc, char* argv[]){
     //which test?
     double tmax;
     if(test_dt){//testing dt
-        tmax = 1e5;
-        //tmax = 10 * pow(afac,1.5);
+        //tmax = 1e5;
+        tmax = 10 * pow(afac,1.5);
         r->ri_hermes.hill_switch_factor = 6;        //units of Hill radii
         r->dt = HSF_or_dt * 6.28319;
     } else {//testing HSR
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
     }
     
     r->N_active = r->N;
-    double planetesimal_mass = 1e-8*mpfac;
+    double planetesimal_mass = 1e-5*mpfac;
     {//planetesimal
         double rr = 0.005;
         //double vy = 1.1*pow(2*r->G*r->particles[1].m/rr,0.5)*sin(theta);
@@ -190,7 +190,7 @@ void heartbeat(struct reb_simulation* r){
         
         FILE *append;
         append = fopen(output_name, "a");
-        fprintf(append, "%e,%e,%d,%d,%.1f,%d\n",r->t,dE,r->N,r->ri_hermes.mini->N);
+        fprintf(append, "%e,%e,%d,%e,%e\n",r->t,dE,r->N,r->ri_hermes.hill_switch_factor,r->dt);
         fclose(append);
     }
     

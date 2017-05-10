@@ -44,9 +44,10 @@ def natural_key(string_):
 
 #plot dt vs.
 y_choice = int(sys.argv[1])      #0 = plot elapsed time, 1 = energy, 2=N_CE
-x_choice = 0                     #0 = dt, 1 = HSR, 2 = Np
+x_choice = 1                     #0 = dt, 1 = HSR, 2 = Np
 
-dirP = str('dtvdE_files/')
+#dirP = str('dtvdE_files/')
+dirP = 'output/'
 Navg = 3                       #number of points at end of .txt file to average energy over
 xvals = []
 
@@ -65,7 +66,7 @@ if x_choice == 1:   #HSR
     #yvals = ['Np500','Np5000']
     #path = '_th*_elapsedtime.txt'
     #yvals = ['Np1000_sd*']
-    yvals = ['Np0_th*']
+    yvals = ['']
     path = '_elapsedtime.txt'
     labels = ['simulation']
     marker = '.'
