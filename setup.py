@@ -17,7 +17,7 @@ try:
     ghash = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii")
     ghash_arg = "-DGITHASH="+ghash.strip()
 except:
-    ghash_arg = "-DGITHASH=efb3bc88bd08ae235ccde8295b1e99bd434bccfc" #GITHASHAUTOUPDATE
+    ghash_arg = "-DGITHASH=ac845995edf5a6a9adc02443239db46720a2cc39" #GITHASHAUTOUPDATE
 
 extra_link_args=[]
 if sys.platform == 'darwin':
@@ -33,6 +33,7 @@ libreboundmodule = Extension('librebound',
                                 'src/integrator_whfasthelio.c',
                                 'src/integrator_hermes.c',
                                 'src/integrator_leapfrog.c',
+                                'src/integrator_janus.c',
                                 'src/integrator_sei.c',
                                 'src/integrator.c',
                                 'src/gravity.c',
@@ -50,7 +51,8 @@ libreboundmodule = Extension('librebound',
                                 ],
                     include_dirs = ['src'],
                     define_macros=[ ('LIBREBOUND', None) ],
-                    extra_compile_args=['-fstrict-aliasing', '-O3','-std=c99','-march=native','-Wno-unknown-pragmas', ghash_arg, '-DLIBREBOUND', '-D_GNU_SOURCE', '-fPIC'],
+                    # Removed '-march=native' for now.
+                    extra_compile_args=['-fstrict-aliasing', '-O3','-std=c99','-Wno-unknown-pragmas', ghash_arg, '-DLIBREBOUND', '-D_GNU_SOURCE', '-fPIC'],
                     extra_link_args=extra_link_args,
                     )
 
@@ -59,7 +61,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='rebound',
-    version='3.2.3',
+    version='3.4.0',
     description='An open-source multi-purpose N-body code',
     long_description=long_description,
     url='http://github.com/hannorein/rebound',

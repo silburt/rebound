@@ -1,10 +1,10 @@
-export OPENGL=1
+export OPENGL=0
 include ../../src/Makefile.defs
 
 all: librebound
 	@echo ""
 	@echo "Compiling problem file ..."
-	$(CC) -I../../src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem_eccentric.c -L. -lrebound $(LIB) -o rebound
+	$(CC) -I../../src/ -Wl,-rpath,./ $(OPT) $(PREDEF) problem_massiveSS.c -L. -lrebound $(LIB) -o rebound
 	@echo ""
 	@echo "REBOUND compiled successfully."
 

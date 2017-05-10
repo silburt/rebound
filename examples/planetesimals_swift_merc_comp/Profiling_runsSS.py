@@ -8,13 +8,13 @@ import random
 import time
 
 #May31 Mercury_swifter comps
-tmax=1000
+tmax=5000
 N_runs = 10
-HSF = np.linspace(1,10,N_runs)
+HSF = np.linspace(2.5,3.5,N_runs)
 params = []
 for i in range(N_runs):
-    seed = 985
-    name = "output/t%.0e_HSF%d_sd%d"%(tmax,HSF[i],seed)
+    seed = 990
+    name = "output/t%.0e_HSF%.2f_sd%d"%(tmax,HSF[i],seed)
     params.append((tmax,HSF[i],seed,name))
 
 os.system('make')
