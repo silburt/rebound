@@ -63,7 +63,7 @@
 const int reb_max_messages_length = 1024;   // needs to be constant expression for array size
 const int reb_max_messages_N = 10;
 const char* reb_build_str = __DATE__ " " __TIME__;  // Date and time build string. 
-const char* reb_version_str = "3.2.3";         // **VERSIONLINE** This line gets updated automatically. Do not edit manually.
+const char* reb_version_str = "3.4.0";         // **VERSIONLINE** This line gets updated automatically. Do not edit manually.
 const char* reb_githash_str = STRINGIFY(GITHASH);             // This line gets updated automatically. Do not edit manually.
 
 void reb_step(struct reb_simulation* const r){
@@ -343,6 +343,13 @@ void reb_reset_temporary_pointers(struct reb_simulation* const r){
     r->ri_hermes.a_Nmax = 0;
     r->ri_hermes.a_i = NULL;
     r->ri_hermes.a_f = NULL;
+    // ********** JANUS
+    r->ri_janus.allocated_N = 0;
+    r->ri_janus.p_int = NULL;
+    r->ri_janus.recalculate_integer_coordinates_this_timestep = 0;
+    r->ri_janus.order = 6;
+    r->ri_janus.scale_pos = 1e-16;
+    r->ri_janus.scale_vel = 1e-16;
 }
 
 int reb_reset_function_pointers(struct reb_simulation* const r){
@@ -452,7 +459,6 @@ void reb_init_simulation(struct reb_simulation* r){
     r->ri_whfast.timestep_warning = 0;
     r->ri_whfast.recalculate_jacobi_but_not_synchronized_warning = 0;
     // ********** WHFASTHELIO
-    r->ri_whfasthelio.corrector = 0;
     r->ri_whfasthelio.safe_mode = 1;
     r->ri_whfasthelio.is_synchronized = 1;
     r->ri_whfasthelio.recalculate_heliocentric_this_timestep = 0;
@@ -479,7 +485,8 @@ void reb_init_simulation(struct reb_simulation* r){
     r->ri_hermes.solar_switch_factor = 15.;
     r->ri_hermes.hill_switch_factor = 3.;            
     r->ri_hermes.adaptive_hill_switch_factor = 1;    
-    r->ri_hermes.current_hill_switch_factor = 3.;     //Internal
+    r->ri_hermes.current_hill_switch_factor = r->ri_hermes.hill_switch_factor;     //Internal
+    r->ri_hermes.current_solar_switch_factor = r->ri_hermes.solar_switch_factor;   //Internal
     
     // Tree parameters. Will not be used unless gravity or collision search makes use of tree.
     r->tree_needs_update= 0;
