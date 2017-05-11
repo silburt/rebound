@@ -33,7 +33,7 @@ void output_to_mercury_swifter(struct reb_simulation* r, double HSR, double tmax
 int main(int argc, char* argv[]){
     struct reb_simulation* r = reb_create_simulation();
     //args
-    int test_dt = 0;
+    int test_dt = 1;
     double HSF_or_dt = atof(argv[1]);  //HSF or dt depending on test_dt value
     strcat(output_name,argv[2]); strcat(output_name,".txt"); argv4=argv[2];
     double theta = atof(argv[3])*PI;    //planetesimal angle around the planet (0-pi)
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
     r->ri_hermes.adaptive_hill_switch_factor = 0; 
     r->testparticle_type = 1;
     r->heartbeat	= heartbeat;
-    r->usleep = 300;
+    //r->usleep = 300;
     
     double afac = 1;
     double mfac = 1;

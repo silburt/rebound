@@ -9,16 +9,17 @@ import numpy as np
 
 #Specify what runs you want *****************************
 
-N_runs = 50
-HSF = np.logspace(-2,1.7,N_runs)
+N_runs = 400
+#HSF = np.logspace(-2,1.7,N_runs)
+dt = np.logspace(-5,0,N_runs)
 theta = np.linspace(0,1,N_runs)
 ff = random.sample(np.linspace(0,1,N_runs), N_runs)
 
 runs = []
 dir = 'output/'
 for i in xrange(0,N_runs):
-    name = dir+'HSF%.1e_theta%.2f_f%.2f'%(HSF[i],theta[i],ff[i])
-    runs.append([HSF[i],name,theta[i],ff[i]])
+    name = dir+'dt%.1e_theta%.2f_f%.2f'%(dt[i],theta[i],ff[i])
+    runs.append([dt[i],name,theta[i],ff[i]])
 
 os.system('make')
 
