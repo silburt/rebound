@@ -1,4 +1,5 @@
-OPT+= -std=c99 -Wpointer-arith -D_GNU_SOURCE -O3 -march=native
+OPT+= -std=c99 -Wpointer-arith -D_GNU_SOURCE -O3 
+# Removed -march=native for now
 ifndef OS
 	OS=$(shell uname)
 endif
@@ -27,7 +28,7 @@ endif
 ifeq ($(OPENGL), 1)
 PREDEF+= -DOPENGL
 ifeq ($(OS), Darwin)
-	LIB+= -lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+	LIB+= -lglfw -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 else
 	LIB+= -lglfw
 endif

@@ -1,4 +1,4 @@
-from ctypes import Structure, c_double, POINTER, c_float, c_int, c_uint, c_uint32, c_long, c_ulong, c_ulonglong, c_void_p, c_char_p, CFUNCTYPE, byref, create_string_buffer, addressof, pointer, cast
+from ctypes import Structure, c_double, POINTER, c_float, c_int, c_uint, c_uint32, c_int64, c_long, c_ulong, c_ulonglong, c_void_p, c_char_p, CFUNCTYPE, byref, create_string_buffer, addressof, pointer, cast
 from . import clibrebound, Escape, NoParticles, Encounter, SimulationError, ParticleNotFound
 from .particle import Particle
 from .units import units_convert_particle, check_units, convert_G
@@ -20,7 +20,7 @@ import types
 ### The following enum and class definitions need to
 ### consitent with those in rebound.h
         
-INTEGRATORS = {"ias15": 0, "whfast": 1, "sei": 2, "leapfrog": 4, "hermes": 5, "whfasthelio": 6, "none": 7}
+INTEGRATORS = {"ias15": 0, "whfast": 1, "sei": 2, "leapfrog": 4, "hermes": 5, "whfasthelio": 6, "none": 7, "janus": 8}
 BOUNDARIES = {"none": 0, "open": 1, "periodic": 2, "shear": 3}
 GRAVITIES = {"none": 0, "basic": 1, "compensated": 2, "tree": 3}
 COLLISIONS = {"none": 0, "direct": 1, "tree": 2}
@@ -192,8 +192,7 @@ class reb_simulation_integrator_whfasthelio(Structure):
         However, make sure you are aware of the consequences.
     """
 
-    _fields_ = [("corrector", c_uint),
-                ("recalculate_heliocentric_this_timestep", c_uint),
+    _fields_ = [("recalculate_heliocentric_this_timestep", c_uint),
                 ("safe_mode", c_uint),
                 ("p_h", POINTER(Particle)),
                 ("keep_unsynchronized", c_uint),
@@ -432,6 +431,17 @@ class Simulation(Structure):
 
 
 # Simulation Archive tools
+    @property 
+    def simulationarchive_filename(self):
+        """
+        Filename where to store SimulationArchive
+        """
+        return self._sa_filename.value.decode("ascii")
+    @simulationarchive_filename.setter
+    def simulationarchive_filename(self, filename):
+        self._sa_filename = c_char_p(filename.encode("ascii")) # keep a reference to string
+        self._simulationarchive_filename = self._sa_filename
+    
     def estimateSimulationArchiveSize(self, tmax):
         """
         This function estimates the SimulationArchive file size (in bytes)
@@ -486,7 +496,7 @@ class Simulation(Structure):
         >>> sim.initSimulationArchive("sa.bin",interval=1000.)
         >>> sim.integrate(1e8)
         """
-        self.simulationarchive_filename = c_char_p(filename.encode("ascii")) # Not sure if the memory is retained here..
+        self.simulationarchive_filename = filename
         if interval is None and interval_walltime is None:
             raise AttributeError("Need to specify either interval or interval_walltime.")
         self.simulationarchive_walltime = 0.
@@ -527,7 +537,7 @@ class Simulation(Structure):
         s += "REBOUND built on:    \t%s\n" %__build__
         s += "Number of particles: \t%d\n" %self.N       
         s += "Selected integrator: \t" + self.integrator + "\n"       
-        s += "Simulation time:     \t%f\n" %self.t
+        s += "Simulation time:     \t%.16e\n" %self.t
         s += "Current timestep:    \t%f\n" %self.dt
         if self.N>0:
             s += "---------------------------------\n"
@@ -644,7 +654,7 @@ class Simulation(Structure):
         Possible options for setting:
           1) Function pointer
           2) "merge": two colliding particles will merge) 
-          3) "harsphere": two colliding particles will bounce of using a set coefficient of restitution
+          3) "hardsphere": two colliding particles will bounce of using a set coefficient of restitution
         """
         raise AttributeError("You can only set C function pointers from python.")
     @collision_resolve.setter
@@ -1000,7 +1010,7 @@ class Simulation(Structure):
                 clibrebound.reb_add(byref(self), particle)
             elif isinstance(particle, list):
                 for p in particle:
-                    self.add(p)
+                    self.add(p, **kwargs)
             elif isinstance(particle,str):
                 if None in self.units.values():
                     self.units = ('AU', 'yr2pi', 'Msun')
@@ -1502,6 +1512,27 @@ class Variation(Structure):
         ps = ParticleList.from_address(ctypes.addressof(sim._particles.contents)+self.index*ctypes.sizeof(Particle))
         return ps
 
+class reb_particle_int(Structure):
+    _fields_ = [
+                ("x", c_int64),
+                ("y", c_int64),
+                ("z", c_int64),
+                ("vx", c_int64),
+                ("vy", c_int64),
+                ("vz", c_int64),
+                ]
+
+class reb_simulation_integrator_janus(Structure):
+    _fields_ = [
+                ("scale_pos",c_double),
+                ("scale_vel",c_double),
+                ("order", c_uint),
+                ("recalculate_integer_coordinates_this_timestep", c_uint),
+                ("p_int", POINTER(reb_particle_int)),
+                ("allocated_N",c_uint),
+                ]
+
+
 class reb_simulation_integrator_hermes(Structure):
     _fields_ = [("mini", POINTER(Simulation)),
                 ("global", POINTER(Simulation)),
@@ -1618,7 +1649,7 @@ Simulation._fields_ = [
                 ("simulationarchive_interval", c_double),
                 ("simulationarchive_interval_walltime", c_double),
                 ("simulationarchive_next", c_double),
-                ("simulationarchive_filename", c_char_p),
+                ("_simulationarchive_filename", c_char_p),
                 ("simulationarchive_walltime", c_double),
                 ("simulationarchive_time", timeval),
                 ("_visualization", c_int),
@@ -1631,6 +1662,7 @@ Simulation._fields_ = [
                 ("ri_ias15", reb_simulation_integrator_ias15),
                 ("ri_hermes", reb_simulation_integrator_hermes),
                 ("ri_whfasthelio", reb_simulation_integrator_whfasthelio),
+                ("ri_janus", reb_simulation_integrator_janus),
                 ("_additional_forces", CFUNCTYPE(None,POINTER(Simulation))),
                 ("_pre_timestep_modifications", CFUNCTYPE(None,POINTER(Simulation))),
                 ("_post_timestep_modifications", CFUNCTYPE(None,POINTER(Simulation))),
